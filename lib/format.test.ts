@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueOn, formatAmount, formatDay, formatMoney, plural } from "./format";
+import { dueOn, formatAmount, formatDay, formatMoney, isPastDue, plural, pricedLine } from "./format";
 
 describe("formatMoney", () => {
   it("shows dollars with commas and cents", () => {
@@ -59,5 +59,30 @@ describe("formatPhone", () => {
     const { formatPhone } = await import("./format");
     expect(formatPhone("+50370000132")).toBe("7000-0132");
     expect(formatPhone("ana@example.com")).toBe("ana@example.com");
+  });
+});
+
+describe("isPastDue", () => {
+  const due = "2026-11-20T18:00:00Z"; // noon on 20 nov in El Salvador
+
+  it("is false through the end of the due day in El Salvador, true from the next day", () => {
+    expect(isPastDue(due, Date.parse("2026-11-21T05:59:00Z"))).toBe(false); // 11:59 PM on the 20th
+    expect(isPastDue(due, Date.parse("2026-11-21T06:00:00Z"))).toBe(true);
+  });
+
+  it("is false for a bad date", () => {
+    expect(isPastDue("nope", Date.now())).toBe(false);
+  });
+});
+
+describe("pricedLine", () => {
+  it("reads a product with a price at the end", () => {
+    expect(pricedLine("Arroz 5 lb x 12  $54.00")).toEqual({ name: "Arroz 5 lb x 12", amount: 54 });
+    expect(pricedLine("Agua 600 ml x 24 $ 1,230.5")).toEqual({ name: "Agua 600 ml x 24", amount: 1230.5 });
+  });
+  it("leaves any other line as written", () => {
+    expect(pricedLine("Entregar antes de las 10")).toBeNull();
+    expect(pricedLine("$54.00")).toBeNull();
+    expect(pricedLine("Jugos $18.00 cada caja")).toBeNull();
   });
 });

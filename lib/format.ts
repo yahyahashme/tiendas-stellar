@@ -30,11 +30,17 @@ export function formatDay(iso: string, lang: "es" | "en" = "es"): string {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const localDay = (time: number) => Math.floor((time - EL_SALVADOR_OFFSET_MS) / DAY_MS);
 
+/** True once the due day is over in El Salvador. `now` is in milliseconds. */
+export function isPastDue(iso: string, now: number): boolean {
+  const time = Date.parse(iso);
+  return !Number.isNaN(time) && localDay(time) < localDay(now);
+}
+
 /** "Vence el 17 nov", or "Venció el 17 nov" once that day is over in El Salvador. `now` is in milliseconds. */
 export function dueOn(iso: string, now: number, lang: "es" | "en" = "es"): string {
   const time = Date.parse(iso);
   if (Number.isNaN(time)) return "";
-  const past = localDay(time) < localDay(now);
+  const past = isPastDue(iso, now);
   if (lang === "en") return `${past ? "Was due" : "Due"} ${formatDay(iso, "en")}`;
   return `${past ? "Venció" : "Vence"} el ${formatDay(iso)}`;
 }
@@ -48,4 +54,15 @@ export function plural(count: number, one: string, many: string): string {
 export function formatPhone(phone: string): string {
   const match = /^\+503(\d{4})(\d{4})$/.exec(phone);
   return match ? `${match[1]}-${match[2]}` : phone;
+}
+
+const PRICED = /^(.*\S)\s+\$\s?(\d[\d,]*(?:\.\d{1,2})?)$/;
+
+/**
+ * One line of an invoice's note. "Arroz 5 lb x 12  $54.00" is a product with a price, printed with a dotted
+ * leader; anything else prints as written (null). The shop's slip and the distributor's preview both use this.
+ */
+export function pricedLine(line: string): { name: string; amount: number } | null {
+  const found = PRICED.exec(line);
+  return found ? { name: found[1], amount: Number(found[2].replaceAll(",", "")) } : null;
 }

@@ -1,14 +1,14 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { ActionLink, ActionList, ActionRow, Button, ButtonLink, DetailLink, TextButton } from "@/components/kit/button";
-import { Field, FormError, MoneyField, PasswordField, SelectField } from "@/components/kit/field";
-import { Ledger, LedgerCard, type LedgerColumn, LedgerFigure, LedgerFigures, RowAction } from "@/components/kit/ledger";
+import { ActionLink, ActionList, ActionRow, Button, ButtonLink, DetailLink, Held, TextButton } from "@/components/kit/button";
+import { Field, FilterSelect, FormError, MoneyField, PasswordField, SelectField } from "@/components/kit/field";
+import { Ledger, LedgerCard, type LedgerColumn, LedgerFigure, LedgerFigures, RowAction, RowButton, RowLink } from "@/components/kit/ledger";
 import { Manifest, ManifestRow } from "@/components/kit/manifest";
 import { Money } from "@/components/kit/money";
 import { Paper, Receipt, ReceiptFold, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
 import { Stamp, type StampTone } from "@/components/kit/stamp";
-import { Empty, Failure, Loading, Notice } from "@/components/kit/states";
+import { Answer, Empty, Failure, Loading, Notice } from "@/components/kit/states";
 import { useT } from "@/lib/i18n";
 
 // Sample content for the design-system pages under /sistema. Nothing here loads or changes data.
@@ -130,13 +130,14 @@ export function Buttons() {
       <Button onClick={() => {}} hint={<><Money value={150} /> {t("con dólares digitales", "in digital dollars")}</>}>
         {t("Pagar ahora", "Pay now")}
       </Button>
-      <Button onClick={() => {}}>{t("Confirmo", "I confirm")}</Button>
+      <Button onClick={() => {}}>{t("Confirmo", "Confirm")}</Button>
       <Button onClick={() => {}} busy>
         {t("Pagar ahora", "Pay now")}
       </Button>
       <Button onClick={() => {}} disabled>
         {t("Pagar deuda", "Pay debt")}
       </Button>
+      <Held hint={t("No queda nada por pagar", "Nothing left to pay")}>{t("Factura pagada", "Invoice paid")}</Held>
       <Button onClick={() => {}} size="lg">
         {t("Recibí efectivo", "I received cash")}
       </Button>
@@ -205,13 +206,13 @@ export function SampleLedger({ rows = ROWS }: { rows?: Row[] }) {
     </Stamp>
   );
   const columns: LedgerColumn<Row>[] = [
-    { id: "id", header: t("Factura", "Invoice"), mono: true, secondary: true, cell: (row) => row.id },
-    { id: "shop", header: t("Tienda", "Shop"), cell: (row) => row.shop, total: "Total" },
+    { id: "id", header: t("N.º", "No."), mono: true, foldOnCard: true, cell: (row) => row.id },
+    { id: "shop", header: t("Tienda", "Shop"), grow: true, cell: (row) => row.shop, title: (row) => row.shop, total: "Total" },
     { id: "driver", header: t("Motorista", "Driver"), secondary: true, cell: (row) => row.driver },
     { id: "amount", header: t("Monto", "Amount"), figure: true, cell: (row) => <Money value={row.amount} />, total: <Money value={sum((row) => row.amount)} /> },
     { id: "paid", header: t("Pagado", "Paid"), figure: true, secondary: true, cell: (row) => <Money value={row.paid} />, total: <Money value={sum((row) => row.paid)} /> },
     { id: "status", header: t("Estado", "Status"), cell: stamp },
-    { id: "due", header: t("Vence", "Due"), mono: true, end: true, className: "whitespace-nowrap", cell: (row) => (lang === "en" ? row.dueEn : row.due) },
+    { id: "due", header: t("Vence", "Due"), mono: true, end: true, cell: (row) => (lang === "en" ? row.dueEn : row.due) },
   ];
   return (
     <Ledger
@@ -223,6 +224,64 @@ export function SampleLedger({ rows = ROWS }: { rows?: Row[] }) {
       actions={(row) => <RowAction onClick={() => {}} label={`${t("Repetir factura", "Repeat invoice")} ${row.id}`}>{t("Repetir", "Repeat")}</RowAction>}
       card={(row) => <LedgerCard title={row.shop} amount={<Money value={row.amount} />} stamp={stamp(row)} note={`${t("Vence", "Due")} ${lang === "en" ? row.dueEn : row.due}`} />}
     />
+  );
+}
+
+/** A ledger's filters: one row with room, two to a row on a phone. */
+export function SampleFilters() {
+  const { t } = useT();
+  const [status, setStatus] = useState("all");
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-2">
+      <FilterSelect label={t("Estado", "Status")} value={status} onChange={(event) => setStatus(event.target.value)}>
+        <option value="all">{t("Todas", "All")}</option>
+        <option value="due">{t("Pendiente", "Unpaid")}</option>
+        <option value="paid">{t("Pagada", "Paid")}</option>
+      </FilterSelect>
+      <FilterSelect label={t("Motorista", "Driver")} defaultValue="all">
+        <option value="all">{t("Todos", "All")}</option>
+        <option>Carlos</option>
+        <option>Ana</option>
+      </FilterSelect>
+    </div>
+  );
+}
+
+type CashRow = { name: string; cash: number };
+
+/** A small ledger whose rows carry their one action in view: a button, or words of the same height once it is done. */
+export function SampleCash() {
+  const { t } = useT();
+  const [handedIn, setHandedIn] = useState(false);
+  const rows: CashRow[] = [
+    { name: "Carlos", cash: handedIn ? 0 : 60 },
+    { name: "Ana", cash: 0 },
+  ];
+  const act = (row: CashRow) =>
+    row.cash > 0 ? (
+      <RowButton onClick={() => setHandedIn(true)}>{t("Marcar efectivo entregado", "Mark cash handed in")}</RowButton>
+    ) : (
+      <span className="inline-flex min-h-11 items-center justify-end font-sans text-label text-muted">{t("Nada por entregar", "Nothing to hand in")}</span>
+    );
+  const columns: LedgerColumn<CashRow>[] = [
+    { id: "driver", header: t("Motorista", "Driver"), grow: true, cell: (row) => row.name, total: "Total" },
+    { id: "cash", header: t("Efectivo", "Cash"), figure: true, cell: (row) => <Money value={row.cash} />, total: <Money value={rows.reduce((sum, row) => sum + row.cash, 0)} /> },
+    { id: "act", header: <span className="sr-only">{t("Entrega", "Hand-in")}</span>, end: true, className: "py-1", cell: act },
+  ];
+  return (
+    <div className="flex max-w-[44rem] flex-col gap-2">
+      <Ledger
+        label={t("Efectivo con motoristas", "Cash with drivers")}
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => row.name}
+        card={(row) => <LedgerCard title={row.name} amount={<Money value={row.cash} />} actions={act(row)} />}
+      />
+      <div className="min-h-6">{handedIn && <Answer receipt={{ ok: true, message: "Listo. Carlos entregó $60.00 en efectivo." }} />}</div>
+      <p>
+        <RowLink href="/sistema/shell">{t("Ver el historial", "See the history")}</RowLink>
+      </p>
+    </div>
   );
 }
 
