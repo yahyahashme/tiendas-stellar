@@ -76,7 +76,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 **Headline:** Distributors pay. Shops never do.
 
 1. Pay in 7 days: shop repays $100, distributor gets $98.50 now
-2. The distributor's fee, up to 1.5%: $0.75 loss buffer, $0.50 lenders, $0.25 us. (Less when the shop pays part up front.)
+2. The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
 3. Start with one distributor's routes, then Ecuador and Panama.
 
 **Small print:** Fees are the numbers in our testnet contract. Cash or digital invoices pay 0.1% (for cash it is recorded, but nothing collects it yet). Credit sales pay no usage fee. Ecuador and Panama also use the US dollar. A plan, not a deal: no distributor, bank or lender has agreed to anything. Entries 29, 25 and 26.

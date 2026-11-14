@@ -52,8 +52,8 @@ so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what 
 ## End card
 
 - App: https://relay-sv.vercel.app
-- Contract: `CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR`
-  (https://stellar.expert/explorer/testnet/contract/CDHDZX7VVOPY7TNKA744EQP24BPO5MJIZQOGJGYNGA7N7ZIZWQBQMYUR).
+- Contract: `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML`
+  (https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML). Redeployed for #139 (sliding credit fee); the one before was `CDHDZX7V…`.
   If the contract is redeployed (#52), copy the new ID from `config/testnet.json`.
 - Product name: **Relay**, with *Paga tu ruta* under it (PR #100)
 
