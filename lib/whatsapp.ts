@@ -21,6 +21,11 @@ type ReminderInput = {
   dueAt: number;
   now: number;
   link?: string;
+  /**
+   * Send the message here and not to `phone`: a whole number, country code first. "" opens WhatsApp with no number,
+   * and it asks who to send to. The demo uses it, since its shops' numbers are made up (lib/demo-contacts.ts).
+   */
+  to?: string;
 };
 
 function localPhoneDigits(phone: string): string {
@@ -43,6 +48,7 @@ export function reminderLink({
   dueAt,
   now,
   link,
+  to,
 }: ReminderInput): string {
   const digits = localPhoneDigits(phone);
   if (amountUnits <= 0n) throw new Error("Monto inválido.");
@@ -56,6 +62,7 @@ export function reminderLink({
   const howToPay = paymentLink ? ` Puede pagar aquí: ${paymentLink}` : "";
   const message = `Hola ${shopName}, ${reminder}.${howToPay} ¡Gracias!`;
 
+  if (to !== undefined) return `https://wa.me/${to.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
   return whatsappLink(digits, message);
 }
 

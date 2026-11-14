@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/kit/button";
 import { Shell, type ShellItem } from "@/components/kit/layout";
 import { Logo } from "@/components/logo";
 import { useT } from "@/lib/i18n";
+import { sectionInView } from "@/lib/sections";
 
 /**
  * The distributor's app: the sidebar (or top bar and bottom navigation) around every distributor screen.
@@ -38,7 +39,16 @@ export function DistributorShell({
   const section = useSectionInView(current === "panel" ? (demo ? ["facturas", "motoristas", "tiendas"] : ["facturas"]) : []);
   const at = (id: string | null) => current === "panel" && section.id === id;
   const nav: ShellItem[] = [
-    { href: "/distribuidor", label: t("Panel", "Dashboard"), current: at(null), onClick: () => section.choose(null) },
+    {
+      href: "/distribuidor",
+      label: t("Panel", "Dashboard"),
+      current: at(null),
+      // The link alone does not move a page that is already open, so the mark and the screen go to the top together.
+      onClick: () => {
+        section.choose(null);
+        if (current === "panel") window.scrollTo({ top: 0 });
+      },
+    },
     { href: "/distribuidor#facturas", label: t("Facturas", "Invoices"), current: at("facturas"), onClick: () => section.choose("facturas") },
     demo
       ? { href: "/distribuidor#motoristas", label: t("Motoristas", "Drivers"), current: at("motoristas"), onClick: () => section.choose("motoristas") }
@@ -65,8 +75,8 @@ export function DistributorShell({
 }
 
 /**
- * Which of a page's sections is in view: the last one whose top has passed the upper third of the screen, or null
- * above the first. A tap on a tab decides at once (`choose`), and scrolling takes over again a moment later, so the
+ * Which of a page's sections is in view: the lowest one whose top has passed the upper third of the screen, or null
+ * above the first (`sectionInView`). A tap on a tab decides at once (`choose`), and scrolling takes over again a moment later, so the
  * short last section of a page can still be marked.
  */
 function useSectionInView(ids: string[]) {
@@ -78,17 +88,21 @@ function useSectionInView(ids: string[]) {
     if (list.length === 0) return;
     const read = () => {
       if (Date.now() - chosenAt.current < 1200) return;
-      let found: string | null = null;
-      for (const name of list) {
+      // At the top of the page it is the page itself, even on a tall screen where the first section starts high up.
+      if (window.scrollY < 8) return setId(null);
+      const tops = list.flatMap((name) => {
         const el = document.getElementById(name);
-        if (el && el.getBoundingClientRect().top <= window.innerHeight / 3) found = name;
-      }
-      setId(found);
+        return el ? [{ id: name, top: el.getBoundingClientRect().top }] : [];
+      });
+      setId(sectionInView(tops, window.innerHeight / 3));
     };
     const start = window.location.hash.slice(1);
     if (list.includes(start)) {
       chosenAt.current = Date.now();
       setId(start);
+    } else {
+      // A page restored part of the way down has no scroll event to tell us where it is.
+      read();
     }
     window.addEventListener("scroll", read, { passive: true });
     return () => window.removeEventListener("scroll", read);

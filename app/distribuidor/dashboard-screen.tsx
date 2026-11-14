@@ -50,7 +50,8 @@ function shopReminder(shop: Shop, now: number): string | null {
       dueAt: shop.creditDue ? Math.floor(Date.parse(shop.creditDue) / 1000) : 0,
       now: Math.floor(now / 1000),
       link: site ? `${site}/tienda/cuenta/${shop.id}` : undefined,
-    }).replace(/^https:\/\/wa\.me\/\d+\?/, `https://wa.me/${DEMO_WHATSAPP}?`);
+      to: DEMO_WHATSAPP,
+    });
   } catch {
     return null;
   }
@@ -530,8 +531,8 @@ export default function DashboardScreen() {
         {owing.some((s) => DEMO_PHONES[s.id]) && (
           <p className="text-label text-muted">
             {t(
-              "Demo: los números son de prueba. Revise el mensaje, pero no lo envíe.",
-              "Demo: these are test phone numbers. Check the message, but don't send it. The message stays in Spanish, for the shop.",
+              "Demo: el mensaje no va a la tienda. Se abre en el WhatsApp del equipo.",
+              "Demo: the message does not go to the shop. It opens in the team's WhatsApp. It stays in Spanish, as a shop would get it.",
             )}
           </p>
         )}
