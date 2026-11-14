@@ -33,6 +33,32 @@ Yahya took both calls on Mon Nov 9. Both advisors prefer LinkedIn.
 
 Advisor contact isn't tracked here. Yahya reaches out when we have a genuine question worth their time: startups and customers for Advisor 1, technical and financial for Advisor 2.
 
+## Shop and distributor interview outreach (#7)
+
+On Nov 12–13 (ET), Ruhaan sent seven interview requests through public WhatsApp business numbers. Four went to grocery retailers and three to distributors. The requests asked for a short chat with someone responsible for purchasing, routes, sales, or credit. The Nov 13 check found two acknowledgments and four automated replies. No reply so far answered the interview questions.
+
+| Sent (ET) | Organisation | Reply as of Nov 13 |
+|---|---|---|
+| Nov 12 | Básicos Express | Customer service said it would forward the request to the responsible team. |
+| Nov 12 | Super Tienda Cleo | Automated reply outside business hours. |
+| Nov 12 | Sivar Market | Acknowledged the message. |
+| Nov 12 | Kip | Automated reply outside business hours. |
+| Nov 12 | Distribuidora Santa Ana | Automated reply with a catalog link. |
+| Nov 13 | DISNA | Awaiting reply. |
+| Nov 13 | Grupo Sabor Amigo | Automated reply outside business hours. |
+
+### Nonprofit outreach (Nov 13)
+
+Ruhaan emailed five nonprofits through university Outlook. Each message asked how neighbourhood shops pay suppliers and who could advise on turning cash into digital money. All five appeared in Sent Items. This brings the confirmed #7 outreach to 12 messages, with no completed interviews logged yet.
+
+| Sent (ET) | Organisation | Role |
+|---|---|---|
+| Nov 13 | FUSAI | Communications team |
+| Nov 13 | FADEMYPE | General enquiries |
+| Nov 13 | TechnoServe El Salvador | Country office |
+| Nov 13 | ADEL Morazán | General management |
+| Nov 13 | FUNDAMICRO | General enquiries |
+
 ## Partner outreach
 
 Sent from Rohan's university email. Organisation and role only (the repo is public).
@@ -53,7 +79,7 @@ Sent from Rohan's university email. Organisation and role only (the repo is publ
 
 ### Nov 12 round (16 emails)
 
-Rohan wrote 16 emails on Nov 12. The Outlook app was offline, so 13 sat in the Outbox as "Queued": none is confirmed sent yet. Rohan checks Sent Items, then changes "Queued" to "Sent" (or resends). The last 3 were never sent and are now Ruhaan's (#120).
+Rohan wrote 16 emails on Nov 12. Thirteen were queued in his Outlook Outbox and still need verification. Ruhaan sent the remaining three on Nov 13 ET and verified them in Waterloo Outlook Sent Items (#120).
 
 | Date | Organisation | Person and role | Channel | What we asked | Status |
 |---|---|---|---|---|---|
@@ -70,9 +96,9 @@ Rohan wrote 16 emails on Nov 12. The Outlook app was offline, so 13 sat in the O
 | Nov 12 | FUNDEMAS | General inbox | Email | Programs or firms working on payments or credit for tiendas | Queued, not confirmed |
 | Nov 12 | UCA | Economics researcher | Email | Studies on how tiendas pay distributors and finance stock | Queued, not confirmed |
 | Nov 12 | UCA | Professor | Email | How common supplier credit is for the smallest businesses | Queued, not confirmed |
-| | UCA | Professor (financial inclusion) | Email | Small merchants' trust in digital payments | Not sent: Ruhaan (#120) |
-| | Zumma Ratings | Analyst | Email | Default rates on short-term micro-credit | Not sent: Ruhaan (#120) |
-| | MicroRate | Analyst | Email | Same | Not sent: Ruhaan (#120) |
+| Nov 13 | UCA | Professor (financial inclusion) | Email | Small merchants' trust in digital payments | Sent via Waterloo Outlook (#120) |
+| Nov 13 | Zumma Ratings | Analyst | Email | Default rates on short-term micro-credit | Sent via Waterloo Outlook (#120) |
+| Nov 13 | MicroRate | Analyst | Email | Default rates on short-term micro-credit | Sent via Waterloo Outlook (#120) |
 
 ### Stellar anchor check (Nov 12)
 - The Stellar Anchor Directory (anchors.stellar.org), filtered to El Salvador and the "Cash" payment rail, lists two anchors: **MoneyGram Ramps** and **Bitnovo**. The directory doesn't say whether each one supports cash-in, cash-out or both in El Salvador, so Bitnovo is a new outreach target to ask. Without the cash filter it also lists Amero Exchange and Dollarize for El Salvador.

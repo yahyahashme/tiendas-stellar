@@ -11,8 +11,8 @@ Status as of Thu Nov 12, evening. Update the "Status" column when an input lands
 | 1 | Final wording of the worldwide number (#51), due Sat noon | Rohan | **Done.** #51 is closed and PR #73 is merged (Nov 12): entry 22 and the "Opening line" are in `docs/facts.md` on `main`. | The 0:00 segment is the #73 opening line ($5.7 trillion) with "says Conamype" added (entry 1 asks for the attribution) and without "alone" after "In El Salvador". Put "alone" back to match #73 word for word (+1 word, 0.4 s). |
 | 2 | Team name (#26) | Everyone | **Done.** Yahya picked **Relay**, tagline **Paga tu ruta**, on Nov 12 (PR #100, merged: `lib/brand.ts` has both). The app is at **relay-sv.vercel.app**; the old tiendas-stellar address only redirects (PR #102). | Relay is in the script, the board and the answer bank. The board shows the tagline under the title and prints the address under the QR. Nothing is left to do here. |
 | 3 | Pitcher (#26) | Everyone | **Open.** #26 is closed and records no pitcher either. | Written for one speaker, in first person. |
-| 4 | "What we heard from N people" (#30). | Rohan | **Cut from the board on Sat Nov 14 (#40).** The team has spoken to 0 people: PR #152 logs messages sent (7 requests to shops and distributors, 5 advice emails to nonprofits), not conversations, and the team rule (#61) is that a zero means the line is cut, not "0". The two advisor calls are advisors, not users. `docs/research.md` still logs only those calls. | The board has no "what we heard" panel and no yellow. Add one back only with a real count. The spoken script (sections 2 and 4) and the deck still have `[N]`: cut those lines too (#39, #41). |
-| 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Done Sat Nov 14 (#40).** The Nov 13 captures were from before #125 and #126 (the ES / EN switch, the paper-slip screens and the sticky pay buttons), so they were retaken from `main` in mock mode: `docs/trifold/img/shop-pay.png`, `shop-credit.png`, `driver-cash.png`, 360 x 760 px at device pixel ratio 3 (1080 x 2280 px, 185 pixels per inch at 6 in), with the testnet banner in frame (the driver one is scrolled so its QR and the "Recibí efectivo" button both show). | Three real screens on the board. |
+| 4 | "What we heard from N people" (#30). | Rohan | **Cut from the board on Sat Nov 14 (#40).** The team has spoken to 0 people: PR #152 logs messages sent (7 requests to shops and distributors, 5 advice emails to nonprofits), not conversations, and the team rule (#61) is that a zero means the line is cut, not "0". The two advisor calls are advisors, not users. `docs/research.md` still logs only those calls. | The board has no "what we heard" panel and no yellow. Add one back only with a real count. The script and the deck already say messages sent and 0 conversations. |
+| 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Done Sat Nov 14 (#40).** The Nov 13 captures were from before #125 and #126 (the ES / EN switch, the paper-slip screens and the sticky pay buttons), so they were retaken from `main` in mock mode: `docs/trifold/img/shop-pay.png`, `shop-credit.png`, `driver-cash.png`, 360 x 760 px at device pixel ratio 3 (1080 x 2280 px, 185 pixels per inch at 6 in), with the testnet banner in frame (the driver one is scrolled so its QR and the "Recibí efectivo" button both show). | Three real screens on the board, but they are pre-redesign and show old numbers (7 days, $200 limit). Retake all three on the final deploy Sunday, after the team agrees the product. |
 | 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). PR #102 (Nov 12) regenerated it for the new address. Decoded on Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. `curl -sI https://relay-sv.vercel.app` answers 200. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
 | 7 | Board size | Yahya | **Done Nov 14:** measured 27 in tall, 9 + 19 + 9 in. | `trifold.html` is built at that size; layouts A and B are gone. |
 | 8 | Paper sketch agreed, print-ready file link in the group chat | Yahya | **Open.** The layout builds a 37 x 27 in PDF (`node docs/trifold/render.mjs`). Product numbers are yellow until the team agrees the final product (Sun afternoon). | The PDFs are not committed (`out/` is git-ignored); Yahya builds the final one and shares it. |
@@ -20,50 +20,25 @@ Status as of Thu Nov 12, evening. Update the "Status" column when an input lands
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
 | 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board was then 446 words (was 401; it is 456 now), text share 15.5% (A) and 15% (B) then (16.0% and 15.4% now), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
 
-**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74, closed without merging; #12 is still open) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:19` and `:580`). This file uses $98.50, as `docs/facts.md` entry 29 does (it lists $98.40 under "Never use"). Rohan should make sure the assumptions doc that replaces #74 says $98.50 before the finals.
+**Fee fix needed.** Issue #37 and Rohan's assumptions draft (PR #74, closed without merging; #12 is still open) say the distributor gets **$98.40** on a $100 sale. The contract pays **$98.50**. $98.40 was the older version with a 0.10% usage fee on top of the 1.5% credit fee. That fee was dropped for credit sales on Nov 10 (context §16; `lib.rs:17-19` and `:613-618`). This file uses $98.50, as `docs/facts.md` entry 29 does (it lists $98.40 under "Never use"). Rohan should make sure the assumptions doc that replaces #74 says $98.50 before the finals.
 
 ## 1. Trifold
 
 **The print file** is `docs/trifold/trifold.html`: the layout at the board's real size, 9 + 19 + 9 in wide and 27 in tall (about 37 x 27 in open). `node docs/trifold/render.mjs` builds a PDF of the whole board plus one PDF per panel (`-left`, `-centre`, `-right`, each at its own size, for a shop that prints panel by panel) in `docs/trifold/out/` (git-ignored: share the PDFs, don't commit them), and a small preview with the fold marks drawn on (`docs/trifold/preview-9-19-9.jpg`). It needs Google Chrome and no npm packages. The call script and email for the print shop are in `docs/trifold/print-shop.md`. Anything still missing is yellow, and `node docs/trifold/render.mjs --final` refuses to build while yellow is left or a picture is under 100 pixels per inch. The copy in the panels below is the copy on the board; edit both together.
 
-### Which fold? Measure the board first
+### The board (measured Nov 14)
 
-Nobody has measured our board. Most 36 x 48 in tri-fold boards are 36 in tall and fold **12 + 24 + 12 in**: a wide centre and two narrow wings. The first draft of this file assumed **three 16 in panels**. The two layouts are very different, so both are built:
+Velocity's board is 27 in tall and folds **9 + 19 + 9 in** (about 37 x 27 in open). Layouts A (12 + 24 + 12) and B (16 + 16 + 16) are gone. Preview: `docs/trifold/preview-9-19-9.jpg`.
 
-| | **A: 12 + 24 + 12 in** | **B: 16 + 16 + 16 in** |
-|---|---|---|
-| Preview | `preview-12-24-12.jpg` | `preview-16-16-16.jpg` |
-| Left: the problem | 12 in wing | 16 in |
-| Centre: name, two key points, phones, QR, diagram | 24 in | 16 in |
-| Right: the business | 12 in wing | 16 in |
-| Phones, each | 6 in wide | 3.95 in wide |
-| Two key points | 50 pt | 40 pt |
-| Diagram | 17 in wide: 113 pixels per inch at 1x | 14.5 in wide: 132 pixels per inch at 1x |
-| Text share of the board | 16.0% | 15.4% |
+**No final product numbers yet (Yahya, Nov 14).** Days to pay, payout, fee and its split, and the starting limit are yellow `[ ]` boxes on the board and in the copy below, until the team agrees the final product (Sunday afternoon). `render.mjs --final` fails until they are filled, on purpose.
 
-**Measured (Nov 14):** the board Velocity handed out is 27 in tall, 9 + 19 + 9 in wide (about 37 x 27 in open). `trifold.html` is set to that size; layouts A and B are gone. Product numbers are yellow placeholders until the team agrees the final product.
+### What the layout checks (Nov 14, 9 + 19 + 9 in)
 
-```
-A: 12 + 24 + 12 in                                B: 16 + 16 + 16 in
-+----------+--------------------+----------+     +--------------+--------------+--------------+
-| THE      | Relay (96 pt)      | THE      |     | THE PROBLEM  | Relay        | THE BUSINESS |
-| PROBLEM  | Paga tu ruta       | BUSINESS |     |              | Paga tu ruta |              |
-|          | KEY POINT 1        |          |     | Rosa, 2 para | KEY POINT 1  | $100 delivery|
-| Rosa     | KEY POINT 2        | $100     |     |              | KEY POINT 2  | Our plan     |
-|          | HOW IT WORKS       | delivery |     | $5.7 tn      | HOW IT WORKS | Where next   |
-| $5.7 tn  | [ph]  [ph]  [ph]   | Our plan |     | $2 bn a year | [ph][ph][ph] | Risk #1      |
-| $2 bn    |                    | Next     |     | $35 per $100 | [QR] Scan    |              |
-| $35      | [QR]  [diagram   ] | Risk #1  |     |              | [diagram   ] |              |
-| sources  |                    |          |     | sources      |              |              |
-+----------+--------------------+----------+     +--------------+--------------+--------------+
-```
-
-### What the layout checks (re-measured Nov 12 night, after Relay went in; both layouts pass)
-
-- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.5 in on the left wing in A (9.9 in on the left panel in B; 7.1 and 7.6 in on the right), so it still looks airy, not crowded. (Re-measured Sat Nov 14 after the "what we heard" panel was cut.)
-- Text covers 14.3% (A) and 13.7% (B) of the board, against the 25% limit. The board carries **406 words**, 99 of them 16 pt source lines (456 words, 118 of them source lines, before the Nov 14 cuts of the crews sentence and its source line, and the "what we heard" panel; 452 before Relay, the tagline "Paga tu ruta" and the printed address went in: the name replaced one yellow `[NAME]`, so +3 for the tagline and +1 for `relay-sv.vercel.app`; 401 before the Nov 12 source-check edits; 446 before the facts entry 40 cite and the "(2019 survey)" added to the Rosa line and the first key point). (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
-- Type: body 32 pt (the top of Velocity's 24 to 32 pt), captions 28 pt, headings 38 to 40 pt, title 96 pt, source lines 16 pt. The three big numbers (104 pt) and the two key points (50 pt or 40 pt) are display type, on purpose larger than a heading.
-- The QR is 5 in square with a white border (the assembly spec in PR #85, `docs/trifold-assembly.md`, asks for at least 4 in). The PDF is one page, 3456 x 2592 pt, with the fonts embedded and the text kept as text.
+- All three panels fit; nothing crosses a fold.
+- Text covers about 15% of the board (limit 25%).
+- Type: body 24 pt (the bottom of Velocity's 24 to 32 pt), captions 24 pt, headings 28 to 30 pt, title 72 pt, source lines 12 pt. The three big numbers (76 pt) and the two key points (36 pt) are display type.
+- The QR picture is 4.4 in square on a white card (the assembly spec asks for at least 4 in). Scan the printed board from about 1 m on 3 phones; that test decides.
+- Pictures: phone screens 241 pixels per inch, QR about 270, diagram 144 at 1x (the 2x file below would fix it).
 
 ### To ask for, through Jack (the owner of PR #85, the Sunday scaffold)
 
@@ -80,7 +55,7 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 
 > **Relay**
 > **Paga tu ruta**
-> Pay the truck now, in cash, or in 7 days. No interest.
+> Pay the truck now, in cash, or in [N] days. No interest.
 
 ### Left panel: the problem
 
@@ -94,10 +69,10 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 > **$2 billion a year**
 > what distributors sell to El Salvador's 50,000+ neighbourhood shops (Conamype estimate)
 >
-> **$35 per $100**
+> **About $35 per $100**
 > what a loan shark charges (2019 survey). 6 in 10 informal small businesses have borrowed from one.
 
-Small print (14 pt):
+Small print (12 pt):
 - "Rosa is an example, not a real interview."
 - $5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.
 - $2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.
@@ -110,7 +85,7 @@ Source check, Nov 14: the crews line ("Delivery crews in El Salvador have been r
 
 > **How it works**
 > Pay now: digital dollars
-> Pay in 7 days: full price, no interest
+> Pay in [N] days: full price, no interest
 > Cash: driver and shop confirm with two taps
 > Scan to try it
 > relay-sv.vercel.app
@@ -124,10 +99,11 @@ Source check, Nov 14: the crews line ("Delivery crews in El Salvador have been r
 ### Right panel: the business
 
 > **The business**
-> **One $100 delivery, paid in 7 days**
-> The lender pool pays the distributor now: **$98.50**
-> The shop repays in 7 days: **$100**, no interest
-> The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
+> **One $100 delivery, paid in [N] days**
+> The lender pool pays the distributor now: **[payout]**
+> The shop repays in [N] days: **$100**, no interest
+> The fee, up to [X]%: [buffer] buffer, [lenders] lenders, [our cut] us
+> Every shop starts at a [$ limit] credit limit
 > The distributor pays because it is paid at the door and carries no risk of the shop not paying.
 >
 > **Our plan**
@@ -147,7 +123,7 @@ There is no "what we heard" panel (cut Nov 14: 0 conversations, see open item 4)
 
 ## 2. Pitch script v1 (3:00, one speaker, the 1-minute video included)
 
-The draft has 259 spoken words. At 140 words a minute, the full one-minute video and two seconds on each side for playback put the pitch at about 2:55. Count the final wording after filling the placeholders and time it aloud in the first run-through (#39).
+The draft has 259 words by a plain word count. At 140 words a minute, the full one-minute video and two seconds on each side for playback put the pitch at about 2:55. That count treats "$5.7", "50,000", "$98.50" and "1.5%" as one word each; said aloud they are about 18 more words, which puts the run at about 3:03 (see "Said aloud" under the table). Count the final wording after filling the placeholders and time it aloud in the first run-through (#39).
 
 ### 0:00 to 0:25
 
@@ -167,7 +143,9 @@ Play the full 60-second working-prototype video from 0:00. Keep the MP4 on the l
 
 ### 2:30 to 2:50
 
-> Our biggest risk: turning a shop's cash into digital dollars isn't solved, and our demo simulates it. Our plan: shops repay weekly like a bill, and a licensed partner converts in bulk and does KYC and KYB. We spoke to [N] people; they made us change [one thing].
+> Our biggest risk: turning a shop's cash into digital dollars isn't solved, and our demo simulates it. Our plan: shops repay weekly like a bill, and a licensed partner converts in bulk and does KYC and KYB. We've asked [7] grocers and distributors to talk; zero conversations yet.
+
+Written to match the research log as of Nov 13 (PR #152, still open): 7 interview requests sent, 0 conversations. Fill `[7]` from `docs/research.md` before each run. If a real conversation is logged by then, use the old line instead: "We spoke to [N] people; they made us change [one thing]." Never say "we spoke to" for a request that got no answer.
 
 ### 2:50 to 3:00
 
@@ -196,6 +174,8 @@ That leaves about **5 s** under the 3:00 limit. At 130 words a minute, the estim
 
 Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet and our technical and finance advisor require them.
 
+**Said aloud (checked Nov 13).** The table counts "$98.50" as one word. Spoken, the numbers add words: "$5.7 trillion", "50,000", "$2 billion", "$35 per $100" and "2019" add 9 in the 0:00 segment, "2001" adds 2 in the 0:25 segment, and "$100 sale", "$98.50", "1.5%" and "$100" add 7 in the 1:55 segment. That is about 18 more, so about 277 spoken words. At 140 words a minute the run is about 3:03 (over), at 145 about 2:59, at 150 about 2:55. Plan on cut 1 from the first run (about 2:57 at 140) and add cut 2 if it still runs long (about 2:49). The first timed run decides.
+
 **Delivery notes**
 - "Rosa" is made up. Say "picture", so nobody takes her for a real interview, and drop her if #30 gives us a real story we may tell.
 - Keep "in a 2019 survey" and "says Conamype". The fact sheet's "say this, not that" table requires the year and the attribution.
@@ -205,11 +185,13 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 
 | What the pitch or trifold says | Checked against | Result |
 |---|---|---|
-| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19` ("$98.50 for every $100"), `:22` (`CREDIT_FEE_BPS` = 150), `:580` (payout = amount minus that fee); `lib/labels.ts` | Matches (facts entry 29). Issue #37 and PR #74 say $98.40, which is out of date. |
-| The 1.5% splits $0.75 buffer, $0.50 lenders, $0.25 us | `lib.rs:22-29`, with a compile-time check that the three add up | Matches |
-| The shop pays no fee and no interest | `lib.rs:385-388` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:605` (the shop owes only `amount`) | Matches |
+| The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:17-19` ("$98.50 for every $100"), `:24` (`CREDIT_FEE_BPS` = 150), `:616-618` (payout = amount minus the rate from `credit_fee_bps`, `:837`); `lib/labels.ts` | Matches for a fully credited invoice (facts entry 29). Since #139 the fee slides down to 1.00% when the shop pays part up front, so $98.50 is the lowest payout. Issue #37 and PR #74 say $98.40, which is out of date. |
+| At the full 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us | `lib.rs:21-30` and `fee_split` (`:852`): the lenders always get 0.50%, the rest splits 3:1 buffer to us. The compile-time check of the three constants is gone | Matches at 1.5%. At 1.00% it is 0.38 / 0.50 / 0.12. "Up to 75 cents" for the buffer and "at most 25 cents" for us are the safe words. |
+| The shop pays no fee and no interest | `lib.rs:420-423` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:608` and `:649` (the shop owes only the unpaid `amount`) | Matches |
 | 0.1% on invoices paid now or in cash | `USAGE_FEE_BPS = 10` (`lib.rs:20`); context §5 | Matches. Credit sales pay no usage fee. |
-| Repaying on time builds a record | The limit grows by $25 up to $500 (`LIMIT_STEP`, `LIMIT_CAP`, `lib.rs:32-34`, `:678`), only after a $40+ cycle and once per credit period (context §16, Nov 10) | Matches. The script says "builds a record" and no more. |
+| Repaying on time builds a record | The limit grows by $25 up to $500 (`LIMIT_STEP`, `LIMIT_CAP`, `lib.rs:33-35`, `:718-732`), only after a $40+ cycle (or $10 with half of every credited invoice paid up front, `MIN_BORROW_WITH_HALF`, `:42`) and once per credit period (context §16, Nov 10; #139) | Matches. The script says "builds a record" and no more. |
+| A shop that pays late loses limit (answer 4) | Up to 1 day late (`GRACE_DAYS`, `:49`) counts as on time; 2 to 7 days late drops the limit $25; 8 or more days drops $50 and blocks raises for 4 credit periods (`:51-55`, `:733-745`). No new credit while overdue (`:604-606`) | Matches (#139, #137). The answer says "paying late cuts the limit" and no more. |
+| If a shop never pays, the buffer repays the lenders first (answer 4) | `cover_default` (`:758`): only the admin can call it, only 4 credit periods (`DEFAULT_AFTER_PERIODS`, `:59`) after the due date; the buffer pays `owed.min(buffer)` (`:772`) and the shop's limit goes to $0 | Matches. It is not automatic, so the answer says "we write it off". Losses past the buffer fall on the lenders (`docs/security.md` limit 11). |
 | Live on Stellar testnet with test dollars, cash-in simulated | Context §6; the diagram says "Stellar testnet" and "Test USDC" | Matches |
 | Names stay off the public ledger | Context §8.4; the diagram | Matches. Amounts are public. |
 | "Public contract", not "open source" | #48 removed the MIT licence; the code is all rights reserved | The repo is public and the contract is checkable on Stellar. Do not say "open source". |
@@ -220,7 +202,8 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | Entry 38: moneygram.com/stellar, "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"; its coverage data lists El Salvador as cash-out only | Matches entry 38's safe wording ("as far as we found"). "Cash-out only" is false in general. No person has looked at the map yet (entry 38). |
 | The product is called Relay, tagline "Paga tu ruta" (script, board title) | `lib/brand.ts` on `main`: `APP_NAME = "Relay"`, `TAGLINE = "Paga tu ruta"`; PR #100 | Matches |
 | The app is at relay-sv.vercel.app (board, under the QR) | `curl -sI https://relay-sv.vercel.app` answers 200 (Nov 12 night); the old tiendas-stellar address answers 307 to it. `public/qr-demo.png` decodes (macOS CoreImage) to `https://relay-sv.vercel.app/demo` | Matches |
-| Fee sponsorship and passkeys | Not on `main`. The diagram says "Will pay the network fees". | **Not claimed** in either text. |
+| Fee sponsorship (the diagram says "Pays the network fees (fee sponsorship)") | Built in #113 (merged Nov 13): when the sponsor key is set, every app transaction goes out inside a fee bump that the sponsor pays. #113 says the key is set in Vercel; we did not look at Vercel's settings. Checked Nov 13 on Horizon testnet (public): the test transaction in #113, `1491673f…`, has `fee_account` `GA4Q52…` (the sponsor) and source Tienda Rosa `GD2HWN…`; the sponsor's 8 most recent transactions (19:41 to 19:51 UTC) came from 6 different accounts, all successful. | **Claimable**, worded: "our sponsor account pays the network fees". Not "gasless" and not "users never need XLM": the demo accounts hold test XLM. |
+| Passkeys | Not on `main`. | **Not claimed** in either text. |
 
 ## 4. Never say
 
@@ -228,13 +211,13 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 - "$5.7 trillion" as our market or what we can earn. It is a finance gap.
 - "85,265 neighbourhood shops" on its own (it counts eateries and street vendors), "85% owned by women" (say "most"), "62% of small businesses" (it is informal ones), "$35 per $100" without the year.
 - "8 in 10 pay suppliers in cash" or "mostly in cash" for El Salvador alone. The 80% covers four countries.
-- "Open source", "audited" (we did a contract safety review with tests, `docs/security.md`, not an outside audit), "fee sponsorship" or "passkeys" as built.
+- "Open source", "audited" (we did a contract safety review with tests, `docs/security.md`, not an outside audit) or "passkeys" as built. Fee sponsorship is built (#113, section 3): say "our sponsor account pays the network fees", not "gasless" or "users never need XLM".
 - That any bank, cash-in company or lender has agreed to anything.
 - To shop owners: "blockchain", "wallet", "crypto". Say "dólares digitales". To judges, say Stellar.
 
 ## 5. Answer bank for the judge questions (#39)
 
-The eight questions from #39, each with an answer that fits **20 seconds (46 words at 140 words a minute)**; the money answer gets 30 seconds (70 words). Written Nov 11, using only facts from `docs/facts.md`, the contract, `docs/credit-model.md` and `docs/context.md`. **Audited Nov 12 evening against #39:** all eight answers fit (35 to 46 words, 15.0 to 19.7 s; the money answer is 59 words, 25.3 s, inside its 30 s), and every follow-up is 41 words or fewer, so none was shortened. Where something is our own reasoning or a guess, the answer says so. A `[bracket]` is filled from `docs/research.md` (#7, #30); if a count is zero, say zero.
+The eight questions from #39, each with an answer that fits **20 seconds (46 words at 140 words a minute)**; the money answer gets 30 seconds (70 words). Written Nov 11, using only facts from `docs/facts.md`, the contract, `docs/credit-model.md` and `docs/context.md`. **Audited Nov 12 evening against #39:** all eight answers fit (35 to 46 words, 15.0 to 19.7 s; the money answer is 59 words, 25.3 s, inside its 30 s), and every follow-up is 41 words or fewer, so none was shortened. **Re-audited Nov 13 night, after #139 (sliding fee, graded lateness) and the outreach logs:** all eight still fit (31 to 46 words, 13.3 to 19.7 s) and every follow-up is 45 words or fewer. Changed: answer 2 (the email count is now filled in, and the distributor-first line is shorter), answer 4 (late payment cuts the limit; the buffer is "up to" 75 cents; "we write it off", because the admin does it by hand) and its follow-up, answer 5 ("Our plan:" before the licensed partner, which does not exist yet), answer 8 (zero conversations, said plainly) and the money follow-up (our share is "at most" 0.25%). Answer 1's own wording is PR #163's job; with it the money answer is 65 words, about 28 s at 140 a minute, still inside 30. Where something is our own reasoning or a guess, the answer says so. A `[bracket]` is filled from `docs/research.md` (#7, #30); if a count is zero, say zero.
 
 **How to grade a run-through answer** (for the asker, #39): 1) *Accurate:* every number matches its "Facts" line. 2) *Clear:* someone who has never heard of a tienda follows it. 3) *On time:* 20 seconds or less. 4) *Honest:* it says "plan" where nothing is signed, and "our guess" where it is one. Write what was weak under "Sunday fixes" at the end of this section, and rewrite the answer here.
 
@@ -246,14 +229,14 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 - **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
 - **Must include:** the distributor pays, the shop never does; both fee rates; the contract is public.
 - **Never:** MoneyGram's 5%, or "we charge shops".
-- **If they push, "how big could it get?" (20 s):** > As a scenario, not a forecast: if 10% of the $2 billion went through pay in 7 days, our 0.25% is about $500,000 a year, plus 0.1% on the rest, about $1.8 million. That is our guess; Rohan is checking it. (41 words; facts entry 30, context §5. Rohan's `docs/assumptions.md` (#12) replaces this when it lands.)
+- **If they push, "how big could it get?" (20 s):** > A scenario, not a forecast: if 10% of the $2 billion used pay in 7 days, our share (at most 0.25%) is up to $500,000 a year, plus 0.1% on the rest, about $1.8 million. It's our guess; the maths is in our assumptions doc. (45 words; facts entry 30, context §5, `docs/assumptions.md` (merged, #144). "At most" and "up to" because the credit fee slides below 1.5% when a shop pays part up front, #139.)
 
 ### 2. How do you get into El Salvador?
 
-> We start with one mid-size distributor's routes: the driver's QR opens the app, nothing to install. For cash, a bank or cash-in partner. A licensed lender or cooperative funds the pool. That's a plan: nobody has agreed yet. We've emailed [N] partners.
+> We start with one distributor's routes: the driver's QR opens the app, nothing to install. For cash, a bank or cash-in partner. A licensed lender funds the pool. None of it is agreed. We've emailed four banks and a supermarket chain; one auto-reply so far.
 
-42 words, 18.0 s.
-- **Facts:** context §14; our startup advisor (§14, `docs/research.md` "Advisor 1"): partner with banks and cash-in companies that already have a reputation in El Salvador. The count of emails and replies comes from `docs/research.md`.
+45 words, 19.3 s.
+- **Facts:** context §14; our startup advisor (§14, `docs/research.md` "Advisor 1"): partner with banks and cash-in companies that already have a reputation in El Salvador. The email count is the `docs/research.md` "Pitch line (so far)": 5 organisations emailed on Nov 10 (Promerica, Abank, Integral, Davivienda, Súper Selectos), no replies beyond Davivienda's out-of-office auto-reply. The Nov 12 round of 16 is not counted until each email is confirmed sent. If the log shows more confirmed sends by the run, change the count; never say "talked to" for an email.
 - **Must include:** one distributor first; a partner for cash; a licensed lender; that none of it is agreed.
 - **Never:** that any bank, cash-in company or lender has agreed to anything.
 - **If they push, "why would a distributor switch?":** > It is paid at the door instead of a week later, and carries less cash and less risk. (18 words; context §5. "Sells more" was cut Nov 12: it is our assumption, not a fact.)
@@ -270,19 +253,19 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 4. What if a shop doesn't pay?
 
-> Limits start small and top out at $500. No new credit while anything is overdue. A buffer, 75 cents of each $100 fee, absorbs losses first. Four periods late, it repays the lenders what it can and the shop's credit is cut off.
+> Limits start small, capped at $500. Paying late cuts the limit; nothing new is lent while anything is overdue. A buffer, up to 75 cents per $100 lent, absorbs losses first. Four periods late, we write it off and the buffer repays lenders what it can.
 
-43 words, 18.4 s.
-- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** Every shop starts at $200 (#134); matching it to one average delivery is a later step (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
-- **Must include:** small limits, nothing new while overdue, the buffer, the four-period rule.
+46 words, 19.7 s.
+- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; the buffer share from `fee_split` (0.75% of a credit sale at the full 1.5% fee, 0.38% at the lowest 1.00%, #139); late repayment cuts the limit $25 (2 to 7 days late) or $50 and blocks raises for 4 periods (8 or more days; #137, `docs/credit-model.md`); `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** Every shop starts at $200 (#134); matching it to one average delivery is a later step (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
+- **Must include:** small limits, late payment cuts the limit, nothing new while overdue, the buffer, the four-period rule.
 - **Never:** "no risk", or that the contract writes off a debt automatically.
-- **If they push, "what if losses beat the buffer?":** > Past about 0.75% of credit sales lost, the buffer is used up and the lenders take the loss. That's why limits start small and a licensed lender, not us, funds the pool. (32 words; context §5, "what could break it".)
+- **If they push, "what if losses beat the buffer?":** > The buffer fills with up to 0.75% of each credit sale: less when shops pay part up front. Losses beyond it fall on the lenders. That's why limits start small and a licensed lender, not us, funds the pool. (39 words; context §5, "what could break it"; fee split #139.)
 
 ### 5. Is it legal? (interest-rate cap, KYC/KYB)
 
-> Shops pay no interest; distributors pay a fee to be paid early. Interest is capped by law, so a lawyer should confirm that fee isn't interest. A licensed partner lends and does KYC on shop owners and KYB on distributors. We aren't the lender.
+> Shops pay no interest; distributors pay a fee to be paid early. Interest is capped by law, so a lawyer should confirm that fee isn't interest. Our plan: a licensed partner lends and does KYC on shop owners and KYB on distributors. We aren't the lender.
 
-44 words, 18.9 s.
+46 words, 19.7 s.
 - **Facts:** `docs/facts.md` entry 18 (Ley Contra la Usura; its caveat: "a lawyer should confirm that fee isn't treated as interest"); context §11 and §14 (a licensed lender; KYC and KYB done by the licensed partner; we are not the lender).
 - **Must include:** no interest for shops; the lawyer check; KYC and KYB; "not the lender".
 - **Never:** "it is legal" or "it is approved", or that we hold a licence. We have none.
@@ -295,7 +278,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 46 words, 19.7 s.
 - **Facts:** entry 14 (Transfer365: free, between bank accounts, more than $4 billion a month; say "more than 9 in 10", not 93% or 95.3%); entries 12 and 13 ("fewer than half of adults"); context §14 for the reasoning.
 - **Must include:** Transfer365 is free and good but needs an account; no credit or invoice records; a shared, checkable record; Stellar's own figures: final in about five seconds, fees "under a cent" (developers.stellar.org; stellar.org/solutions/cross-border-payments).
-- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), fee sponsorship and passkeys as built, or a dollar fee for Stellar (its own pages give conflicting USD figures; attribute it: "Stellar says ... fees under a cent").
+- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), passkeys as built, "gasless" or "users never need XLM" (say "our sponsor account pays the network fees"), or a dollar fee for Stellar (its own pages give conflicting USD figures; attribute it: "Stellar says ... fees under a cent").
 
 ### 7. What do El Salvador's credit bureaus already cover? Do tiendas have DUNS numbers?
 
@@ -308,12 +291,12 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 8. Have real users tried it?
 
-> We spoke to [N] people and [N] tried the prototype. Walkthroughs with non-Salvadoran shop owners only show whether it's easy to use, not that the problem is real. Because of them we changed [one thing].
+> Not yet. We've sent [7] interview requests to grocers and distributors and have had zero conversations. Two advisors reviewed the idea, but they aren't users. Next: walkthroughs with real shop owners.
 
-35 words, 15.0 s.
-- **Facts:** `docs/research.md` (#7, #30; on `main` since PR #72, but it logs only the advisor calls so far, no interviews or walkthroughs). Context §13: tests with local corner-store owners count for "is it easy to use", not as proof of the El Salvador problem; if fewer than 5 conversations, say the real number.
-- **Must include:** the real counts, the usability-only label, one thing we changed.
-- **Never:** round up, count a walkthrough as an interview, or call the Rosa story a real interview.
+31 words, 13.3 s. Written Nov 13 to match the log, which says zero. If real conversations are logged by the run, use the older wording, which still fits: "We spoke to [N] people and [N] tried the prototype. Walkthroughs with non-Salvadoran shop owners only show whether it's easy to use, not that the problem is real. Because of them we changed [one thing]." (35 words, 15.0 s.)
+- **Facts:** `docs/research.md` (#7, #30). On `main` it logs only the two advisor calls and the partner emails: no interviews or walkthroughs. PR #152 (open; its Nov 13 review checked the arithmetic) adds the shop and distributor outreach: 7 interview requests by WhatsApp (4 to grocery retailers, 3 to distributors; as of Nov 13, 2 acknowledgments, 4 automated replies, 1 awaiting, none answering the interview questions) and 5 emails to nonprofits asking for advice, 0 conversations. "12 messages sent" is true; "12 interviews" and "we spoke to 12" are not. The team's own test session (`docs/test-session.md`) tested usability, not users: context §13 says only real shop owners and distributors count for #30.
+- **Must include:** "not yet", the real count (zero), that advisors are not users.
+- **Never:** round up, count an advisor, a request or a nonprofit email as an interview, count a walkthrough as an interview, or call the Rosa story a real interview.
 
 ### Extra: "Why not BFA?" (flagged on #8: judges may ask it)
 

@@ -160,6 +160,15 @@ describe("checkOnePager", () => {
     expect(r.warns).toHaveLength(3);
   });
 
+  it("no longer warns about fee sponsorship (built in #113) but still warns about passkeys", () => {
+    const sponsored = checkOnePager(onePager({ q5: words(120, "Our sponsor account pays the network fees (fee sponsorship).") }), CONFIG);
+    expect(sponsored.fails).toEqual([]);
+    expect(sponsored.warns).toEqual([]);
+
+    const passkeys = checkOnePager(onePager({ q5: words(120, "Shops sign in with a passkey.") }), CONFIG);
+    expect(passkeys.warns).toEqual([expect.stringContaining("passkeys are not on main")]);
+  });
+
   it("lists the URLs for a manual check", () => {
     const r = checkOnePager(onePager({ q6: words(120, "Try https://relay-sv.vercel.app.") }), CONFIG);
     expect(r.urls).toEqual(["https://relay-sv.vercel.app"]);

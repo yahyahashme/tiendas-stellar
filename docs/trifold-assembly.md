@@ -9,10 +9,10 @@ Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay
 
 | Item | Spec | Status |
 |---|---|---|
-| Board | Tri-fold, 36 x 48 in (the size #40 names) | **Do we have one?** If not, email velocity.events@uwaterloo.ca, subject "Blockchain Innovation Challenge Powered by Stellar". Ask early. |
+| Board | Velocity handed it out (Nov 14): 27 in tall, about 37 in wide open | done |
 | Panels | Velocity's board, measured Nov 14: 27 in tall, folding 9 + 19 + 9 in. Each panel fits a 24 x 36 in poster print. | 9 + 19 + 9 in |
-| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title already says Relay in `docs/trifold/trifold.html` and `docs/pitch.md` on `main` (PR #107, merged; no `[NAME]` is left). `node docs/trifold/render.mjs --final` passes with no yellow left (Sat Nov 14, #40): the "what we heard" panel was cut (the team has spoken to 0 people, and a zero means the line is cut, #61) and the three phone screenshots were retaken from `main`. | done (PR #107; yellow cleared Nov 14) |
-| Type sizes | Title about 96 pt, headings 30 to 40 pt, body 24 to 32 pt (Velocity's tips) | from context §3.8 |
+| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title already says Relay in `docs/trifold/trifold.html` and `docs/pitch.md` on `main` (PR #107, merged; no `[NAME]` is left). The "what we heard" panel was cut (the team has spoken to 0 people, and a zero means the line is cut, #61) and the three phone screenshots were retaken from `main` (pre-redesign; retake Sunday). `render.mjs --final` fails on purpose while the product numbers are yellow (Yahya, Nov 14: they go in once the team agrees the final product, Sunday afternoon). | title done; numbers open |
+| Type sizes | On the 27 in board: title 72 pt, headings 28 to 30 pt, body 24 pt (the bottom of Velocity's 24 to 32 pt) | set in `trifold.html` |
 | Text share | At most 25% of the board is text | check on the real layout |
 | Message | Two key points only. Sketch on paper, and have someone outside the team read it first. | from context §3.8 |
 | Layout | Left: the problem. Middle: how it works (3 phone screenshots, the QR code). Right: who pays and why, our plan, where we go next, Risk #1. ("What we heard" is cut: 0 conversations.) | from context §3.8 and the #37 draft |
@@ -41,7 +41,7 @@ Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay
 Call or email at least two. Write the answers in the table in section 7. Shops to call first: the shortlist in section 8.
 
 1. Are you open Sunday, and until what time? Last time for pickup?
-2. How long does a 36 x 48 in print (or three panel prints) take? Can it be ready by Sunday morning?
+2. How long do three panel prints (9 x 27, 19 x 27, 9 x 27 in) take? Can they be ready Sunday afternoon?
 3. What file do you want (PDF, size, resolution, bleed)? Where do we send it?
 4. Matte or gloss, and what paper? Does it curl or stay flat for mounting?
 5. Total cost, and how do we pay?
@@ -97,6 +97,8 @@ If any phone fails, fix the code size, glare or URL, reprint the QR if needed, a
 ## 8. Print shop shortlist (researched Thu Nov 12, re-checked Sat Nov 14)
 
 Retrieved Thu Nov 12, 2026, from the shops' own pages where we could open them, plus web search. Hours change and pages go stale, so **call before relying on any of this.** No prices are listed unless a page quoted them.
+
+**Nov 14 update: the real board is 9 + 19 + 9 x 27 in, so every panel fits Staples' 24 x 36 in poster limit and the 36 x 48 in questions below no longer matter. Print Sunday afternoon.**
 
 **Re-check, Sat Nov 14, about 9:30 AM (read-only: the same pages were opened again; nobody was phoned and nothing was ordered).**
 

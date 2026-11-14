@@ -107,7 +107,7 @@ node scripts/check-one-pager.mjs --online            # also git fetch origin mai
 The script is in PR #87. Run it from a checkout that has both the script and the one-pager: this branch after `git fetch origin && git merge origin/main`, or `main` once #87 is merged. If `docs/one-pager.md` is missing, you haven't merged `origin/main`.
 
 - **FAIL** (exit code 1): word count outside the target (question 4 about 20, questions 5 and 6: 120 to 150), a "(Rohan to confirm)" marker, a `[placeholder]`, TODO or TBD (also in the team number, team name and Devpost fields), a file path like `docs/research.md`, anything on the "never use" list ($7B, 70,000 shops, Chivo, MoneyGram's 5%, $5B as our market, "85,265 neighbourhood shops" alone, "62% of small businesses"), a contract ID that isn't `contracts.routeLedger` in `config/testnet.json`, a `config/testnet.json` that differs from `origin/main`'s (a redeploy you haven't merged), the test USDC token ID instead of our contract, a string shaped like a secret key.
-- **WARN**: "open" contract, "audited", passkeys or fee sponsorship, the MoneyGram "only" claim, "fraction of a cent".
+- **WARN**: "open" contract, "audited", passkeys, the MoneyGram "only" claim, "fraction of a cent".
 - Findings about a marker, placeholder, claim or ID give the line number in the file. A marker or `[N]` is one FAIL each, so three markers are three FAILs.
 - It counts words the way the one-pager's "Word counts" table does (split on spaces, markers excluded, `[placeholders]` counted). On `67f265f` it gives 20, 149 and 142, the same as the one-pager's table.
 - It does not decide what is true. It cannot see whether a number is right, only whether it is marked, sourced and in range. Sections 2 and 3 are the part a person has to do.

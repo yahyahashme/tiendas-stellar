@@ -107,9 +107,9 @@
   .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
   .lower { display: flex; gap: 0.4in; align-items: flex-start; }
-  /* The QR stays at least 4 in square (docs/trifold-assembly.md). */
-  .qrbox { display: flex; flex-direction: column; gap: 0.15in; width: 4.2in; flex: none; }
-  .qrbox .qr { width: 4.2in; height: 4.2in; padding: 0.25in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
+  /* The QR picture stays at least 4 in square (docs/trifold-assembly.md): 4.6 in card, 4.4 in picture. */
+  .qrbox { display: flex; flex-direction: column; gap: 0.15in; width: 4.6in; flex: none; }
+  .qrbox .qr { width: 4.6in; height: 4.6in; padding: 0.1in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
   .qrtext p { font-size: 24pt; line-height: 1.18; }
   .qrtext .url { font-size: 26pt; font-weight: 800; color: var(--brand-dark); line-height: 1.1; margin-bottom: 0.1in; overflow-wrap: normal; }
   .qrtext .scan { font-size: 34pt; font-weight: 800; color: var(--brand-dark); line-height: 1.05; margin-bottom: 0.1in; }
@@ -118,7 +118,7 @@
 
   .todo { background: var(--todo); color: #000; outline: 0.03in dashed #b38f00; }
   .todo.fill { display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.15in; font-size: 24pt; font-weight: 400; width: 100%; height: 100%; }
-  .qrbox .qr.todo.fill { width: 4.2in; height: 4.2in; background: var(--todo); }
+  .qrbox .qr.todo.fill { width: 4.6in; height: 4.6in; background: var(--todo); }
   .diagram .todo.fill { height: 6in; }
 
   /* One panel on its own page (?panel=1|2|3). */
@@ -155,7 +155,7 @@
         <div class="desc">what distributors sell to El Salvador's 50,000+ neighbourhood shops (Conamype estimate)</div>
       </div>
       <div class="stat">
-        <div class="big">$35 <span class="per">per $100</span></div>
+        <div class="big"><span class="per">about</span> $35 <span class="per">per $100</span></div>
         <div class="desc">what a loan shark charges (2019 survey). 6 in 10 informal small businesses have borrowed from one.</div>
       </div>
     </div>

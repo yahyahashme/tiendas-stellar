@@ -88,6 +88,15 @@ The demo uses test dollars, with cash-in simulated and labelled on screen.
 
 Tests: `cargo test` (contract) and `npm test` (app). After a contract change, `./scripts/bindings.sh` regenerates the app's contract client.
 
+## Test a payment on Stellar testnet
+
+1. Open the [distributor dashboard](https://relay-sv.vercel.app/distribuidor) in one tab and the [shop demo](https://relay-sv.vercel.app/demo) in another. The shop demo creates a new testnet invoice. Note the invoice number shown on the shop screen.
+2. Tap **Pagar ahora** and pay the full balance using the demo's test dollars. The shop screen should show **Pago recibido**.
+3. Tap **Ver detalles** on the receipt. In Stellar Expert, check that the transaction is on **Testnet** and succeeded. The [Route Ledger contract](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) is also listed in the contract table above.
+4. Return to the dashboard and find the same invoice number. After the dashboard refreshes, the invoice should be marked **Pagada**.
+
+See the [shop payment](docs/trifold/img/shop-pay.png), [shop credit](docs/trifold/img/shop-credit.png), and [driver cash](docs/trifold/img/driver-cash.png) screenshots, the [architecture diagram](docs/img/architecture.png), the [security review](docs/security.md), and the [research log](docs/research.md). Relay is also listed on [Devpost](https://devpost.com/software/tiendas).
+
 ## Before the showcase
 
 Run on the laptop that ran `scripts/setup.sh` (it holds `tiendas-issuer`). Shop addresses (`G...`) are in `config/testnet.json` under `accounts.shops`.

@@ -1,18 +1,18 @@
 # Print shop: call script and email (#40)
 
-Drafted Wed Nov 11 for Jack. Use it Saturday, once the layout is final. The checklist for mounting the board is in `docs/trifold-assembly.md`; this file is only about finding a shop and getting the file to it. Don't put your full name or phone number in this file: the repo is public.
+Drafted Wed Nov 11 for Jack. Use it Sunday, once the numbers are in and the layout is final. The checklist for mounting the board is in `docs/trifold-assembly.md`; this file is only about finding a shop and getting the file to it. Don't put your full name or phone number in this file: the repo is public.
 
 **The deadline chain:** the final files go to the shop on **Saturday Nov 14**, you pick them up **Sunday Nov 15 morning**, the board is built by **4 PM**, the photo is in the group chat by **6 PM** (#40), and the showcase is **Monday Nov 16** (setup 4:00 PM, Innovation Arena, 280 Joseph St, Kitchener).
 
 ## 1. Decide these before you call (so each call takes five minutes)
 
-1. **Which layout?** Measure the board (the steps are in `docs/pitch.md` section 1). Layout A is 12 + 24 + 12 in; layout B is three 16 in panels.
+1. **The board** (measured Nov 14): 27 in tall, panels 9 + 19 + 9 in wide. Print Sunday afternoon, once the team has agreed the numbers and `render.mjs --final` passes.
 2. **Panels or one sheet?** `node docs/trifold/render.mjs` writes both into `docs/trifold/out/`:
 
 | You pick | Files to send | Size of each print |
 |---|---|---|
-| Three panel prints (easier to line up, and one can be reprinted alone, as `docs/trifold-assembly.md` says) | A: `trifold-12-24-12-left.pdf`, `-centre.pdf`, `-right.pdf`<br>B: `trifold-16-16-16-left.pdf`, `-centre.pdf`, `-right.pdf` | A: 12 x 36, 24 x 36 and 12 x 36 in<br>B: three of 16 x 36 in |
-| One big print | A: `trifold-12-24-12.pdf`<br>B: `trifold-16-16-16.pdf` | 48 x 36 in, one page |
+| Three panel prints (easier to line up, and one can be reprinted alone, as `docs/trifold-assembly.md` says) | `trifold-9-19-9-left.pdf`, `-centre.pdf`, `-right.pdf` | 9 x 27, 19 x 27 and 9 x 27 in (each fits a 24 x 36 in poster print) |
+| One big print | `trifold-9-19-9.pdf` | 37 x 27 in, one page |
 
 3. **Copies:** one of each. Ask for the price of a small proof too.
 4. **The files are final only when** `node docs/trifold/render.mjs --final` passes: it refuses while a yellow placeholder is left or a picture is too blurry. Don't send a file that still has yellow on it.
@@ -33,7 +33,7 @@ Tell me the area (a city or postcode) and I'll draft candidates here. Types of p
 
 Say it slowly, and write the answers in the table in section 5.
 
-> Hi. I'm calling about a large-format print for a school project. I have a finished PDF. I need **[three panels, 36 inches tall and 12, 24 and 12 inches wide / three panels 16 by 36 inches / one print 48 by 36 inches]**, in colour, one copy. I need to pick it up **Sunday morning**. Can you do that?
+> Hi. I'm calling about a large-format print for a school project. I have a finished PDF. I need **[three panels, 27 inches tall and 9, 19 and 9 inches wide / one print 37 by 27 inches]**, in colour, one copy. I need to pick it up **Sunday before closing**. Can you do that?
 
 Then ask, in this order:
 
@@ -49,17 +49,16 @@ Red flags: "We can have it Monday" (too late); "we need the original design file
 
 ## 4. Email (copy, fill the brackets, attach the PDFs)
 
-**Subject:** Large-format print for Sunday pickup: 3 panels, 36 in tall
+**Subject:** Large-format print for Sunday pickup: 3 panels, 27 in tall
 
 > Hello,
 >
-> I'm a student at the University of Waterloo and I need a large-format print for a competition on Monday Nov 16. I would like to send the files on Saturday Nov 14 and pick the prints up on Sunday Nov 15, before **[time]**.
+> I'm a student at the University of Waterloo and I need a large-format print for a competition on Monday Nov 16. I would like to send the files and pick the prints up on Sunday Nov 15, before **[time]**.
 >
 > **What I need (colour, one copy of each, matte if you have it):**
 > **[Pick one:]**
-> - Three panels, each 36 inches tall: **12 in, 24 in and 12 in wide** (files: `trifold-12-24-12-left.pdf`, `-centre.pdf`, `-right.pdf`)
-> - Three panels, each **16 x 36 in** (files: `trifold-16-16-16-left.pdf`, `-centre.pdf`, `-right.pdf`)
-> - One print, **48 x 36 in** (file: `trifold-12-24-12.pdf` or `trifold-16-16-16.pdf`)
+> - Three panels, each 27 inches tall: **9 in, 19 in and 9 in wide** (files: `trifold-9-19-9-left.pdf`, `-centre.pdf`, `-right.pdf`)
+> - One print, **37 x 27 in** (file: `trifold-9-19-9.pdf`)
 >
 > The PDFs are made at the exact size, with the text kept as text, the fonts embedded, and the colours in RGB. Tell me if you need CMYK, bleed, or a different resolution and I will resend.
 >
