@@ -3,12 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getMyDistributor, type MyDistributor } from "@/app/distributor-actions";
-import { BackLink, ButtonLink, Card, Loading, Screen } from "@/components/ui";
+import { HomeNav, StatusSlip } from "@/components/auth";
+import { ActionLink } from "@/components/kit/button";
+import { Slip } from "@/components/kit/layout";
+import { Loading } from "@/components/kit/states";
 import { useT } from "@/lib/i18n";
 
 const POLL_MS = 3000;
 
-/** After a distributor signs up (#130): "we're checking your business", until it's approved. */
+/** After a distributor signs up (#130): a slip stamped "En revisión", until the business is approved. */
 export default function Waiting() {
   const { t } = useT();
   const router = useRouter();
@@ -34,44 +37,44 @@ export default function Waiting() {
 
   if (!mine) {
     return (
-      <Screen>
+      <Slip>
+        <HomeNav />
         <Loading />
-      </Screen>
+      </Slip>
     );
   }
 
+  const kind = t("Cuenta de distribuidora", "Distributor account");
+
   if (mine.status === "rechazado") {
     return (
-      <Screen>
-        <BackLink />
-        <h1 className="text-3xl font-bold">{t("No pudimos aprobar su empresa", "We couldn't approve your business")}</h1>
-        <p className="text-lg">{t("Escríbanos y le explicamos qué falta.", "Write to us and we'll explain what's missing.")}</p>
-        <ButtonLink href="/cuenta" variant="secondary">
-          {t("Mi cuenta", "My account")}
-        </ButtonLink>
-      </Screen>
+      <Slip>
+        <HomeNav />
+        <StatusSlip from={mine.businessName} kind={kind} title={t("No pudimos aprobar su empresa", "We couldn't approve your business")} stamp={t("No aprobada", "Not approved")} tone="bad">
+          {t("Escríbanos y le explicamos qué falta.", "Write to us and we'll explain what's missing.")}
+        </StatusSlip>
+        <ActionLink href="/cuenta" title={t("Mi cuenta", "My account")} />
+      </Slip>
     );
   }
 
   return (
-    <Screen>
-      <BackLink />
-      <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold text-balance">{t("Estamos revisando su empresa", "We're reviewing your business")}</h1>
-        <p className="text-lg text-muted">{mine.businessName}</p>
-      </header>
-      <Card className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">{t("Qué sigue", "What happens next")}</h2>
-        <ol className="flex list-decimal flex-col gap-2 pl-5 text-lg">
-          <li>{t("Revisamos los datos de su empresa.", "We check your business details.")}</li>
-          <li>{t("Al aprobarla, su cuenta puede crear facturas.", "Once approved, your account can create invoices.")}</li>
-          <li>{t("Luego agrega sus motoristas y sus tiendas.", "Then you add your drivers and your shops.")}</li>
-        </ol>
-        <p className="text-muted">{t("En el producto real, un socio con licencia verifica la empresa antes de aprobarla.", "In the real product, a licensed partner checks the business before approving it.")}</p>
-      </Card>
-      <p className="animate-pulse text-center text-lg text-muted" role="status">
-        {mine.autoApprove ? t("En esta demo se aprueba sola en unos segundos.", "In this demo it approves itself in a few seconds.") : t("Le avisamos aquí cuando esté aprobada.", "We'll let you know here once it's approved.")}
+    <Slip>
+      <HomeNav />
+      <StatusSlip from={mine.businessName} kind={kind} title={t("Estamos revisando su empresa", "We're reviewing your business")} stamp={t("En revisión", "In review")}>
+        {mine.autoApprove
+          ? t(
+              "En esta demo se aprueba sola en unos segundos; después podrá crear facturas y agregar a sus motoristas y sus tiendas.",
+              "In this demo it approves itself in a few seconds; then you can create invoices and add your drivers and your shops.",
+            )
+          : t(
+              "Le avisamos aquí cuando esté aprobada; después podrá crear facturas y agregar a sus motoristas y sus tiendas.",
+              "We'll let you know here once it's approved; then you can create invoices and add your drivers and your shops.",
+            )}
+      </StatusSlip>
+      <p className="text-muted text-pretty">
+        {t("En el producto real, un socio con licencia verifica la empresa antes de aprobarla.", "In the real product, a licensed partner checks the business before approving it.")}
       </p>
-    </Screen>
+    </Slip>
   );
 }

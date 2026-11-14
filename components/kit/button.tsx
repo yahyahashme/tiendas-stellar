@@ -92,12 +92,22 @@ export function Held({ children, hint, size = "md" }: { children: ReactNode; hin
   );
 }
 
-/** The main action as a link to another screen. */
-export function ButtonLink({ href, children, hint, size = "md" }: { href: string; children: ReactNode; hint?: ReactNode; size?: FilledSize }) {
-  return (
-    <Link href={href} className={`${FILLED} ${FILL[size]} ${TONE.primary}`}>
+/** The main action as a link to another screen (or, with `external`, to WhatsApp in a new tab). */
+export function ButtonLink({ href, children, hint, size = "md", external = false }: { href: string; children: ReactNode; hint?: ReactNode; size?: FilledSize; external?: boolean }) {
+  const className = `${FILLED} ${FILL[size]} ${TONE.primary}`;
+  const inner = (
+    <>
       <span>{children}</span>
       {hint && <span className="text-label font-normal opacity-90">{hint}</span>}
+    </>
+  );
+  return external ? (
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
+      {inner}
+    </a>
+  ) : (
+    <Link href={href} className={className}>
+      {inner}
     </Link>
   );
 }
@@ -225,14 +235,14 @@ export function ActionLink({
   );
 }
 
-/** A quiet text action (Cancelar, Atrás): blue words, no outline, still a full-size target. */
-export function TextButton({ children, onClick, disabled = false }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
+/** A quiet text action (Cancelar, Atrás): blue words, no outline, still a full-size target ("lg": 56 px, for the driver). */
+export function TextButton({ children, onClick, disabled = false, size = "md" }: { children: ReactNode; onClick: () => void; disabled?: boolean; size?: Size }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="min-h-12 self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted"
+      className={`self-center px-4 text-[1.0625rem] font-bold text-brand underline decoration-2 underline-offset-4 disabled:text-muted ${size === "lg" ? "min-h-14" : "min-h-12"}`}
     >
       {children}
     </button>

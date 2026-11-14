@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { signInAction } from "@/app/auth-actions";
-import { FormError, PasswordField, TextField } from "@/components/form";
-import { BackLink, Button, Screen } from "@/components/ui";
+import { AltLink, HomeNav } from "@/components/auth";
+import { Field, PasswordField } from "@/components/kit/field";
+import { Form, FormHead, FormSubmit } from "@/components/kit/form";
+import { Slip } from "@/components/kit/layout";
 import { useT } from "@/lib/i18n";
 
 export default function SignIn() {
@@ -30,14 +31,17 @@ export default function SignIn() {
   }
 
   return (
-    <Screen>
-      <BackLink />
-      <h1 className="text-3xl font-bold">{t("Entrar", "Sign in")}</h1>
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <TextField
+    <Slip>
+      <HomeNav />
+      <Form onSubmit={submit} error={error}>
+        <FormHead title={t("Entrar", "Sign in")} />
+        <Field
           label={t("Teléfono o correo", "Phone or email")}
           autoComplete="username"
           inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           required
           value={contact}
           onChange={(e) => setContact(e.target.value)}
@@ -49,17 +53,13 @@ export default function SignIn() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error && <FormError>{msg(error)}</FormError>}
-        <Button type="submit" busy={busy}>
+        <FormSubmit error={error ? msg(error) : undefined} busy={busy}>
           {t("Entrar", "Sign in")}
-        </Button>
-      </form>
-      <p className="text-center text-lg">
-        {t("¿No tiene cuenta?", "Don't have an account?")}{" "}
-        <Link href="/registro" className="font-semibold text-brand underline">
-          {t("Crear cuenta", "Create account")}
-        </Link>
-      </p>
-    </Screen>
+        </FormSubmit>
+      </Form>
+      <AltLink question={t("¿No tiene cuenta?", "Don't have an account?")} href="/registro">
+        {t("Crear cuenta", "Create account")}
+      </AltLink>
+    </Slip>
   );
 }

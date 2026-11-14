@@ -68,8 +68,12 @@ async function workingDay(page) {
   await page.waitForTimeout(800);
   await press(page, /Pagar este monto|Pay this amount/);
   await paid(/^(Pagado|Paid)$/);
-  await open("/ruta/motorista-1");
-  await page.locator("button", { hasText: "1004" }).first().click();
+  await move(page, "/ruta/motorista-1");
+  await page.waitForSelector("main [data-next]", { timeout: 20_000 });
+  await page.locator("main a", { hasText: "1004" }).first().click();
+  // On a small phone at a large text size the button can open right where the row was tapped, and a tap on the
+  // same spot within 2.5 s is ignored on purpose (lib/taps.ts).
+  await page.waitForTimeout(2700);
   await press(page, /Recibí efectivo|I received cash/);
   await page.waitForTimeout(2500);
   await open("/tienda/1004");
@@ -102,23 +106,356 @@ const GROUPS = {
     ["panel", "/distribuidor", { prepare: workingDay, inView: { "1280x800": { selector: "#resumen, #facturas tbody tr", count: 11 } } }],
     ["panel-nuevo", "/distribuidor"], // as the demo starts: eight invoices, nothing paid
   ],
-  driver: [["ruta", "/ruta/motorista-1"]],
-  auth: [
-    ["inicio", "/"],
-    ["registro", "/registro"],
-    ["entrar", "/entrar"],
-    ["espera", "/distribuidor/espera"],
+  driver: [
+    // Gloves and wet hands: every target on the driver's screens is at least 56 px.
+    // The sheet: the next stop is pinned in view. From 40 rem of width (a phone held sideways, a tablet, a laptop)
+    // the open stop lies beside it, so its code and "Recibí efectivo" are in view too, with nothing to tap first.
+    [
+      "ruta",
+      "/ruta/motorista-1",
+      {
+        minTarget: 56,
+        inView: {
+          ...Object.fromEntries(["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919"].map((size) => [size, "[data-next]"])),
+          ...Object.fromEntries(
+            ["640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map((size) => [
+              size,
+              "[data-next], [data-code], [data-cash]",
+            ]),
+          ),
+        },
+      },
+    ],
+    // A stop opened from the sheet (on a phone it takes the whole screen): the code and "Recibí efectivo" are in view at every size.
+    [
+      "parada",
+      "/ruta/motorista-1?parada=1001",
+      {
+        minTarget: 56,
+        inView: Object.fromEntries(
+          ["280x653", "320x568", "360x640", "375x667", "390x844", "393x852", "412x915", "360x800", "384x854", "412x919", "568x320", "640x360", "667x375", "800x360", "844x390", "852x393", "854x384", "915x412", "919x412", "673x841", "768x1024", "820x1180", "800x1280", "841x673", "1024x768", "1180x820", "1280x800", "1366x768", "1440x900", "1920x1080"].map(
+            (size) => [size, "[data-code], [data-cash]"],
+          ),
+        ),
+      },
+    ],
+    // The same after "Recibí efectivo": the words that hold the button's place, and the stamp on the sheet.
+    [
+      "efectivo",
+      "/ruta/motorista-1?parada=1002",
+      {
+        minTarget: 56,
+        prepare: async (page) => {
+          await page.locator("[data-cash] button:not([disabled])").click();
+          await page.locator("[data-cash] button").waitFor({ state: "detached", timeout: 15_000 });
+          await page.waitForTimeout(2600); // the hold after the last tap
+        },
+      },
+    ],
   ],
+  auth: (() => {
+    // The home page's first screen, on a 360x640 phone and on a 390x844 one: the logo, the sentence and both ways in.
+    const fold = { selector: 'main svg[aria-label="Relay"], main h1 + p, main a[href^="/registro/"]', count: 4 };
+    // Mock data has no accounts, so a screen that asks the server "who is this?" would only show its way out.
+    // Here the browser answers the page's questions itself (the 1st with the 1st value, and so on; the last one
+    // repeats), the page is opened again, and the real screen draws. `shows` is a word that must then be on it.
+    // Nothing these screens send reaches the server, so the check can't make an account anywhere.
+    const answers =
+      (path, shows, ...values) =>
+      async (page) => {
+        let asked = 0;
+        await page.route("**/*", (route) => {
+          if (route.request().method() !== "POST" || !route.request().headers()["next-action"]) return route.fallback();
+          const value = values[Math.min(asked++, values.length - 1)];
+          return route.fulfill({ status: 200, contentType: "text/x-component", body: `0:{"a":"$@1","q":"","i":false}\n1:${JSON.stringify(value)}\n` });
+        });
+        const english = await page.evaluate(() => document.documentElement.lang === "en");
+        await page.goto(new URL(`${path}${english ? "?lang=en" : ""}`, page.url()).href, { waitUntil: "networkidle" });
+        await page.getByText(shows).first().waitFor({ timeout: 8000 });
+      };
+    const tap = (page, name) => page.getByRole("button", { name }).click();
+    const sol = "Distribuidora El Sol";
+    const waiting = { id: "d-1", businessName: sol, status: "pendiente", autoApprove: true };
+    /** A shop claims its invite and walks to `step` (2 the shop, 3 security, 4 done). */
+    const claim = (step) => async (page) => {
+      const suppliers = { suppliers: [{ distributorId: "distributor", name: sol, addedAt: "2026-11-13T15:00:00Z" }], isOwner: true };
+      await answers("/unirse/demo", /Paso 1|Step 1/, { distributorName: sol }, { ok: true }, { ok: true, shopId: "tienda-1", creditLimit: 200 }, suppliers)(page);
+      await page.locator("input").nth(0).fill("Rosa Martínez");
+      await page.locator("input").nth(1).fill("7000 0132");
+      await page.locator("input").nth(2).fill("secreto-2026");
+      await tap(page, /Siguiente|Next/);
+      await page.getByText(/Paso 2|Step 2/).waitFor();
+      if (step === 2) return;
+      await page.locator("input").nth(0).fill("Tienda Rosa");
+      await tap(page, /^(Tienda|Corner shop)$/);
+      await tap(page, /Crear mi cuenta|Create my account/);
+      await page.getByText(/Paso 3|Step 3/).waitFor();
+      if (step === 3) return tap(page, /Agregar otro contacto|Add another contact/);
+      await tap(page, /Más tarde|Later/);
+      await page.getByText(/Paso 4|Step 4/).waitFor();
+    };
+    return [
+      ["inicio", "/", { inView: { "360x640": fold, "390x844": fold } }],
+      ["registro", "/registro"],
+      ["registro-tienda", "/registro/tienda"],
+      ["registro-distribuidora", "/registro/distribuidora"],
+      [
+        "registro-distribuidora-2",
+        "/registro/distribuidora",
+        {
+          prepare: async (page) => {
+            await page.locator("input").nth(0).fill(sol);
+            await page.locator("input").nth(1).fill("0614-010190-101-2");
+            await page.locator("input").nth(2).fill("Calle Arce 123, San Salvador");
+            await tap(page, /^(Abarrotes|Groceries)$/);
+            await tap(page, /Siguiente|Next/);
+            await page.getByText(/Paso 2|Step 2/).waitFor();
+          },
+        },
+      ],
+      ["entrar", "/entrar"],
+      // Signed out, these two and "cuenta" send the person to /entrar, so the check starts there, as a person would.
+      ["espera", "/entrar", { prepare: answers("/distribuidor/espera", /En revisión|In review/, waiting) }],
+      ["espera-rechazada", "/entrar", { prepare: answers("/distribuidor/espera", /No aprobada|Not approved/, { ...waiting, status: "rechazado" }) }],
+      ["unirse", "/unirse/demo", { prepare: answers("/unirse/demo", /Paso 1|Step 1/, { distributorName: sol }) }],
+      ["unirse-tienda", "/unirse/demo", { prepare: claim(2) }],
+      ["unirse-seguridad", "/unirse/demo", { prepare: claim(3) }],
+      ["unirse-lista", "/unirse/demo", { prepare: claim(4) }],
+      ["unirse-no-valido", "/unirse/demo"],
+      ["invitacion", "/invitacion/demo", { prepare: answers("/invitacion/demo", /Su cuenta|Your account/, { distributorName: sol, name: "Carlos Hernández", phoneEnd: "0132" }) }],
+      [
+        "cuenta",
+        "/entrar",
+        {
+          prepare: answers(
+            "/cuenta",
+            /Ir a mi tienda|Go to my shop/,
+            { name: "Rosa Martínez", role: "tienda", contact: "+50370000132", stellarAddress: "GDEMO00000000000000000000000000000000000000000000000DEMO", explorerUrl: "https://example.com/detalles" },
+            "tienda-1",
+          ),
+        },
+      ],
+    ];
+  })(),
   account: [
-    ["cuenta", "/tienda/cuenta/tienda-1"],
-    ["historial", "/tienda/cuenta/tienda-1/historial"],
+    // The longest shop name, with nothing owed.
+    ["cuenta", "/tienda/cuenta/tienda-3"],
+    // Right after a "Pagar en 7 días" (the photo for the printed trifold is this screen at 360x640): the whole
+    // account slip (Debe, the due date, the limit) and "Pagar deuda" are in view without scrolling.
+    [
+      "cuenta-deuda",
+      "/tienda/1007",
+      {
+        inView: { "360x640": "#estado-de-cuenta, main button" },
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800); // a pay button ignores taps for its first 0.6 s
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700); // a tap on the same spot within 2.5 s is ignored on purpose (lib/taps.ts)
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500); // the hold after a payment
+          await move(page, "/tienda/cuenta/tienda-1");
+          await page.getByRole("button", { name: /Pagar deuda|Pay debt/ }).waitFor({ timeout: 20_000 });
+        },
+      },
+    ],
+    // The same debt, just paid: the stamp has landed and "Deuda pagada" holds the button's place.
+    [
+      "cuenta-pagada",
+      "/tienda/1007",
+      {
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700);
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+          await move(page, "/tienda/cuenta/tienda-1");
+          await page.getByRole("button", { name: /Pagar deuda|Pay debt/ }).waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar deuda|Pay debt/);
+          await page.getByText(/Deuda pagada$|Debt paid$/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+        },
+      },
+    ],
+    ["datos", "/tienda/cuenta/tienda-1/datos"],
+    // With a payment on credit in it, and its first row unfolded (the receipt links are checked too).
+    [
+      "historial",
+      "/tienda/1007",
+      {
+        prepare: async (page) => {
+          await page.waitForSelector("main button:not([disabled])", { timeout: 20_000 });
+          await page.waitForTimeout(800);
+          await press(page, /Pagar en 7 días|Pay in 7 days/);
+          await page.waitForTimeout(2700);
+          await press(page, /^Confirmo|^Confirm/);
+          await page.getByText(/Pagada · Crédito|Paid · Credit/).first().waitFor({ timeout: 20_000 });
+          await page.waitForTimeout(2500);
+          await move(page, "/tienda/cuenta/tienda-1/historial");
+          await page.locator("main button[aria-expanded]:visible").first().waitFor({ timeout: 20_000 });
+          await page.locator("main button[aria-expanded]:visible").first().click();
+        },
+      },
+    ],
+    ["info", "/tienda/cuenta/tienda-1/info/retirar"],
+    // What a lender sees from the shop's link (the link carries its last day).
+    ["compartido", "/compartido/tienda-1?hasta=2099-12-31"],
   ],
-  admin: [
-    ["nueva-factura", "/distribuidor/factura"],
-    ["motoristas", "/distribuidor/motoristas"],
-    ["tiendas", "/distribuidor/tiendas"],
-    ["admin", "/admin"],
-  ],
+  // The distributor's other screens and the admin's. Without a database these screens only say "Solo la distribuidora
+  // aprobada puede hacer esto.", so each one is opened, the answers of its server actions are swapped for sample
+  // answers (the screen's own code runs untouched), and the page is loaded again as a signed-in user would see it.
+  admin: (() => {
+    const NAME = "Distribuidora El Sol";
+    const sample = () => ({
+      drivers: [
+        { id: "motorista-1", name: "Carlos", phone: "+50371234567", status: "activo", inviteToken: null, cashHeld: 60 },
+        { id: "motorista-2", name: "Ana", phone: "+50372345678", status: "activo", inviteToken: null, cashHeld: 0 },
+        { id: "inv-3", name: "José Antonio Ramírez", phone: "+50376543210", status: "invitado", inviteToken: "k3f9x2m7q1", cashHeld: 0 },
+      ],
+      shops: [
+        { id: "tienda-1", name: "Tienda Rosa", nickname: null, ownerName: "Rosa Martínez", phone: "+50370123456", status: "activa", inviteCode: null, driverId: "motorista-1", creditLimit: 200, creditOwed: 40, driverName: "Carlos" },
+        { id: "tienda-2", name: "Tienda Don Luis", nickname: "Don Luis, frente al parque", ownerName: "Luis Hernández", phone: "+50371234567", status: "activa", inviteCode: null, driverId: "motorista-2", creditLimit: 200, creditOwed: 0, driverName: "Ana" },
+        { id: "tienda-3", name: "Mini Súper La Esquina", nickname: null, ownerName: "Marta López", phone: "+50372345678", status: "invitada", inviteCode: "K7M2QX", driverId: "motorista-2", creditLimit: 0, creditOwed: 0, driverName: "Ana" },
+        { id: "tienda-9", name: "Pupusería y Tienda La Bendición de Dios", nickname: "Pupusería y Tienda La Bendición de Dios", ownerName: null, phone: null, status: "sin_cuenta", inviteCode: "P4T9WZ", driverId: null, creditLimit: 0, creditOwed: 0, driverName: null },
+      ],
+      pending: [
+        { id: "d-1", businessName: "Distribuidora La Central", nit: "0614-120394-102-3", address: "Av. Roosevelt 1420, San Salvador", sells: ["Bebidas", "Snacks"], shopsApprox: 120, driversApprox: 8, status: "pendiente", ownerName: "Mauricio Flores", ownerContact: "mauricio@lacentral.com.sv", createdAt: "2026-11-12T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-2", businessName: "Lácteos y Abarrotes del Pacífico, S.A. de C.V.", nit: "0511-010188-001-0", address: "Km 12 Carretera al Puerto, La Libertad", sells: ["Lácteos", "Abarrotes", "Pan"], shopsApprox: 45, driversApprox: 3, status: "pendiente", ownerName: "Gloria Menjívar", ownerContact: "+503 7890-1234", createdAt: "2026-11-13T09:30:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-3", businessName: "El Buen Pan", nit: null, address: null, sells: [], shopsApprox: null, driversApprox: null, status: "pendiente", ownerName: "Pedro", ownerContact: "7000-1111", createdAt: "2026-11-14T02:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+      ],
+      decided: [
+        { id: "d-0", businessName: NAME, nit: null, address: null, sells: [], shopsApprox: 3, driversApprox: 2, status: "aprobado", ownerName: null, ownerContact: null, createdAt: "2026-11-01T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-00", businessName: "Importadora Fantasma", nit: null, address: null, sells: [], shopsApprox: null, driversApprox: null, status: "rechazado", ownerName: null, ownerContact: null, createdAt: "2026-11-03T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+      ],
+    });
+    /** What the server would answer a signed-in, approved distributor (or an admin) for this call. */
+    const answer = (path, args, data) => {
+      const active = data.drivers.filter((d) => d.status === "activo").map((d) => ({ id: d.id, name: d.name }));
+      if (path === "/distribuidor/factura") {
+        if (args.length === 0) return { distributorName: NAME, shops: data.shops.map((s) => ({ id: s.id, name: s.nickname ?? s.name, owner: s.ownerName ?? "", driverId: s.driverId })), drivers: active, suggestedId: 1009, today: "2026-11-14" };
+        return { ok: true, message: `Factura ${args[0].invoiceId} creada.`, txHash: "0", explorerUrl: "https://stellar.expert/explorer/testnet", invoiceId: args[0].invoiceId };
+      }
+      if (path === "/distribuidor/motoristas") return args.length === 0 ? { distributorName: NAME, drivers: data.drivers } : undefined;
+      if (path === "/distribuidor/tiendas") {
+        if (args.length === 0) return { distributorName: NAME, shops: data.shops, drivers: active };
+        if (typeof args[0] === "string")
+          return [
+            { id: "tienda-20", name: "Tienda La Esperanza", ownerName: "María Elena Rivas", address: "Col. Zacamil, Mejicanos" },
+            { id: "tienda-21", name: "Abarrotería San José", ownerName: "José Portillo", address: "Barrio San Jacinto, San Salvador" },
+          ];
+        return { ok: true, shopId: "tienda-30", code: "N3W5HP" };
+      }
+      if (path === "/admin") return args.length === 0 ? { pending: data.pending, decided: data.decided } : undefined;
+    };
+    const signedIn = async (page) => {
+      const data = sample();
+      await page.route("**/*", async (route) => {
+        const request = route.request();
+        if (request.method() !== "POST" || !request.headers()["next-action"]) return route.fallback();
+        let args = [];
+        try {
+          args = JSON.parse(request.postData() || "[]");
+        } catch {}
+        const found = answer(new URL(request.url()).pathname, args, data);
+        if (found === undefined) return route.fallback();
+        // The first line of a server action's answer carries the build's id: keep it, and swap the value on the second.
+        const head = (await (await route.fetch()).text()).split("\n")[0];
+        await route.fulfill({ status: 200, contentType: "text/x-component", body: `${head}\n1:${JSON.stringify(found)}\n` });
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator("main h1, main h2").first().waitFor({ timeout: 20_000 });
+      await page.waitForTimeout(400);
+    };
+    const filled = async (page) => {
+      await signedIn(page);
+      const search = page.getByPlaceholder(/Buscar entre sus tiendas|Search your shops/);
+      await search.fill("rosa");
+      await search.press("Enter");
+      await page.locator("form input[inputmode=decimal]").fill("48.50");
+      await page.locator("form textarea").fill("Agua 600 ml x 24  $30.00\nJugos surtidos x 12  $18.50\nEntregar antes de las 10");
+      await page.locator("form textarea").blur();
+      await page.waitForTimeout(800); // the button waits a beat after a shop is picked
+    };
+    /** A distributor approved today: nothing invoiced yet, so "Primeros pasos" is on the panel with one step left. */
+    const newDistributor = async (page) => {
+      await page.route("**/_next/static/chunks/*.js", async (route) => {
+        const response = await route.fetch();
+        const body = await response.text();
+        if (!/isDemo:!0\},invoices:\w+,total:\w+/.test(body)) return route.fulfill({ response });
+        await route.fulfill({ response, body: body.replace(/isDemo:!0\},invoices:\w+,total:\w+/, "isDemo:!1},invoices:[],total:0") });
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator("#pasos").waitFor({ timeout: 20_000 });
+    };
+    return [
+      // The booth laptop: the whole form, its button and the slip it makes are in view without scrolling.
+      ["nueva-factura", "/distribuidor/factura", { prepare: filled, inView: { "1280x800": { selector: "main form button[type=submit], main aside section", count: 2 } } }],
+      [
+        "nueva-factura-recibo", // a phone has the slip behind "Ver recibo"
+        "/distribuidor/factura",
+        {
+          prepare: async (page) => {
+            await filled(page);
+            const fold = page.getByRole("button", { name: /Ver recibo|See receipt/ });
+            if (await fold.isVisible()) await fold.click();
+          },
+        },
+      ],
+      [
+        "nueva-factura-creada",
+        "/distribuidor/factura",
+        {
+          prepare: async (page) => {
+            await filled(page);
+            await press(page, /Crear factura|Create invoice/);
+            await page.getByText(/Factura creada|Invoice created/).first().waitFor({ timeout: 20_000 });
+            await page.waitForTimeout(3200); // the hold after the invoice is made, then the next button's beat
+          },
+        },
+      ],
+      [
+        "motoristas", // with one invite's link on show
+        "/distribuidor/motoristas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.locator("button:visible", { hasText: /Ver enlace|Show link/ }).first().click();
+          },
+        },
+      ],
+      [
+        "tiendas", // after a search
+        "/distribuidor/tiendas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.getByLabel(/Nombre de la tienda o teléfono|Shop name or phone/).fill("esperanza");
+            await press(page, /^Buscar$|^Search$/);
+            await page.getByText("Tienda La Esperanza").first().waitFor({ timeout: 20_000 });
+          },
+        },
+      ],
+      [
+        "tiendas-sin-cuenta",
+        "/distribuidor/tiendas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.getByRole("tab", { name: /Agregar sin cuenta|Add without an account/ }).click();
+          },
+        },
+      ],
+      ["admin", "/admin", { prepare: signedIn }],
+      ["primeros-pasos", "/distribuidor", { prepare: newDistributor }],
+      ["sin-sesion", "/distribuidor/motoristas"], // what anyone else sees: one sentence, one way out
+      ["no-encontrada", "/esta-pagina-no-existe"],
+    ];
+  })(),
 };
 
 // The device bands of DESIGN.md. Phones and tablets are also turned on their side.
@@ -218,7 +555,7 @@ mkdirSync(outDir, { recursive: true });
 
 /** Mock reads answer after a second each, one after another: wait until "Cargando..." has gone. */
 const loaded = (page) =>
-  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
+  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => el.checkVisibility() && /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
 
 for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}] of GROUPS[group]) {
   if (only && only !== screen) continue;

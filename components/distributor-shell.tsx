@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ButtonLink } from "@/components/kit/button";
 import { Shell, type ShellItem } from "@/components/kit/layout";
 import { Logo } from "@/components/logo";
 import { useT } from "@/lib/i18n";
@@ -19,7 +20,8 @@ export function DistributorShell({
   action,
   children,
 }: {
-  current: "panel" | "motoristas" | "tiendas";
+  /** "factura" is Nueva factura: no section of the navigation, so none is marked. */
+  current: "panel" | "motoristas" | "tiendas" | "factura";
   /** The business the dashboard belongs to (not known yet while the screen loads). */
   name?: string;
   /** False once we know a signed-in, approved distributor is looking. */
@@ -51,5 +53,26 @@ export function DistributorShell({
     >
       {children}
     </Shell>
+  );
+}
+
+/** "Nueva factura" for the shell's action slot, on the pages of a signed-in distributor. */
+export function NewInvoiceAction({ place }: { place: "side" | "bar" }) {
+  const { t } = useT();
+  return (
+    <ButtonLink size={place === "bar" ? "sm" : "md"} href="/distribuidor/factura">
+      {t("Nueva factura", "New invoice")}
+    </ButtonLink>
+  );
+}
+
+/** On Nueva factura itself the action's place holds where you are: a paper tab in the sidebar, nothing in the top bar. */
+export function NewInvoiceHere({ place }: { place: "side" | "bar" }) {
+  const { t } = useT();
+  if (place === "bar") return null;
+  return (
+    <p aria-current="page" className="flex min-h-13 items-center justify-center rounded-paper bg-paper px-5 text-[1.125rem] font-bold">
+      {t("Nueva factura", "New invoice")}
+    </p>
   );
 }

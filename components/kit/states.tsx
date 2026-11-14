@@ -31,8 +31,8 @@ export function Empty({ children, action }: { children: ReactNode; action?: Reac
   );
 }
 
-/** Error: what we couldn't do, in words, and a way to try again. */
-export function Failure({ children, onRetry, busy = false }: { children?: ReactNode; onRetry?: () => void; busy?: boolean }) {
+/** Error: what we couldn't do, in words, and a way to try again (`size="lg"`: the driver's 60 px button). */
+export function Failure({ children, onRetry, busy = false, size = "md" }: { children?: ReactNode; onRetry?: () => void; busy?: boolean; size?: "md" | "lg" }) {
   const { t } = useT();
   return (
     <div role="alert" className="flex flex-col gap-3">
@@ -40,7 +40,7 @@ export function Failure({ children, onRetry, busy = false }: { children?: ReactN
         {children ?? t("No pudimos cargar esta pantalla. Revise su conexión.", "We couldn't load this screen. Check your connection.")}
       </p>
       {onRetry && (
-        <Button onClick={onRetry} busy={busy}>
+        <Button onClick={onRetry} busy={busy} size={size}>
           {t("Reintentar", "Try again")}
         </Button>
       )}
