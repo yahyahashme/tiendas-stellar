@@ -54,6 +54,16 @@ pub const MINOR_LATE_DAYS: u64 = 7;
 pub const MAJOR_LATE_STEP: i128 = 500_000_000;
 pub const NO_RAISE_PERIODS: u64 = 4;
 
+/// Trusted shops (#185): a "good cycle" is an on-time repayment that met the
+/// limit-growth bar ($40 on credit, or $10 with half up front), counted at most
+/// once per credit period. Any late repayment or default resets the count.
+/// With a proven record the buffer's share of the credit fee shrinks, because
+/// the risk it insures has: by a third from `TRUSTED_CYCLES`, by two thirds from
+/// `HIGHLY_TRUSTED_CYCLES`. Lenders keep `LENDER_BPS` and our share is unchanged,
+/// so at full credit the fee goes 1.50% -> 1.25% -> 1.00%.
+pub const TRUSTED_CYCLES: u32 = 4;
+pub const HIGHLY_TRUSTED_CYCLES: u32 = 8;
+
 /// A shop this many credit periods past its due date can be written off:
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
 pub const DEFAULT_AFTER_PERIODS: u64 = 4;
@@ -175,6 +185,10 @@ pub struct Shop {
     pub first_credit_at: u64,
     /// Unix seconds; no limit raise before this (after a major late payment).
     pub no_raise_until: u64,
+    /// Good cycles in a row (#185): on time, past the growth bar, once per period.
+    pub good_cycles: u32,
+    /// Unix seconds of the last good cycle counted; 0 if never.
+    pub last_good_at: u64,
 }
 
 /// Everything ever paid, by method, so the dashboard's totals cover the
@@ -205,6 +219,8 @@ pub struct ShopView {
     pub late_major: u32,
     pub max_days_late: u32,
     pub first_credit_at: u64,
+    /// Good cycles in a row; from `TRUSTED_CYCLES` the shop's credit costs its distributor less (#185).
+    pub good_cycles: u32,
 }
 
 #[contracttype]
@@ -613,8 +629,11 @@ impl RouteLedger {
         // 3. Fees: the distributor gets the amount minus the credit fee, 1.00%
         //    to 1.50% depending on how much the shop paid up front (no usage
         //    fee on credit: our cut is inside the credit fee).
-        let rate = credit_fee_bps(amount, invoice.amount);
-        let (to_buffer_bps, our_bps) = fee_split(rate);
+        //    A trusted shop's record shrinks the buffer's share (#185).
+        let slid = credit_fee_bps(amount, invoice.amount);
+        let (full_buffer_bps, our_bps) = fee_split(slid);
+        let to_buffer_bps = trusted_buffer_bps(full_buffer_bps, terms.good_cycles);
+        let rate = LENDER_BPS + to_buffer_bps + our_bps;
         let payout = amount - bps(amount, rate)?;
         let ours = bps(amount, our_bps)?;
         let to_buffer = bps(amount, to_buffer_bps)?;
@@ -730,15 +749,23 @@ impl RouteLedger {
                     terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
                     terms.last_raise_at = now;
                 }
+                // A good cycle for the trusted-shop fee (#185): same bar, once per period.
+                let good_waited = terms.last_good_at == 0 || now >= terms.last_good_at + period;
+                if big_enough && good_waited {
+                    terms.good_cycles = terms.good_cycles.saturating_add(1);
+                    terms.last_good_at = now;
+                }
             } else if days <= MINOR_LATE_DAYS {
-                // 2-7 days late: the limit drops $25.
+                // 2-7 days late: the limit drops $25, and the trusted record starts over.
                 terms.late += 1;
                 terms.late_minor += 1;
+                terms.good_cycles = 0;
                 terms.limit = (terms.limit - LIMIT_STEP).max(0);
             } else {
                 // 8+ days late: the limit drops $50 and can't grow for 4 periods.
                 terms.late += 1;
                 terms.late_major += 1;
+                terms.good_cycles = 0;
                 terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
                 terms.no_raise_until =
                     now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
@@ -777,6 +804,7 @@ impl RouteLedger {
         let days = days_late(env.ledger().timestamp(), terms.due_at, config.credit_period_secs);
         terms.max_days_late = terms.max_days_late.max(days_u32(days));
         terms.written_off += owed;
+        terms.good_cycles = 0;
         terms.owed = 0;
         terms.due_at = 0;
         terms.cycle_borrowed = 0;
@@ -823,6 +851,7 @@ impl RouteLedger {
             late_major: terms.late_major,
             max_days_late: terms.max_days_late,
             first_credit_at: terms.first_credit_at,
+            good_cycles: terms.good_cycles,
         }
     }
 }
@@ -853,6 +882,19 @@ pub fn fee_split(rate: i128) -> (i128, i128) {
     let rest = rate - LENDER_BPS;
     let ours = rest / 4;
     (rest - ours, ours)
+}
+
+/// The buffer's share of the credit fee for a shop with `good_cycles` good
+/// cycles in a row (#185): all of it, two thirds from `TRUSTED_CYCLES`, one
+/// third from `HIGHLY_TRUSTED_CYCLES`, rounded down.
+pub fn trusted_buffer_bps(buffer_bps: i128, good_cycles: u32) -> i128 {
+    if good_cycles >= HIGHLY_TRUSTED_CYCLES {
+        buffer_bps / 3
+    } else if good_cycles >= TRUSTED_CYCLES {
+        buffer_bps * 2 / 3
+    } else {
+        buffer_bps
+    }
 }
 
 /// How many "days" past `due_at` it is now, rounded up; 0 if not past it.

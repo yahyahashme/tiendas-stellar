@@ -702,6 +702,7 @@ fn shop_without_terms_shows_zeros() {
             late_major: 0,
             max_days_late: 0,
             first_credit_at: 0,
+            good_cycles: 0,
         }
     );
 }
@@ -1736,4 +1737,98 @@ fn a_page_and_the_newest_60_stay_far_under_the_network_limits() {
         assert!(r.memory_read_entries + r.disk_read_entries < 100, "{r:?}");
         assert!(r.instructions < 100_000_000, "{r:?}");
     }
+}
+
+// ---------- #185: trusted shops pay less for the buffer ----------
+
+impl Setup {
+    /// One credit cycle in week `week`: a `amount` invoice on credit, repaid on time.
+    fn good_cycle(&self, week: u64, amount: i128) {
+        self.env.ledger().set_timestamp(START + week * WEEK);
+        let id = 1000 + week;
+        self.minter.mint(&self.shop, &amount);
+        self.invoice(id, amount);
+        self.client.pay_with_credit(&self.shop, &id);
+        self.client.repay(&self.shop, &self.client.get_shop(&self.shop).owed);
+    }
+
+    /// What the distributor receives for a $100 invoice put fully on credit now, in week `week`.
+    fn payout_of_100(&self, week: u64, id: u64) -> i128 {
+        self.env.ledger().set_timestamp(START + week * WEEK);
+        let before = self.balance(&self.distributor);
+        self.invoice(id, 100 * USD);
+        self.client.pay_with_credit(&self.shop, &id);
+        self.balance(&self.distributor) - before
+    }
+}
+
+#[test]
+fn trusted_buffer_share_shrinks_by_thirds() {
+    assert_eq!(trusted_buffer_bps(75, 0), 75);
+    assert_eq!(trusted_buffer_bps(75, TRUSTED_CYCLES - 1), 75);
+    assert_eq!(trusted_buffer_bps(75, TRUSTED_CYCLES), 50);
+    assert_eq!(trusted_buffer_bps(75, HIGHLY_TRUSTED_CYCLES), 25);
+    // At the 1.00% floor the buffer gets 38 bps: 25, then 12.
+    assert_eq!(trusted_buffer_bps(38, TRUSTED_CYCLES), 25);
+    assert_eq!(trusted_buffer_bps(38, HIGHLY_TRUSTED_CYCLES), 12);
+}
+
+#[test]
+fn a_trusted_shop_costs_its_distributor_less() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..4 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 4);
+    // 4 good cycles: buffer 0.50% instead of 0.75%, so the fee is 1.25% and the distributor gets $98.75.
+    let buffer_before = t.client.get_pool().buffer;
+    assert_eq!(t.payout_of_100(4, 1), 987_500_000);
+    assert_eq!(t.client.get_invoice(&1).credit_fee, 12_500_000);
+    assert_eq!(t.client.get_pool().buffer - buffer_before, 5_000_000);
+    t.client.repay(&t.shop, &t.client.get_shop(&t.shop).owed);
+    for week in 5..9 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 9);
+    // 8+ good cycles: buffer 0.25%, fee 1.00%, the distributor gets $99.00. Lenders and we keep 0.50% and 0.25%.
+    let treasury_before = t.balance(&t.treasury);
+    assert_eq!(t.payout_of_100(9, 2), 990_000_000);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, 2_500_000);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn good_cycles_need_the_growth_bar_and_count_once_a_period() {
+    let t = setup();
+    t.with_credit();
+    // $20 on credit, nothing up front: under the $40 bar, on time but not a good cycle.
+    t.good_cycle(0, 20 * USD);
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 0);
+    // Two $50 cycles in the same week count once.
+    t.good_cycle(1, 50 * USD);
+    t.env.ledger().set_timestamp(START + WEEK + DAY);
+    t.minter.mint(&t.shop, &(50 * USD));
+    t.invoice(77, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &77);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 1);
+}
+
+#[test]
+fn a_late_repayment_resets_the_trusted_record() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..4 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 4);
+    // Borrow in week 4, repay 3 days past due: minor late, back to 0 and the full fee.
+    t.env.ledger().set_timestamp(START + 4 * WEEK);
+    t.invoice(50, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &50);
+    t.env.ledger().set_timestamp(START + 5 * WEEK + 3 * DAY);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 0);
+    assert_eq!(t.payout_of_100(6, 51), 985_000_000);
 }
