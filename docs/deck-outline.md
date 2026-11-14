@@ -1,6 +1,6 @@
 # Finals deck outline (#41)
 
-Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). Update Fri Nov 13 night: #82 is merged, and `docs/img/code-slide.png` was re-rendered after #139 with the new contract ID (see slide 5). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
+Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). Update Fri Nov 13 night: #82 is merged, and `docs/img/code-slide.png` was re-rendered after #139 with the new contract ID (see slide 5). Update Sat Nov 14: slide 7's "what users told us" line is cut (no conversation with a user is logged; see slide 7). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
 
 ## Rules
 
@@ -21,7 +21,7 @@ Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Th
 | 4. How it works on Stellar | 20 | 1:25 |
 | 5. The code | 15 | 1:40 |
 | 6. Money and go-to-market | 30 | 2:10 |
-| 7. Risk #1, our plan, what users told us | 30 | 2:40 |
+| 7. Risk #1 and our plan | 30 | 2:40 |
 | 8. Team and our ask | 20 | 3:00 |
 
 If the 1-minute video plays at the finals, slide 3 stands in for it and this budget changes. Whether it plays is not stated anywhere in our notes (see "Open questions").
@@ -62,11 +62,14 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 - **Never say:** "$98.40", "$0.35 per credit sale", a "$2.5 million" revenue figure (facts, "Never use"), or that fee sponsorship works. Fee wording: "$98.50 per $100" for an invoice fully on credit, with a fee of "up to 1.5%" paid by the distributor (facts entry 29, update Nov 13: #139 made the fee slide from 1.50% down to 1.00% the more the shop pays up front, so never say a flat 1.5%).
 - **Visual:** the $100 example as 3 rows.
 
-### 7. Risk #1, our plan, what users told us
+### 7. Risk #1 and our plan
 - **Message:** we name the hard part before a judge does.
 - **Source:** context §6 and §13; `docs/security.md` section 3 (demo versus real).
 - **Rule:** our plan is a plan, not a deal. No bank, cash-in company or lender has agreed to anything, so don't word it as if one had.
-- **Needs:** the real count and the one change, from #30 (still open). `docs/research.md` is on `main` (#72) but logs only the two advisor calls; advisors aren't users, so they don't count toward "[N] people".
+- **Cut Sat Nov 14:** the line "We spoke to [N] people and changed [one thing]." `docs/research.md` on `main` (#72) logs only the two advisor calls and the partner emails. PR #152 (open) adds 7 interview requests to shops and distributors and 5 advice emails to nonprofits: messages sent, 0 conversations. Advisors aren't users. The team rule (#61) is exact counts only, and 0 means cut the line, not say 0. Add it back only with a real count from #30.
+- **Not used instead:** the advisors' advice to partner with banks and cash-in companies (facts entry 57 only counts the 2 calls and says never to count advisors as users or traction), and "we emailed 5 organisations" (entry 58 is on PR #159, not on `main` yet, and an email sent is not a conversation).
+- **Spoken line:** PR #166 (open) changes the `docs/pitch.md` 2:30 to 2:50 line to "We've asked [7] grocers and distributors to talk; zero conversations yet." The slide says nothing about users, so the two don't contradict. Re-read the `[7]` from `docs/research.md` before each run; the team decides whether to keep a spoken zero, given rule #61.
+- **Needs:** nothing for the slide.
 - **MoneyGram:** say "as far as we found". Entry 38 (pending a person's check) says MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25, and its coverage data lists El Salvador as cash-out only. Look at the coverage map by eye before the line goes on a slide.
 
 ### 8. Team and our ask
@@ -107,8 +110,8 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; `[NAME]` became Relay in PR #107, the `[N]` placeholders are still open) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
-| "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |
-| Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12 (brackets still open) |
+| "What we heard from N people" | #30; `docs/research.md` (#72) | cut from slide 7 on Nov 14: 0 conversations with users (PR #152 logs messages sent only). Add it back only with a real count |
+| Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12; slide 7 updated Nov 14. The only bracket left is slide 8's `[our ask]` |
 | Real phone screenshots | live app, captured by Jack, steps above | not started; unblocked (redeploy landed, #90) |
 | Code slide with the real contract ID | #56 follow-up, PR #82 | done (Nov 13): PR #82 merged, and the PNG was re-rendered after #139; `docs/img/code-slide.png` on `main` shows the current ID (CAGCZ3I7...). Re-render after any redeploy |
 | Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | merged; the option is in `docs/slides/render.mjs` (render on the computer that prints, after the last redeploy) |
@@ -125,7 +128,7 @@ The public export of the template downloads without a login. It is 20 x 11.25 in
 | (Specific) Problem | 2. The problem |
 | Your Solution | 3. The product |
 | How it's used/integrated with existing systems | 4. How it works on Stellar |
-| Your Evidence (who you talked to, what you read) | 7. Risk #1, our plan, what users told us (partly) |
+| Your Evidence (who you talked to, what you read) | 7. Risk #1 and our plan (partly: the "who you talked to" line is cut until there is a real count) |
 | Your Impact (how many people you are helping x how much you are helping them) | none |
 | Your team (who you are and why you are the right people to do this) | 8. Team and our ask |
 | Optional: how you would use the prize money to actually get this started | none (it could be our ask) |
@@ -139,6 +142,7 @@ Our slides 5 (the code) and 6 (money and go-to-market) have no template slot, an
 - **MoneyGram:** "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Entry 38.
 - **Why not the state bank (BFA):** entry 20 has the answer. Not on a slide.
 - **Delivery crews:** "have been robbed and extorted" (entry 40, one reported case plus a study of 2012 to 2019 data). Don't say "no record of who collected what" as a fact (it has no source).
+- **Users (if asked):** slide 7 no longer mentions users, so a judge may ask. Say the real number (context §13): no conversations with shop owners or distributors yet; we have sent interview requests (the count is in `docs/research.md` once PR #152 merges) and held 2 advisor calls, and advisors are not users (entry 57). Never "we spoke to". The wording is answer 8 in `docs/pitch.md` (PR #166).
 
 ## How to build it
 

@@ -2,13 +2,15 @@
 
 Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `docs/facts.md`. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe, after #72, #73, #83, #84, #85, #86, #90, #100 and #102 merged. Paste this into Velocity's template; `docs/deck-outline.md` keeps the sources, what each slide still needs, and the open questions.
 
-**Rules each slide follows:** a headline of 8 words or fewer, at most 3 lines of about 10 words (12 at most), readable in 5 seconds. Sources go in the small print under the slide, never in the 3 lines. A `[bracket]` is something the team has not decided or we don't have yet: **do not paste a bracket into the real deck.** Words were counted on Thu Nov 12 (a "$2" or "pay-in-7-days" counts as one word); recount after any edit.
+**Rules each slide follows:** a headline of 8 words or fewer, at most 3 lines of about 10 words (12 at most), readable in 5 seconds. Sources go in the small print under the slide, never in the 3 lines. A `[bracket]` is something the team has not decided or we don't have yet: **do not paste a bracket into the real deck.** Words were counted on Thu Nov 12 (a "$2" or "pay-in-7-days" counts as one word); recount after any edit. Slide 7 was recounted Sat Nov 14 after its third line was cut: headline 7 words, lines 7 and 11.
 
 **Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Do not say fee sponsorship works**: it is not built (PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
 **Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 **Update Fri Nov 13 night:** PR #82 is merged and #139 (the sliding fee) is merged with the new contract ID, so `docs/img/code-slide.png` was re-rendered after #139 and slide 5 is ready (see slide 5). Slide 6 now says "up to 1.5%" (line 2 is now about 21 words, over the limit of 12: the .pptx draft sets the bracket sentence small, and it can be cut if the slide reads as too much). Slide 3's phone screenshots (PR #119) predate #125 and #126 and need a retake before the deck is final (steps in `docs/deck-outline.md`).
+
+**Update Sat Nov 14:** Slide 7's third line, "We spoke to [N] people and changed [one thing].", is cut, so no `[N]` or `[one thing]` is left. No conversation with a user is logged: PR #152 (open) logs 7 interview requests and 5 nonprofit emails, which are messages sent, not conversations. The team's rule (#61) is exact counts only, and a count of 0 means cut the line, not say 0. Slide 7 now has two lines. Still open: our ask (slide 8) and who pitches.
 
 ## 1. Name and one-line pitch (10 s)
 
@@ -82,17 +84,19 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 **Not on the slide:** a revenue figure. Entry 30's scenarios are Q&A backup only, always "scenario, not a forecast".
 **Waiting on:** nothing; entries 25, 26 and 29 are on `main`.
 
-## 7. Risk #1, our plan, what users told us (30 s)
+## 7. Risk #1 and our plan (30 s)
 
 **Headline:** Risk #1: turning cash into digital dollars
 
 1. Not solved yet. Our demo simulates it.
 2. Plan: a licensed partner converts cash in bulk and does KYC/KYB.
-3. We spoke to [N] people and changed [one thing].
 
 **Small print:** KYC/KYB: checking who shops and distributors are. Shops would repay weekly, like a bill. MoneyGram lists cash-out points in El Salvador but, as far as we found, not cash-in. A plan, not a deal: no bank, cash-in company or lender has agreed to anything.
-**Visual:** text only.
-**Waiting on:** the real count and the one change (#30 is open). `docs/research.md` is on `main` now (#72), but it logs only the two advisor calls and no shop-owner or distributor conversations. Advisors are not users, so don't count them in [N]. Also, a person should look at MoneyGram's coverage map before that small-print line goes on a slide (entry 38 is still pending).
+**Visual:** text only: two cards, one per line.
+**Cut Sat Nov 14:** the old third line, "We spoke to [N] people and changed [one thing]." The research log has no conversation with a user (0). PR #152 (open) logs 7 interview requests to shops and distributors and 5 advice emails to nonprofits: messages sent, not conversations. Rule (#61): a count of 0 means cut the line, not say 0. Don't add it back until a real conversation is logged, and then use the exact count.
+**Not used instead:** (a) The advisors' advice to partner with banks and cash-in companies. Facts entry 57 (on `main`) only says we held 2 advisor calls, and it says never to count advisors as users or traction; the advice itself is in `docs/research.md` and context §14, not in a facts entry. (b) "We emailed 5 organisations": that is entry 58, which is on PR #159 and not on `main` yet, and an email sent is not a conversation.
+**The spoken line (PR #166, open, `docs/pitch.md` 2:30 to 2:50):** "We've asked [7] grocers and distributors to talk; zero conversations yet." The slide says nothing about users, so the voice and the slide don't contradict. But the `[7]` comes from PR #152 (not merged): re-read it from `docs/research.md` before each run. The #61 rule says to cut a zero, so the team should decide whether to keep that spoken sentence. Context §13 and answer 8 (Q&A) say to give the real number when asked.
+**Waiting on:** nothing for the slide, except that a person should look at MoneyGram's coverage map before the small-print line goes on a slide (entry 38 is still pending).
 
 ## 8. Team and our ask (20 s)
 
