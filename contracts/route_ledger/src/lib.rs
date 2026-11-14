@@ -869,12 +869,12 @@ impl RouteLedger {
         Ok(())
     }
 
-    /// Admin only: a shop is `DEFAULT_AFTER_PERIODS` credit periods late.
-    /// The buffer pays the lenders back what it can, the shop's credit is
-    /// turned off, and the debt stays on its record as `written_off`.
+    /// Anyone can call this once a shop is `DEFAULT_AFTER_PERIODS` credit
+    /// periods late, so lenders are never stuck waiting on the admin. The
+    /// buffer pays the lenders back what it can, the shop's credit is turned
+    /// off, and the debt stays on its record as `written_off`.
     pub fn cover_default(env: Env, shop: Address) -> Result<(), Error> {
         let config = load_config(&env);
-        config.admin.require_auth();
         let mut terms = load_shop(&env, &shop).ok_or(Error::NothingOwed)?;
         if terms.owed == 0 {
             return Err(Error::NothingOwed);

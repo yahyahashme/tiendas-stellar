@@ -127,10 +127,10 @@ deposit_once() {
 }
 retry deposit_once
 
-step "The lender seeds the loss buffer with \$50"
+step "The lender seeds the loss buffer with \$200 (one shop's starting limit)"
 buffer_once() {
-  invoke lender fund_buffer --from "$LENDER" --amount 500000000 && return 0
-  [ "$(view get_pool | field buffer)" = "500000000" ]
+  invoke lender fund_buffer --from "$LENDER" --amount 2000000000 && return 0
+  [ "$(view get_pool | field buffer)" = "2000000000" ]
 }
 retry buffer_once
 

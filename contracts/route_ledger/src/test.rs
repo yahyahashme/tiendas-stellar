@@ -1009,7 +1009,8 @@ fn each_function_asks_for_exactly_its_documented_signer() {
 
     t.env.ledger().set_timestamp(START + 6 * WEEK);
     t.client.cover_default(&t.shop);
-    t.assert_signed_by(&t.admin, "cover_default");
+    // Anyone can trigger a due default: no signature at all.
+    assert!(t.env.auths().is_empty(), "cover_default asked for a signer");
 }
 
 #[test]
@@ -1143,7 +1144,7 @@ fn wrong_signer_cannot_touch_the_pool() {
 }
 
 #[test]
-fn set_terms_and_cover_default_need_the_admin() {
+fn set_terms_needs_the_admin_and_anyone_can_cover_a_due_default() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 100 * USD);
@@ -1155,9 +1156,6 @@ fn set_terms_and_cover_default_need_the_admin() {
     for signer in [t.stranger(), t.shop.clone(), t.distributor.clone(), t.lender.clone()] {
         t.only(&signer, "set_terms", (t.shop.clone(), 500 * USD).into_val(&t.env));
         assert_not_signed!(t.client.try_set_terms(&t.shop, &(500 * USD)));
-
-        t.only(&signer, "cover_default", (t.shop.clone(),).into_val(&t.env));
-        assert_not_signed!(t.client.try_cover_default(&t.shop));
     }
     assert_eq!(t.snapshot(), before);
     assert_eq!(t.client.get_shop(&t.shop).limit, 200 * USD);
@@ -1168,7 +1166,8 @@ fn set_terms_and_cover_default_need_the_admin() {
     t.client.set_terms(&t.shop, &(500 * USD));
     assert_eq!(t.client.get_shop(&t.shop).limit, 500 * USD);
 
-    t.only(&t.admin, "cover_default", (t.shop.clone(),).into_val(&t.env));
+    // A stranger can cover a due default, so lenders never wait on the admin.
+    t.only(&t.stranger(), "cover_default", (t.shop.clone(),).into_val(&t.env));
     t.client.cover_default(&t.shop);
     assert_eq!(t.client.get_shop(&t.shop).written_off, 100 * USD);
 }

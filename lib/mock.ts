@@ -106,7 +106,7 @@ function seed(now: number): Store {
       { id: "motorista-1", name: "Carlos", cashHeld: 0 },
       { id: "motorista-2", name: "Ana", cashHeld: 0 },
     ],
-    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
+    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 200_00 * UNITS_PER_CENT }, // deploy.sh seeds $200
     payments: [],
   };
 }
