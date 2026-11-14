@@ -13,7 +13,10 @@ export type Shop = {
   writtenOff?: number;
 };
 export type Driver = { id: string; name: string; cashHeld: number; distributorId?: string };
-export type Pool = { available: number; buffer: number };
+/** The credit pool, in dollars. `lent` is what shops still owe it; lenders own `available + lent`. */
+export type Pool = { available: number; buffer: number; lent: number };
+/** One approved lender's place in the pool, in dollars. Earned = value - netDeposited. */
+export type LenderView = { approved: boolean; value: number; netDeposited: number };
 /** Everything ever paid, by method (dollars), and how many invoices exist. */
 export type Totals = { invoices: number; digital: number; cash: number; credit: number };
 /** Newest first, `pages` pages of `HISTORY_PAGE`; `total` is how many exist. */

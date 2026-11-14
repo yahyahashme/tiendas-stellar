@@ -20,7 +20,7 @@ import { toUnixSeconds } from "@/lib/dates";
 import { firstFreeId, nextDemoId } from "@/lib/demo-ids";
 import { getDb } from "@/lib/server/db";
 import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
-import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
+import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type LenderView, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
 
 // ---------- reads ----------
 
@@ -171,7 +171,15 @@ export async function getSuppliers(shopId: string): Promise<Supplier[]> {
 
 export async function getPool(): Promise<Pool> {
   const pool = await read(readClient().get_pool());
-  return { available: toDollars(pool.available), buffer: toDollars(pool.buffer) };
+  return { available: toDollars(pool.available), buffer: toDollars(pool.buffer), lent: toDollars(pool.lent) };
+}
+
+/** The demo lender's place in the pool (config/testnet.json `accounts.lender`). Public on chain anyway. */
+export async function getLender(): Promise<LenderView> {
+  const address = addressOf("lender");
+  if (!address) return { approved: false, value: 0, netDeposited: 0 };
+  const view = await read(readClient().get_lender({ lender: address }));
+  return { approved: view.approved, value: toDollars(view.value), netDeposited: toDollars(view.net_deposited) };
 }
 
 // ---------- writes ----------

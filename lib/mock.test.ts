@@ -21,7 +21,7 @@ describe("seed data", () => {
   it("has three shops with a $200 limit and a $5,000 pool", () => {
     expect(mock.getShop("tienda-1")).toMatchObject({ name: "Tienda Rosa", creditLimit: 200, creditOwed: 0, overdue: false });
     expect(mock.getShop("nope")).toBeNull();
-    expect(mock.getPool()).toEqual({ available: 5000, buffer: 50 });
+    expect(mock.getPool()).toMatchObject({ available: 5000, buffer: 50 });
     expect(mock.getDrivers().map((d) => d.name)).toEqual(["Carlos", "Ana"]);
   });
 });
@@ -79,7 +79,7 @@ describe("pay in 7 days", () => {
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "credit" });
     expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 150, overdue: false, creditDue: new Date(NOW + 7 * DAY).toISOString() });
     // $150 on credit: the pool gives up $149.25 and keeps $1.125 as a buffer.
-    expect(mock.getPool()).toEqual({ available: 4850.75, buffer: 51.125 });
+    expect(mock.getPool()).toMatchObject({ available: 4850.75, buffer: 51.125, lent: 150 });
   });
 
   it("charges a lower credit fee when the shop paid part up front", () => {

@@ -7,6 +7,14 @@ import {Address, xdr} from '@stellar/stellar-sdk';
 export interface Pool {
   available: bigint;
   buffer: bigint;
+  /**
+   * Credit the pool has out with shops right now (what they still owe it).
+   */
+  lent: bigint;
+  /**
+   * Lender shares issued. Each share is worth (available + lent) / shares.
+   */
+  shares: bigint;
 }
 
 /**
@@ -79,7 +87,15 @@ export const Error = {
   /**
    * The driver's cash claim isn't the amount the shop confirmed.
    */
-  15 : { message: "ClaimChanged" }
+  15 : { message: "ClaimChanged" },
+  /**
+   * Only approved lenders can put money in the pool.
+   */
+  16 : { message: "NotLender" },
+  /**
+   * The lender asked for more shares than it holds.
+   */
+  17 : { message: "NotEnoughShares" }
 }
 
 /**
@@ -90,6 +106,17 @@ export interface Config {
   credit_period_secs: bigint;
   token: string;
   treasury: string;
+}
+
+/**
+ * One lender's place in the pool.
+ */
+export interface Lender {
+  /**
+   * Money put in minus money taken out, so earnings = value - net_deposited.
+   */
+  net_deposited: bigint;
+  shares: bigint;
 }
 
 /**
@@ -133,7 +160,8 @@ export interface RepaidEvent {
   { tag: "DriverCash"; values: readonly [string] } |
   { tag: "CashClaim"; values: readonly [bigint] } |
   { tag: "UsageOwed"; values: readonly [string] } |
-  { tag: "Distributor"; values: readonly [string] };
+  { tag: "Distributor"; values: readonly [string] } |
+  { tag: "Lender"; values: readonly [string] };
 
 /**
  * Struct: Invoice
@@ -204,7 +232,30 @@ export interface DepositedEvent {
   data: {
     lender: string;
     amount?: bigint;
+    shares?: bigint;
   };
+}
+
+/**
+ * Event: Withdrawn
+ */
+export interface WithdrawnEvent {
+  name: "Withdrawn";
+  data: {
+    lender: string;
+    amount?: bigint;
+    shares?: bigint;
+  };
+}
+
+/**
+ * What a lender sees: its shares, what they are worth now, and what it put in.
+ */
+export interface LenderView {
+  approved: boolean;
+  net_deposited: bigint;
+  shares: bigint;
+  value: bigint;
 }
 
 /**
@@ -302,6 +353,16 @@ export interface InvoiceCreatedEvent {
     shop?: string;
     amount?: bigint;
     due?: bigint;
+  };
+}
+
+/**
+ * Event: LenderApproved
+ */
+export interface LenderApprovedEvent {
+  name: "LenderApproved";
+  data: {
+    lender: string;
   };
 }
 
@@ -446,5 +507,5 @@ export interface CreateContractWithConstructorHostFnContext {
   { tag: "Wasm"; values: readonly [Uint8Array] } |
   { tag: "StellarAsset"; values: void } |
   { tag: "Account"; values: void };
-    export type ContractEvent = RepaidEvent | TermsSetEvent | DepositedEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | PaidWithCreditEvent | DistributorApprovedEvent;
+    export type ContractEvent = RepaidEvent | TermsSetEvent | DepositedEvent | WithdrawnEvent | CashClaimedEvent | InvoicePaidEvent | BufferFundedEvent | CashHandedInEvent | CashConfirmedEvent | DefaultCoveredEvent | InvoiceCreatedEvent | LenderApprovedEvent | PaidWithCreditEvent | DistributorApprovedEvent;
     

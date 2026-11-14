@@ -92,6 +92,10 @@ pub enum Error {
     NotInDefault = 14,
     /// The driver's cash claim isn't the amount the shop confirmed.
     ClaimChanged = 15,
+    /// Only approved lenders can put money in the pool.
+    NotLender = 16,
+    /// The lender asked for more shares than it holds.
+    NotEnoughShares = 17,
 }
 
 #[contracttype]
@@ -145,6 +149,29 @@ pub struct Config {
 pub struct Pool {
     pub available: i128,
     pub buffer: i128,
+    /// Credit the pool has out with shops right now (what they still owe it).
+    pub lent: i128,
+    /// Lender shares issued. Each share is worth (available + lent) / shares.
+    pub shares: i128,
+}
+
+/// One lender's place in the pool.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Lender {
+    pub shares: i128,
+    /// Money put in minus money taken out, so earnings = value - net_deposited.
+    pub net_deposited: i128,
+}
+
+/// What a lender sees: its shares, what they are worth now, and what it put in.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct LenderView {
+    pub approved: bool,
+    pub shares: i128,
+    pub value: i128,
+    pub net_deposited: i128,
 }
 
 #[contracttype]
@@ -222,6 +249,7 @@ pub enum DataKey {
     CashClaim(u64),
     UsageOwed(Address),
     Distributor(Address),
+    Lender(Address),
 }
 
 #[contractevent]
@@ -273,6 +301,21 @@ pub struct Deposited {
     #[topic]
     pub lender: Address,
     pub amount: i128,
+    pub shares: i128,
+}
+
+#[contractevent]
+pub struct Withdrawn {
+    #[topic]
+    pub lender: Address,
+    pub amount: i128,
+    pub shares: i128,
+}
+
+#[contractevent]
+pub struct LenderApproved {
+    #[topic]
+    pub lender: Address,
 }
 
 #[contractevent]
@@ -554,10 +597,35 @@ impl RouteLedger {
         Ok(())
     }
 
-    /// A lender adds money to the pool that pays invoices on credit.
+    /// Admin only: let a licensed lender put money in the pool. Lenders can
+    /// be anywhere, as long as they hold the pool's dollars on Stellar.
+    pub fn approve_lender(env: Env, lender: Address) {
+        load_config(&env).admin.require_auth();
+        let entry = load_lender(&env, &lender).unwrap_or_default();
+        save_lender(&env, &lender, &entry);
+        LenderApproved { lender }.publish(&env);
+    }
+
+    pub fn is_lender(env: Env, lender: Address) -> bool {
+        load_lender(&env, &lender).is_some()
+    }
+
+    /// An approved lender adds money to the pool that pays invoices on credit,
+    /// and gets shares at today's value, so earlier lenders keep what they earned.
     pub fn deposit(env: Env, lender: Address, amount: i128) -> Result<(), Error> {
         lender.require_auth();
         if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        let mut pool = load_pool(&env);
+        let value = pool.available + pool.lent;
+        let shares = if pool.shares == 0 || value <= 0 {
+            amount
+        } else {
+            amount.checked_mul(pool.shares).ok_or(Error::InvalidAmount)? / value
+        };
+        if shares <= 0 {
             return Err(Error::InvalidAmount);
         }
         let config = load_config(&env);
@@ -566,11 +634,58 @@ impl RouteLedger {
             &env.current_contract_address(),
             &amount,
         );
-        let mut pool = load_pool(&env);
         pool.available += amount;
+        pool.shares += shares;
         save_pool(&env, &pool);
-        Deposited { lender, amount }.publish(&env);
+        entry.shares += shares;
+        entry.net_deposited += amount;
+        save_lender(&env, &lender, &entry);
+        Deposited { lender, amount, shares }.publish(&env);
         Ok(())
+    }
+
+    /// A lender takes money out by giving back shares. Only money that is not
+    /// lent out can leave; the rest comes back as shops repay.
+    pub fn withdraw(env: Env, lender: Address, shares: i128) -> Result<i128, Error> {
+        lender.require_auth();
+        if shares <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        if shares > entry.shares {
+            return Err(Error::NotEnoughShares);
+        }
+        let mut pool = load_pool(&env);
+        let amount = share_value(&pool, shares)?;
+        if amount > pool.available {
+            return Err(Error::PoolTooLow);
+        }
+        pool.available -= amount;
+        pool.shares -= shares;
+        save_pool(&env, &pool);
+        entry.shares -= shares;
+        entry.net_deposited -= amount;
+        save_lender(&env, &lender, &entry);
+        let config = load_config(&env);
+        let token = token::Client::new(&env, &config.token);
+        send(&token, &env.current_contract_address(), &lender, amount);
+        Withdrawn { lender, amount, shares }.publish(&env);
+        Ok(amount)
+    }
+
+    pub fn get_lender(env: Env, lender: Address) -> LenderView {
+        match load_lender(&env, &lender) {
+            None => LenderView::default(),
+            Some(entry) => {
+                let pool = load_pool(&env);
+                LenderView {
+                    approved: true,
+                    shares: entry.shares,
+                    value: share_value(&pool, entry.shares).unwrap_or(0),
+                    net_deposited: entry.net_deposited,
+                }
+            }
+        }
     }
 
     /// Admin only: give a shop credit, or change its limit.
@@ -634,6 +749,7 @@ impl RouteLedger {
 
         pool.available -= from_pool;
         pool.buffer += to_buffer;
+        pool.lent += amount;
         save_pool(&env, &pool);
 
         if terms.owed == 0 {
@@ -708,6 +824,7 @@ impl RouteLedger {
         }
 
         pool.available += amount;
+        pool.lent -= amount;
         save_pool(&env, &pool);
         terms.owed -= amount;
         if terms.owed == 0 {
@@ -772,6 +889,9 @@ impl RouteLedger {
         let covered = owed.min(pool.buffer);
         pool.buffer -= covered;
         pool.available += covered;
+        // The debt is no longer counted as lent: what the buffer could not
+        // cover is the lenders' loss, shared by every share.
+        pool.lent -= owed;
         save_pool(&env, &pool);
 
         let days = days_late(env.ledger().timestamp(), terms.due_at, config.credit_period_secs);
@@ -921,6 +1041,23 @@ fn add(env: &Env, key: DataKey, amount: i128) {
 
 fn load_config(env: &Env) -> Config {
     env.storage().instance().get(&DataKey::Config).unwrap()
+}
+
+fn load_lender(env: &Env, lender: &Address) -> Option<Lender> {
+    env.storage().persistent().get(&DataKey::Lender(lender.clone()))
+}
+
+fn save_lender(env: &Env, lender: &Address, entry: &Lender) {
+    put(env, &DataKey::Lender(lender.clone()), entry);
+}
+
+/// What `shares` are worth today: their part of the money in the pool plus
+/// the money shops still owe it. Rounds down, so the pool never pays out more.
+fn share_value(pool: &Pool, shares: i128) -> Result<i128, Error> {
+    if pool.shares == 0 {
+        return Ok(0);
+    }
+    Ok(shares.checked_mul(pool.available + pool.lent).ok_or(Error::InvalidAmount)? / pool.shares)
 }
 
 fn load_pool(env: &Env) -> Pool {

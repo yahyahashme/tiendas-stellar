@@ -8,7 +8,7 @@
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
 import { creditFeeBps } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type Pool, type Receipt, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -232,7 +232,14 @@ export function getDrivers(): Driver[] {
 
 export function getPool(): Pool {
   const { available, buffer } = db().pool;
-  return { available: available / (100 * UNITS_PER_CENT), buffer: buffer / (100 * UNITS_PER_CENT) };
+  const lent = db().shops.reduce((sum, shop) => sum + shop.owed, 0); // cents
+  return { available: available / (100 * UNITS_PER_CENT), buffer: buffer / (100 * UNITS_PER_CENT), lent: lent / 100 };
+}
+
+/** The demo's one lender put in $5,000 (deploy.sh) and owns the whole pool. */
+export function getLender(): LenderView {
+  const pool = getPool();
+  return { approved: true, value: Math.round((pool.available + pool.lent) * 100) / 100, netDeposited: 5_000 };
 }
 
 export function createDemoInvoice(shopId?: string): Invoice {

@@ -93,6 +93,8 @@ const RULES: Rule[] = [
   exact("Su tienda aún no tiene crédito.", "Your shop doesn't have credit yet."),
   exact("Esta tienda todavía no tiene crédito.", "This shop doesn't have credit yet."),
   exact("El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.", "The driver changed the amount. Check the new amount and confirm again."),
+  exact("Solo los prestamistas aprobados pueden poner dinero en el fondo.", "Only approved lenders can put money in the pool."),
+  exact("No tiene tantas participaciones en el fondo.", "You don't hold that many shares in the pool."),
   exact("Este motorista no está en la ruta.", "This driver isn't on the route."),
   exact("No encontramos esa tienda.", "We couldn't find that shop."),
   exact("No encontramos a ese motorista.", "We couldn't find that driver."),

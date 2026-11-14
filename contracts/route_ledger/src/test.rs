@@ -54,6 +54,7 @@ fn setup() -> Setup {
     let lender = Address::generate(&env);
     minter.mint(&shop, &(500 * USD));
     minter.mint(&lender, &(50_000 * USD));
+    client.approve_lender(&lender);
 
     Setup {
         client,
@@ -376,7 +377,10 @@ fn cash_handed_in_reduces_what_the_driver_holds() {
 fn deposit_moves_money_into_the_pool() {
     let t = setup();
     t.client.deposit(&t.lender, &(5_000 * USD));
-    assert_eq!(t.client.get_pool(), Pool { available: 50_000_000_000, buffer: 0 });
+    assert_eq!(
+        t.client.get_pool(),
+        Pool { available: 50_000_000_000, buffer: 0, lent: 0, shares: 50_000_000_000 }
+    );
     assert_eq!(t.contract_balance(), 50_000_000_000);
     assert_eq!(t.balance(&t.lender), 450_000_000_000);
     assert_eq!(t.client.try_deposit(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
@@ -524,7 +528,8 @@ fn full_cycle_on_time() {
     t.client.repay(&t.shop, &(100 * USD));
 
     assert_eq!(t.contract_balance(), 50_012_500_000);
-    assert_eq!(t.client.get_pool(), Pool { available: 50_005_000_000, buffer: 7_500_000 });
+    let pool = t.client.get_pool();
+    assert_eq!((pool.available, pool.buffer, pool.lent), (50_005_000_000, 7_500_000, 0));
     t.assert_pool_matches_balance();
     assert_eq!(t.balance(&t.shop), 4_000_000_000);
 
@@ -842,7 +847,8 @@ fn fund_buffer_checks_the_amount() {
     let t = setup();
     assert_eq!(t.client.try_fund_buffer(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
     t.client.fund_buffer(&t.lender, &(10 * USD));
-    assert_eq!(t.client.get_pool(), Pool { available: 0, buffer: 10 * USD });
+    let pool = t.client.get_pool();
+    assert_eq!((pool.available, pool.buffer), (0, 10 * USD));
     t.assert_pool_matches_balance();
 }
 
@@ -1736,4 +1742,107 @@ fn a_page_and_the_newest_60_stay_far_under_the_network_limits() {
         assert!(r.memory_read_entries + r.disk_read_entries < 100, "{r:?}");
         assert!(r.instructions < 100_000_000, "{r:?}");
     }
+}
+
+// ---------- lenders: approved, with shares, can withdraw (lender pool, Nov 14) ----------
+
+#[test]
+fn only_approved_lenders_can_deposit() {
+    let t = setup();
+    let stranger = Address::generate(&t.env);
+    t.minter.mint(&stranger, &(100 * USD));
+    assert!(!t.client.is_lender(&stranger));
+    assert_eq!(t.client.try_deposit(&stranger, &(100 * USD)), Err(Ok(Error::NotLender)));
+    t.client.approve_lender(&stranger);
+    t.assert_signed_by(&t.admin, "approve_lender");
+    assert!(t.client.is_lender(&stranger));
+    t.client.deposit(&stranger, &(100 * USD));
+    assert_eq!(t.client.get_lender(&stranger).value, 100 * USD);
+}
+
+#[test]
+fn lender_earns_on_credit_and_withdraws_it() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    // The pool paid $99.50 and is owed $100, so the lender's $5,000 is worth $5,000.50.
+    let view = t.client.get_lender(&t.lender);
+    assert_eq!(view.net_deposited, 5_000 * USD);
+    assert_eq!(view.value, 5_000 * USD + 5_000_000);
+    assert_eq!(t.client.get_pool().lent, 100 * USD);
+
+    t.client.repay(&t.shop, &(100 * USD));
+    assert_eq!(t.client.get_pool().lent, 0);
+    let before = t.balance(&t.lender);
+    let got = t.client.withdraw(&t.lender, &view.shares);
+    t.assert_signed_by(&t.lender, "withdraw");
+    assert_eq!(got, 5_000 * USD + 5_000_000);
+    assert_eq!(t.balance(&t.lender), before + got);
+    let after = t.client.get_lender(&t.lender);
+    assert_eq!((after.shares, after.value), (0, 0));
+    assert_eq!(after.net_deposited, -5_000_000); // earned $0.50
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn lent_money_cannot_be_withdrawn_until_repaid() {
+    let t = setup();
+    t.client.deposit(&t.lender, &(200 * USD));
+    t.client.set_terms(&t.shop, &(200 * USD));
+    t.invoice(1, 150 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let shares = t.client.get_lender(&t.lender).shares;
+    assert_eq!(t.client.try_withdraw(&t.lender, &shares), Err(Ok(Error::PoolTooLow)));
+    assert_eq!(t.client.try_withdraw(&t.lender, &(shares + 1)), Err(Ok(Error::NotEnoughShares)));
+    assert_eq!(t.client.try_withdraw(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
+    // A part that is not lent can leave.
+    t.client.withdraw(&t.lender, &(shares / 10));
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_later_lender_does_not_take_earlier_earnings() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 200 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let late = Address::generate(&t.env);
+    t.minter.mint(&late, &(1_000 * USD));
+    t.client.approve_lender(&late);
+    t.client.deposit(&late, &(1_000 * USD));
+    let v = t.client.get_lender(&late).value;
+    // Rounds down by at most a unit, never up.
+    assert!(v <= 1_000 * USD && v >= 1_000 * USD - 1);
+    assert_eq!(t.client.get_lender(&t.lender).value, 5_000 * USD + 10_000_000);
+}
+
+#[test]
+fn a_default_the_buffer_cannot_cover_is_shared_by_lenders() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 200 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let pool = t.client.get_pool();
+    t.env.ledger().set_timestamp(START + WEEK * (DEFAULT_AFTER_PERIODS + 2));
+    t.client.cover_default(&t.shop);
+    let after = t.client.get_pool();
+    assert_eq!(after.lent, 0);
+    assert_eq!(after.buffer, 0);
+    // Lenders lose what the buffer could not cover.
+    let loss = 200 * USD - pool.buffer.min(200 * USD);
+    assert!(loss > 0);
+    assert_eq!(t.client.get_lender(&t.lender).value, 5_000 * USD + USD - loss);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn wrong_signer_cannot_approve_lenders_or_withdraw() {
+    let t = setup();
+    let stranger = Address::generate(&t.env);
+    t.client.deposit(&t.lender, &(100 * USD));
+    t.only(&stranger, "approve_lender", (stranger.clone(),).into_val(&t.env));
+    assert_not_signed!(t.client.try_approve_lender(&stranger));
+    t.only(&stranger, "withdraw", (t.lender.clone(), 1i128).into_val(&t.env));
+    assert_not_signed!(t.client.try_withdraw(&t.lender, &1));
 }

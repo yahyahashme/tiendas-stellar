@@ -12,7 +12,7 @@ import * as shops from "@/app/shop-actions";
 import * as invoices from "@/app/invoice-actions";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
+import type { Driver, Invoice, LenderView, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -49,6 +49,8 @@ export const getShop = (shopId: string): Promise<Shop | null> =>
   read(() => mock.getShop(shopId), () => live.getShop(shopId));
 export const getDrivers = (): Promise<Driver[]> => read(mock.getDrivers, live.getDrivers);
 export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
+/** The demo lender's place in the pool: what it put in and what that is worth now. */
+export const getLender = (): Promise<LenderView> => read(mock.getLender, live.getLender);
 /** The whole history a page at a time: `pages` pages, newest first. */
 export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
