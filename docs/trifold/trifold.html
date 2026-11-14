@@ -11,13 +11,16 @@
     ?layout=a   12 + 24 + 12 in   (the usual 36 x 48 in tri-fold: a wide centre, two narrow wings)
     ?layout=b   16 + 16 + 16 in   (what the first #37 draft assumed)
 
-  Anything still missing is a yellow box or yellow text (class "todo"): the numbers from #30, the three
-  phone screenshots (docs/trifold/img/) and the QR if its file is missing (public/qr-demo.png, PR #70).
+  Anything still missing is a yellow box or yellow text (class "todo"): a phone screenshot
+  (docs/trifold/img/) or the QR if its file is missing (public/qr-demo.png, PR #70).
+  There is no "what we heard" panel: the team has spoken to 0 people (messages sent are not conversations),
+  and the team rule (#61) is that a zero means the line is cut. Add the panel back only with a real count.
   The name is Relay, tagline "Paga tu ruta" (PR #100); the app is at relay-sv.vercel.app.
   `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
 
-  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the grey
-  testnet banner in frame):  shop-pay.png  shop-credit.png  driver-cash.png
+  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the
+  testnet banner in frame; the driver one is scrolled so the QR and the button show):
+  shop-pay.png  shop-credit.png  driver-cash.png. Retaken Nov 14 from main in mock mode (docs/trifold-assembly.md).
 
   Type: body 32 pt (the top of Velocity's 24 to 32 pt), headings 38 to 40 pt, title 96 pt. The three big
   numbers (104 pt) and the two key points (40 to 50 pt) are display type, on purpose larger than a heading.
@@ -146,7 +149,7 @@
     <div class="grp">
       <h2>The problem</h2>
       <p>Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100 (2019 survey).</p>
-      <p>Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.</p>
+      <p>In a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.</p>
     </div>
 
     <div class="stats">
@@ -169,7 +172,7 @@
       <p>$5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.</p>
       <p>$2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.</p>
       <p>$35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&amp;N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.</p>
-      <p>Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entries 11 and 40.</p>
+      <p>Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entry 11.</p>
     </div>
   </section>
 
@@ -229,7 +232,7 @@
         <ul>
           <li>The lender pool pays the distributor now: <strong>$98.50</strong></li>
           <li>The shop repays in 7 days: <strong>$100</strong>, no interest</li>
-          <li>The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25&nbsp;us</li>
+          <li>The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25&nbsp;us</li>
         </ul>
         <p>The distributor pays because it is paid at the door and carries no risk of the shop not paying.</p>
       </div>
@@ -249,10 +252,6 @@
     <div>
       <h3>Risk #1: cash to digital dollars</h3>
       <p>Not solved yet. Our demo simulates it. Plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC and KYB.</p>
-    </div>
-    <div>
-      <h3>What we heard</h3>
-      <p>We talked to <span class="todo">[N]</span> people and <span class="todo">[N]</span> tried the prototype. Because of them we changed <span class="todo">[what we changed]</span>.</p>
     </div>
   </section>
 

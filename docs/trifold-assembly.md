@@ -11,11 +11,11 @@ Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay
 |---|---|---|
 | Board | Tri-fold, 36 x 48 in (the size #40 names) | **Do we have one?** If not, email velocity.events@uwaterloo.ca, subject "Blockchain Innovation Challenge Powered by Stellar". Ask early. |
 | Panels | Most 36 x 48 in tri-fold boards fold as 12 in + 24 in + 12 in (a wide centre, two narrow wings). PR #83 (merged) builds both: `node docs/trifold/render.mjs` makes a 12 + 24 + 12 in version and a 16 + 16 + 16 in version (about 16 x 36 in per panel). **Measure our board before the layout is final**, because the two layouts are very different. | `[measured: ___ + ___ + ___ in]` |
-| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title already says Relay in `docs/trifold/trifold.html` and `docs/pitch.md` on `main` (PR #107, merged; no `[NAME]` is left). `node docs/trifold/render.mjs --final` still fails while any yellow placeholder is left (the "what we heard" count and the phone screenshots). | done (PR #107) |
+| Title | **Relay**, with **Paga tu ruta** under it (decided Nov 12, PR #100; context §1). The board title already says Relay in `docs/trifold/trifold.html` and `docs/pitch.md` on `main` (PR #107, merged; no `[NAME]` is left). `node docs/trifold/render.mjs --final` passes with no yellow left (Sat Nov 14, #40): the "what we heard" panel was cut (the team has spoken to 0 people, and a zero means the line is cut, #61) and the three phone screenshots were retaken from `main`. | done (PR #107; yellow cleared Nov 14) |
 | Type sizes | Title about 96 pt, headings 30 to 40 pt, body 24 to 32 pt (Velocity's tips) | from context §3.8 |
 | Text share | At most 25% of the board is text | check on the real layout |
 | Message | Two key points only. Sketch on paper, and have someone outside the team read it first. | from context §3.8 |
-| Layout | Left: the problem. Middle: how it works (3 phone screenshots, the QR code). Right: who pays and why, Risk #1 and our plan, "what we heard". | from context §3.8 and the #37 draft |
+| Layout | Left: the problem. Middle: how it works (3 phone screenshots, the QR code). Right: who pays and why, our plan, where we go next, Risk #1. ("What we heard" is cut: 0 conversations.) | from context §3.8 and the #37 draft |
 
 ## 2. Print spec
 
@@ -23,7 +23,7 @@ Scaffold written Wed Nov 11; updated Thu Nov 12 late evening for the name (Relay
 |---|---|---|
 | File | The print-ready layout from #37, as a PDF if the shop accepts it. Keep one copy in the shared folder and post the link in the group chat. | `[link]` |
 | Size | Decide with the shop: one print per panel, mounted on the board, or one large print. Per-panel prints are easier to align and to replace if one is wrong. | `[decided: ___]` |
-| Image sharpness | Our PNGs in `docs/img/` are 1920 x 1080 px. Placed 12 in wide that is 160 pixels per inch; placed 24 in wide it is only 80, which will look soft. Re-render the architecture diagram and the code slide at 2x or 3x for print (the render script draws at 1x: change `--force-device-scale-factor=1` in `docs/slides/render.mjs`). Text should stay as text in the PDF, not a picture. | to do on Sat |
+| Image sharpness | Our PNGs in `docs/img/` are 1920 x 1080 px. Placed 12 in wide that is 160 pixels per inch; placed 24 in wide it is only 80, which will look soft. Re-render the architecture diagram and the code slide at 2x or 3x for print (the render script draws at 1x: change `--force-device-scale-factor=1` in `docs/slides/render.mjs`). Text should stay as text in the PDF, not a picture. | **Done Sat Nov 14:** `SCALE=2 node docs/slides/render.mjs` writes `architecture@2x.png` (3840 x 2160, 226 pixels per inch in layout A, 265 in B); the phone screens are 185 (A) and 285 (B) and the QR 240 and 261. Every picture is over 150. Text is text in the PDFs, with the fonts embedded. Re-run both commands on the printing computer if anything changes. |
 | Finish | Ask the shop: matte or gloss. Gloss shows glare under showcase lights. | ask |
 | Proof | Ask for a small proof or check the PDF at 100% before the full print. | ask |
 
@@ -94,11 +94,20 @@ Call or email at least two. Write the answers in the table in section 7. Shops t
 
 If any phone fails, fix the code size, glare or URL, reprint the QR if needed, and test all three again.
 
-## 8. Print shop shortlist (researched Thu Nov 12)
+## 8. Print shop shortlist (researched Thu Nov 12, re-checked Sat Nov 14)
 
 Retrieved Thu Nov 12, 2026, from the shops' own pages where we could open them, plus web search. Hours change and pages go stale, so **call before relying on any of this.** No prices are listed unless a page quoted them.
 
-**What we found.** Only two shops near Waterloo and Kitchener list Sunday hours with print services, and both are Staples stores. Staples' wide-format page says posters go "up to 24" x 36"", not 36 x 48 in. So **a 36 x 48 in print on Sunday is not confirmed anywhere.** The other shops we checked either list Sunday as closed or give no Sunday hours (see "Sunday hours not confirmed" and "Checked and closed" below). Two things follow, and the team decides:
+**Re-check, Sat Nov 14, about 9:30 AM (read-only: the same pages were opened again; nobody was phoned and nothing was ordered).**
+
+- **Hours are unchanged.** Staples The Boardwalk and Strasburg Road: Sunday 11:00am to 5:00pm, Saturday 9:00am to 5:00pm. The UPS Stores #66, #398 and #195: Saturday 10:00 am to 3:00 pm (#398 and #195 list Sunday "Closed"; #66 has a "Sunday" heading with no times).
+- **Staples' size limit is not one number.** The older file-submission page still says wide-format posters go "up to 24" x 36"". But Staples' own online poster page (https://shop.staplescopyandprint.ca/products/posters, from https://shop.staplescopyandprint.ca/pages/signs-posters-banners, which says "Posters up to 40" x 60"") lists the sizes 12 x 18, 16 x 20, 18 x 24, 20 x 30, 24 x 36, **36 x 48** and 40 x 60 in, with the finishes laminate, foam core mount, 4 grommets and 4 adhesive hangers. So a 36 x 48 in print is **offered online**, which section 8's first paragraph (written Nov 12) did not know.
+- **Same-day pickup is shown for 36 x 48 in.** With "Same-day Print" and 36 x 48 in chosen, and The Boardwalk or Strasburg Road picked as the store, the page says "Order by noon for same-day pickup by store closing" and "Free pickup in-store today". It shows $81.99 for one glossy poster with no finishing, plus a service fee of up to $2.99 per order. "Standard Print" says pickup in 2 to 4 business days, which is too slow for Sunday. This is only what the page displays: nothing was ordered, nobody confirmed it by phone, and we do not know whether the in-store team can cut the print into panels or mount it on our board.
+- **What that would mean.** An online order placed **before noon on Saturday** could be picked up the same day before the stores close at 5:00 pm, which takes Sunday's short hours out of the plan. An order on Sunday would have to go in before noon and be picked up by 5:00 pm, leaving about an hour before the 6:00 PM deadline: do not plan on it.
+- **Pages disagree, so ask.** Ask Staples on the phone which size limit applies in the store, whether a 36 x 48 in print can be cut at the folds (measure the board first, section 1), and what a cut or a mount costs.
+- **Print-desk numbers.** The page's store picker ("Staples Print & Marketing Services") lists 519-578-2241 for Strasburg Road, 519-579-2768 for The Boardwalk and (519) 888-1719 for Waterloo. The store pages below list different numbers for Strasburg Road and Waterloo; try both.
+
+**What we found.** Only two shops near Waterloo and Kitchener list Sunday hours with print services, and both are Staples stores. Staples' wide-format page says posters go "up to 24" x 36"", not 36 x 48 in. So, as of Nov 12, **a 36 x 48 in print on Sunday was not confirmed anywhere** (the Nov 14 re-check above changes that for a Saturday pickup). The other shops we checked either list Sunday as closed or give no Sunday hours (see "Sunday hours not confirmed" and "Checked and closed" below). Two things follow, and the team decides:
 
 - Ask Staples whether per-panel prints (each within 24 x 36 in) are an option. The 16 + 16 + 16 in layout from #37 has panels of about 16 x 36 in, which would fit. The real board may fold 12 + 24 + 12 in instead (section 1), so measure first.
 - FASTSIGNS, Minuteman Press and W Print are closed on both Saturday and Sunday, so they only work if the file goes out on **Fri Nov 13**. #37 is due Sat Nov 14. The two UPS Stores in "Checked and closed" are open on Saturday from 10:00 am to 3:00 pm, and #398 lists posters and banners, so a Saturday print is possible there if the file is ready by then.
@@ -120,7 +129,7 @@ Retrieved Thu Nov 12, 2026, from the shops' own pages where we could open them, 
 - Sunday hours as listed: "Sunday 11:00am - 5:00pm" (Mon to Fri 9:00am to 8:00pm, Sat 9:00am to 5:00pm). Same doubt as above (12:00pm in a search snippet).
 - What the page says: "print and copy services in our store". It does not mention posters or large format, and we found no separate print page for this store.
 - Source: https://stores.staples.ca/staples-kitchener-2 (retrieved Thu Nov 12, 2026)
-- Size limit for Staples wide-format posters: "We can print posters and engineering prints in wide format in sizes up to 24" x 36"." Source: https://www.staplescopyandprint.ca/PrintOnlineInfo/FileSubmissionInfo.aspx (retrieved Thu Nov 12, 2026). A search snippet of a staples.ca poster page listed sizes up to 40 x 60 in; we could not open that page (HTTP 429), so treat it as unconfirmed.
+- Size limit for Staples wide-format posters: "We can print posters and engineering prints in wide format in sizes up to 24" x 36"." Source: https://www.staplescopyandprint.ca/PrintOnlineInfo/FileSubmissionInfo.aspx (retrieved Thu Nov 12, 2026). A search snippet of a staples.ca poster page listed sizes up to 40 x 60 in; on Sat Nov 14 Staples' own online poster page (see the re-check above) lists 36 x 48 and 40 x 60 in, so the two pages disagree: ask.
 - **Jack must call to confirm: 36 x 48 in, file size, turnaround, Sunday pickup.**
 
 ### Sunday hours not confirmed

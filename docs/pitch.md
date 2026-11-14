@@ -11,11 +11,11 @@ Status as of Thu Nov 12, evening. Update the "Status" column when an input lands
 | 1 | Final wording of the worldwide number (#51), due Sat noon | Rohan | **Done.** #51 is closed and PR #73 is merged (Nov 12): entry 22 and the "Opening line" are in `docs/facts.md` on `main`. | The 0:00 segment is the #73 opening line ($5.7 trillion) with "says Conamype" added (entry 1 asks for the attribution) and without "alone" after "In El Salvador". Put "alone" back to match #73 word for word (+1 word, 0.4 s). |
 | 2 | Team name (#26) | Everyone | **Done.** Yahya picked **Relay**, tagline **Paga tu ruta**, on Nov 12 (PR #100, merged: `lib/brand.ts` has both). The app is at **relay-sv.vercel.app**; the old tiendas-stellar address only redirects (PR #102). | Relay is in the script, the board and the answer bank. The board shows the tagline under the title and prints the address under the QR. Nothing is left to do here. |
 | 3 | Pitcher (#26) | Everyone | **Open.** #26 is closed and records no pitcher either. | Written for one speaker, in first person. |
-| 4 | "What we heard from N people" (#30). | Rohan | **Open.** `docs/research.md` is on `main` now (PR #72) but logs only the two advisor calls: no interviews or walkthroughs yet, and #30 is open. | `[N]` and `[what we changed]` in the script and on the board (yellow). If N is under 5, say the real number (context §13). |
-| 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Open.** | Three yellow phone frames on the board. Files go in `docs/trifold/img/` as `shop-pay.png`, `shop-credit.png`, `driver-cash.png`: 360 px wide, device pixel ratio 3 (1080 px wide, 180 pixels per inch at 6 in), grey testnet banner in frame. |
+| 4 | "What we heard from N people" (#30). | Rohan | **Cut from the board on Sat Nov 14 (#40).** The team has spoken to 0 people: PR #152 logs messages sent (7 requests to shops and distributors, 5 advice emails to nonprofits), not conversations, and the team rule (#61) is that a zero means the line is cut, not "0". The two advisor calls are advisors, not users. `docs/research.md` still logs only those calls. | The board has no "what we heard" panel and no yellow. Add one back only with a real count. The spoken script (sections 2 and 4) and the deck still have `[N]`: cut those lines too (#39, #41). |
+| 5 | Three real phone screenshots. `docs/screenshots/mock-screens-nov10.png` is a mock, not for the board | Jack | **Done Sat Nov 14 (#40).** The Nov 13 captures were from before #125 and #126 (the ES / EN switch, the paper-slip screens and the sticky pay buttons), so they were retaken from `main` in mock mode: `docs/trifold/img/shop-pay.png`, `shop-credit.png`, `driver-cash.png`, 360 x 760 px at device pixel ratio 3 (1080 x 2280 px, 185 pixels per inch at 6 in), with the testnet banner in frame (the driver one is scrolled so its QR and the "Recibí efectivo" button both show). | Three real screens on the board. |
 | 6 | Demo QR `public/qr-demo.png` (#55, PR #70) | Yahya | **Merged** (PR #70, Nov 12). The file is `public/qr-demo.png` on `main` (1200 x 1200 px, well over 200 pixels per inch at its printed size). PR #102 (Nov 12) regenerated it for the new address. Decoded on Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. `curl -sI https://relay-sv.vercel.app` answers 200. Scan the printed copy on 3 phones (#40). | The layout reads `public/qr-demo.png` and now renders it. |
 | 7 | Board size: do the panels fold 12 + 24 + 12 in or 16 + 16 + 16 in? | Jack | **Open: measure the board** (see section 1). | Both layouts are built and pass the same checks. Pick one when measured. |
-| 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), but it carries yellow placeholders until rows 4 and 5 close. These are two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
+| 8 | Paper sketch agreed, print-ready file link in the group chat | Team | **Not done by this PR.** The layout builds a 48 x 36 in PDF in both versions (`node docs/trifold/render.mjs`), and since Nov 14 it carries no yellow (rows 4 and 5 are closed). These were two of the three "Done means" lines of #37. | The PDFs are not committed (`out/` is git-ignored); Jack builds the final one and shares it. |
 | 9 | The one-minute demo video (#35) | Yahya | **Open.** The shot list is in `docs/demo-video.md`. | Rehearse with the full 60-second file from 0:00. Keep the same cut available offline for the showcase. |
 | 10 | A sharper diagram: `docs/img/architecture.png` is 1920 x 1080 px, which is 113 pixels per inch on the 12 + 24 + 12 board and 132 on the 16 + 16 + 16 one | Owner of the slide renders (PR #85's scaffold), asked through Jack | **Not asked yet.** Request text is in section 1. | The layout uses the 1x file and prints a warning. It picks up `architecture@2x.png` by itself when it exists. |
 | 11 | Copy the Nov 12 source-check edits from this file into `docs/trifold/trifold.html`: the left-panel crews and cash line (+12 words and a source line) and the right-panel "and sells more" cut (-3 words). Then run `node docs/trifold/render.mjs` and re-measure the word count and text share in section 1 | Jack | **Done Nov 12.** `trifold.html` has the new crews and cash line (+12 words), its source line (+35 words) and the "and sells more" cut (net -2 words, because "and" had to be added before "carries"). Re-rendered: the board was then 446 words (was 401; it is 456 now), text share 15.5% (A) and 15% (B) then (16.0% and 15.4% now), all panels fit. | None: the board copy and this file agree. The spoken script was not affected. |
@@ -52,16 +52,16 @@ A: 12 + 24 + 12 in                                B: 16 + 16 + 16 in
 | Rosa     | KEY POINT 2        | $100     |     |              | KEY POINT 2  | Our plan     |
 |          | HOW IT WORKS       | delivery |     | $5.7 tn      | HOW IT WORKS | Where next   |
 | $5.7 tn  | [ph]  [ph]  [ph]   | Our plan |     | $2 bn a year | [ph][ph][ph] | Risk #1      |
-| $2 bn    |                    | Next     |     | $35 per $100 | [QR] Scan    | What we heard|
+| $2 bn    |                    | Next     |     | $35 per $100 | [QR] Scan    |              |
 | $35      | [QR]  [diagram   ] | Risk #1  |     |              | [diagram   ] |              |
-| sources  |                    | Heard [N]|     | sources      |              |              |
+| sources  |                    |          |     | sources      |              |              |
 +----------+--------------------+----------+     +--------------+--------------+--------------+
 ```
 
 ### What the layout checks (re-measured Nov 12 night, after Relay went in; both layouts pass)
 
-- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.0 in on the left wing in A (9.5 in on the left panel in B), so it still looks airy, not crowded.
-- Text covers 16.0% (A) and 15.4% (B) of the board, against the 25% limit. The board carries **456 words** (452 before Relay, the tagline "Paga tu ruta" and the printed address went in: the name replaced one yellow `[NAME]`, so +3 for the tagline and +1 for `relay-sv.vercel.app`; 401 before the Nov 12 source-check edits; 446 before the facts entry 40 cite and the "(2019 survey)" added to the Rosa line and the first key point), 118 of them 16 pt source lines. (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
+- Nothing runs past the bottom or the sides of a panel, so nothing crosses a fold. Blocks are spread from top to bottom; the biggest gap between blocks is 9.5 in on the left wing in A (9.9 in on the left panel in B; 7.1 and 7.6 in on the right), so it still looks airy, not crowded. (Re-measured Sat Nov 14 after the "what we heard" panel was cut.)
+- Text covers 14.3% (A) and 13.7% (B) of the board, against the 25% limit. The board carries **406 words**, 99 of them 16 pt source lines (456 words, 118 of them source lines, before the Nov 14 cuts of the crews sentence and its source line, and the "what we heard" panel; 452 before Relay, the tagline "Paga tu ruta" and the printed address went in: the name replaced one yellow `[NAME]`, so +3 for the tagline and +1 for `relay-sv.vercel.app`; 401 before the Nov 12 source-check edits; 446 before the facts entry 40 cite and the "(2019 survey)" added to the Rosa line and the first key point). (The first draft guessed "about 300 words" and 9%; this is the measured figure.)
 - Type: body 32 pt (the top of Velocity's 24 to 32 pt), captions 28 pt, headings 38 to 40 pt, title 96 pt, source lines 16 pt. The three big numbers (104 pt) and the two key points (50 pt or 40 pt) are display type, on purpose larger than a heading.
 - The QR is 5 in square with a white border (the assembly spec in PR #85, `docs/trifold-assembly.md`, asks for at least 4 in). The PDF is one page, 3456 x 2592 pt, with the fonts embedded and the text kept as text.
 
@@ -86,7 +86,7 @@ The layout picks up `architecture@2x.png` by itself when it exists, and `render.
 
 > **The problem**
 > Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100 (2019 survey).
-> Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.
+> In a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.
 >
 > **$5.7 trillion**
 > in credit that small businesses in developing countries need and can't get
@@ -102,9 +102,9 @@ Small print (14 pt):
 - $5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.
 - $2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.
 - $35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.
-- Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entries 11 and 40.
+- Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entry 11.
 
-Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entry 11). One robbery case (2023, reported 2024) and extortion data from 2012 to 2019 are all we have, so the line says "have been", not "are", as entry 40's safe wording does. We cut "nobody can easily see which driver collected what cash": it was our assumption, not a sourced fact. If we keep the idea, say it as our view ("we think...").
+Source check, Nov 14: the crews line ("Delivery crews in El Salvador have been robbed and extorted", entry 40 in `docs/facts.md`) is **cut from the board** because entry 40 is still marked pending ("a teammate must open the link and confirm the quote") and rests on one reported accusation. To put it back, a teammate opens entry 40's two links and signs the entry, then the sentence and the source line `Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Entry 40.` go back in `trifold.html` and this file. Source check, Nov 12 (before the cut): the crew line is entry 40 (cash is entry 11). One robbery case (2023, reported 2024) and extortion data from 2012 to 2019 are all we have, so the line says "have been", not "are", as entry 40's safe wording does. We cut "nobody can easily see which driver collected what cash": it was our assumption, not a sourced fact. If we keep the idea, say it as our view ("we think...").
 
 ### Middle panel: how it works
 
@@ -127,7 +127,7 @@ Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entr
 > **One $100 delivery, paid in 7 days**
 > The lender pool pays the distributor now: **$98.50**
 > The shop repays in 7 days: **$100**, no interest
-> The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25 us
+> The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
 > The distributor pays because it is paid at the door and carries no risk of the shop not paying.
 >
 > **Our plan**
@@ -140,9 +140,8 @@ Source check, Nov 12: the crew line is entry 40 in `docs/facts.md` (cash is entr
 >
 > **Risk #1: cash to digital dollars**
 > Not solved yet. Our demo simulates it. Plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC and KYB.
->
-> **What we heard**
-> We talked to [N] people and [N] tried the prototype. Because of them we changed [what we changed].
+
+There is no "what we heard" panel (cut Nov 14: 0 conversations, see open item 4).
 
 "Our plan" is a plan, not a deal: no bank, cash-in company or lender has agreed to anything yet. Do not word it as if one had.
 
@@ -217,7 +216,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | Ecuador and Panama use the US dollar | Context §7.6 (order); `docs/facts.md` entries 25 (IMF: "an officially dollarized economy since January 2000") and 26 (Cato Journal: "In 1904, the U. S. dollar became legal tender in Panama.") | Matches. The entries are on `main` since #73. |
 | "The US dollar has been El Salvador's legal tender since 2001" (0:25 segment) | `docs/facts.md` entry 39: IMF Country Report 25/58, PDF p. 88, "As the U.S. dollar is the official legal tender since January 1st, 2001" (BCR as backup) | Sourced. Entry 39 says "Use in: deck / Q&A", so saying it in the 3-minute pitch is our choice (it is cut 1). It says nothing about digital dollars: never say or imply they are legal tender or widely held. |
 | "Stellar says payments are final in about five seconds" (0:25 segment); "fees under a cent" (answer 6) | `docs/facts.md` entries 36 (developers.stellar.org: "Ledgers close in ~5 seconds, and their transactions are final when they do.") and 37 (stellar.org/solutions/cross-border-payments: "network fees under a cent") | Matches. Both are Stellar describing itself, and a teammate still has to open the links (entries 36 and 37 say so). Stellar's own pages give conflicting USD fee figures, so the script gives no dollar fee and attributes the claim. |
-| Delivery crews in El Salvador have been robbed and extorted; 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Crews: entry 40 (El Diario de Hoy, 23 Jul 2024, one 2023 case; Brown et al., Review of Economic Studies, data 2012 to 2019). Cash: entry 11 | Matches entry 40's safe wording and entry 11 (regional, four countries). A teammate still has to open entry 40's links. |
+| 8 in 10 small businesses in four countries pay suppliers mainly in cash (left panel) | Entry 11. The crews sentence that shared this line (entry 40, pending) was cut from the board on Nov 14. | Matches entry 11 (regional, four countries). |
 | MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | Entry 38: moneygram.com/stellar, "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"; its coverage data lists El Salvador as cash-out only | Matches entry 38's safe wording ("as far as we found"). "Cash-out only" is false in general. No person has looked at the map yet (entry 38). |
 | The product is called Relay, tagline "Paga tu ruta" (script, board title) | `lib/brand.ts` on `main`: `APP_NAME = "Relay"`, `TAGLINE = "Paga tu ruta"`; PR #100 | Matches |
 | The app is at relay-sv.vercel.app (board, under the QR) | `curl -sI https://relay-sv.vercel.app` answers 200 (Nov 12 night); the old tiendas-stellar address answers 307 to it. `public/qr-demo.png` decodes (macOS CoreImage) to `https://relay-sv.vercel.app/demo` | Matches |
