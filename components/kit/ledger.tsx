@@ -238,7 +238,7 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
   return (
     <div className="flex flex-col gap-2">
       <p className="flex items-baseline justify-between gap-3">
-        <span className="min-w-0 text-[1.0625rem] font-bold">{title}</span>
+        <span className="min-w-0 text-[1.0625rem] font-bold wrap-anywhere">{title}</span>
         <span className="shrink-0 font-mono text-[1.0625rem] font-semibold">{amount}</span>
       </p>
       {(stamp || note) && (
@@ -254,10 +254,10 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
 
 const ROW_TEXT = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2.5 font-sans text-base font-bold text-brand underline decoration-2 underline-offset-4 -outline-offset-3";
 
-/** A small blue action in a row's menu ("Repetir"). */
-export function RowAction({ children, onClick, label }: { children: ReactNode; onClick: () => void; label?: string }) {
+/** A small blue action in a row's menu ("Repetir"). `danger` turns it red, for the second tap of something that can't be undone. */
+export function RowAction({ children, onClick, label, danger = false }: { children: ReactNode; onClick: () => void; label?: string; danger?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} className={ROW_TEXT}>
+    <button type="button" onClick={onClick} aria-label={label} className={`${ROW_TEXT} ${danger ? "text-bad!" : ""}`}>
       {children}
     </button>
   );

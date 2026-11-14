@@ -1,6 +1,6 @@
 "use client";
 
-import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, useId, useState } from "react";
+import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useId, useState } from "react";
 import { useT } from "@/lib/i18n";
 
 // A form is paper you write on: each input is a blank with a clear outline, a large label above it,
@@ -40,6 +40,16 @@ export function Field({ label, hint, error, className = "", ...input }: Common &
   return (
     <Frame id={id} label={label} hint={hint} error={error}>
       <input id={id} aria-invalid={error ? true : undefined} aria-describedby={error || hint ? `${id}-note` : undefined} className={`${INPUT} ${className}`} {...input} />
+    </Frame>
+  );
+}
+
+/** A few lines of free text (a note, the products on an invoice). */
+export function AreaField({ label, hint, error, className = "", ...area }: Common & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const id = useId();
+  return (
+    <Frame id={id} label={label} hint={hint} error={error}>
+      <textarea id={id} aria-invalid={error ? true : undefined} aria-describedby={error || hint ? `${id}-note` : undefined} className={`${INPUT} py-3 ${className}`} {...area} />
     </Frame>
   );
 }

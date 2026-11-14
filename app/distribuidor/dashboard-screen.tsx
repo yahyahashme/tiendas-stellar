@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CsvImport } from "@/components/csv-import";
 import { DistributorShell } from "@/components/distributor-shell";
 import { ActionLink, Button, ButtonLink, TextButton } from "@/components/kit/button";
 import { FilterSelect } from "@/components/kit/field";
@@ -106,8 +105,9 @@ function FirstSteps({ steps }: { steps: { label: string; done: boolean; href: st
         {steps.map((step, index) => (
           <li key={step.label}>
             {step.done ? (
-              <p className="flex min-h-13 items-center justify-between gap-3 rounded-paper bg-paper px-4 py-2">
-                <span>
+              // On the narrowest phone at a large text size the stamp goes under the words instead of off the paper.
+              <p className="flex min-h-13 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-paper bg-paper px-4 py-2">
+                <span className="min-w-0 wrap-anywhere">
                   {index + 1}. {step.label}
                 </span>
                 <Stamp small tone="ok">
@@ -549,15 +549,14 @@ export default function DashboardScreen() {
         <div className="min-h-11">{cashReceipt && <Answer receipt={cashReceipt} />}</div>
       </section>
 
-      <section id="importar" className={`${SECTION} ${SMALL}`}>
-        <h2 className={HEADING}>{t("Varias facturas a la vez", "Several invoices at once")}</h2>
-        <CsvImport
-          shopName={shopName}
-          driverName={driverName}
-          onCreated={reload}
-          known={scope.isDemo ? undefined : { shops: shops.map((s) => ({ id: s.id, name: s.name })), drivers: drivers.map((d) => ({ id: d.id, name: d.name })) }}
+      {/* A file of invoices is imported on the Nueva factura page, beside the form. */}
+      <div className={SMALL}>
+        <ActionLink
+          href="/distribuidor/factura#importar"
+          title={t("Importar facturas (CSV)", "Import invoices (CSV)")}
+          hint={t("Varias facturas a la vez, desde un archivo.", "Several invoices at once, from a file.")}
         />
-      </section>
+      </div>
     </div>,
   );
 }

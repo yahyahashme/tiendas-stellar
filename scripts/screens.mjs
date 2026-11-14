@@ -306,12 +306,156 @@ const GROUPS = {
     // What a lender sees from the shop's link (the link carries its last day).
     ["compartido", "/compartido/tienda-1?hasta=2099-12-31"],
   ],
-  admin: [
-    ["nueva-factura", "/distribuidor/factura"],
-    ["motoristas", "/distribuidor/motoristas"],
-    ["tiendas", "/distribuidor/tiendas"],
-    ["admin", "/admin"],
-  ],
+  // The distributor's other screens and the admin's. Without a database these screens only say "Solo la distribuidora
+  // aprobada puede hacer esto.", so each one is opened, the answers of its server actions are swapped for sample
+  // answers (the screen's own code runs untouched), and the page is loaded again as a signed-in user would see it.
+  admin: (() => {
+    const NAME = "Distribuidora El Sol";
+    const sample = () => ({
+      drivers: [
+        { id: "motorista-1", name: "Carlos", phone: "+50371234567", status: "activo", inviteToken: null, cashHeld: 60 },
+        { id: "motorista-2", name: "Ana", phone: "+50372345678", status: "activo", inviteToken: null, cashHeld: 0 },
+        { id: "inv-3", name: "José Antonio Ramírez", phone: "+50376543210", status: "invitado", inviteToken: "k3f9x2m7q1", cashHeld: 0 },
+      ],
+      shops: [
+        { id: "tienda-1", name: "Tienda Rosa", nickname: null, ownerName: "Rosa Martínez", phone: "+50370123456", status: "activa", inviteCode: null, driverId: "motorista-1", creditLimit: 200, creditOwed: 40, driverName: "Carlos" },
+        { id: "tienda-2", name: "Tienda Don Luis", nickname: "Don Luis, frente al parque", ownerName: "Luis Hernández", phone: "+50371234567", status: "activa", inviteCode: null, driverId: "motorista-2", creditLimit: 200, creditOwed: 0, driverName: "Ana" },
+        { id: "tienda-3", name: "Mini Súper La Esquina", nickname: null, ownerName: "Marta López", phone: "+50372345678", status: "invitada", inviteCode: "K7M2QX", driverId: "motorista-2", creditLimit: 0, creditOwed: 0, driverName: "Ana" },
+        { id: "tienda-9", name: "Pupusería y Tienda La Bendición de Dios", nickname: "Pupusería y Tienda La Bendición de Dios", ownerName: null, phone: null, status: "sin_cuenta", inviteCode: "P4T9WZ", driverId: null, creditLimit: 0, creditOwed: 0, driverName: null },
+      ],
+      pending: [
+        { id: "d-1", businessName: "Distribuidora La Central", nit: "0614-120394-102-3", address: "Av. Roosevelt 1420, San Salvador", sells: ["Bebidas", "Snacks"], shopsApprox: 120, driversApprox: 8, status: "pendiente", ownerName: "Mauricio Flores", ownerContact: "mauricio@lacentral.com.sv", createdAt: "2026-11-12T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-2", businessName: "Lácteos y Abarrotes del Pacífico, S.A. de C.V.", nit: "0511-010188-001-0", address: "Km 12 Carretera al Puerto, La Libertad", sells: ["Lácteos", "Abarrotes", "Pan"], shopsApprox: 45, driversApprox: 3, status: "pendiente", ownerName: "Gloria Menjívar", ownerContact: "+503 7890-1234", createdAt: "2026-11-13T09:30:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-3", businessName: "El Buen Pan", nit: null, address: null, sells: [], shopsApprox: null, driversApprox: null, status: "pendiente", ownerName: "Pedro", ownerContact: "7000-1111", createdAt: "2026-11-14T02:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+      ],
+      decided: [
+        { id: "d-0", businessName: NAME, nit: null, address: null, sells: [], shopsApprox: 3, driversApprox: 2, status: "aprobado", ownerName: null, ownerContact: null, createdAt: "2026-11-01T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+        { id: "d-00", businessName: "Importadora Fantasma", nit: null, address: null, sells: [], shopsApprox: null, driversApprox: null, status: "rechazado", ownerName: null, ownerContact: null, createdAt: "2026-11-03T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" },
+      ],
+    });
+    /** What the server would answer a signed-in, approved distributor (or an admin) for this call. */
+    const answer = (path, args, data) => {
+      const active = data.drivers.filter((d) => d.status === "activo").map((d) => ({ id: d.id, name: d.name }));
+      if (path === "/distribuidor/factura") {
+        if (args.length === 0) return { distributorName: NAME, shops: data.shops.map((s) => ({ id: s.id, name: s.nickname ?? s.name, owner: s.ownerName ?? "", driverId: s.driverId })), drivers: active, suggestedId: 1009, today: "2026-11-14" };
+        return { ok: true, message: `Factura ${args[0].invoiceId} creada.`, txHash: "0", explorerUrl: "https://stellar.expert/explorer/testnet", invoiceId: args[0].invoiceId };
+      }
+      if (path === "/distribuidor/motoristas") return args.length === 0 ? { distributorName: NAME, drivers: data.drivers } : undefined;
+      if (path === "/distribuidor/tiendas") {
+        if (args.length === 0) return { distributorName: NAME, shops: data.shops, drivers: active };
+        if (typeof args[0] === "string")
+          return [
+            { id: "tienda-20", name: "Tienda La Esperanza", ownerName: "María Elena Rivas", address: "Col. Zacamil, Mejicanos" },
+            { id: "tienda-21", name: "Abarrotería San José", ownerName: "José Portillo", address: "Barrio San Jacinto, San Salvador" },
+          ];
+        return { ok: true, shopId: "tienda-30", code: "N3W5HP" };
+      }
+      if (path === "/admin") return args.length === 0 ? { pending: data.pending, decided: data.decided } : undefined;
+    };
+    const signedIn = async (page) => {
+      const data = sample();
+      await page.route("**/*", async (route) => {
+        const request = route.request();
+        if (request.method() !== "POST" || !request.headers()["next-action"]) return route.fallback();
+        let args = [];
+        try {
+          args = JSON.parse(request.postData() || "[]");
+        } catch {}
+        const found = answer(new URL(request.url()).pathname, args, data);
+        if (found === undefined) return route.fallback();
+        // The first line of a server action's answer carries the build's id: keep it, and swap the value on the second.
+        const head = (await (await route.fetch()).text()).split("\n")[0];
+        await route.fulfill({ status: 200, contentType: "text/x-component", body: `${head}\n1:${JSON.stringify(found)}\n` });
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator("main h1, main h2").first().waitFor({ timeout: 20_000 });
+      await page.waitForTimeout(400);
+    };
+    const filled = async (page) => {
+      await signedIn(page);
+      const search = page.getByPlaceholder(/Buscar entre sus tiendas|Search your shops/);
+      await search.fill("rosa");
+      await search.press("Enter");
+      await page.locator("form input[inputmode=decimal]").fill("48.50");
+      await page.locator("form textarea").fill("Agua 600 ml x 24  $30.00\nJugos surtidos x 12  $18.50\nEntregar antes de las 10");
+      await page.locator("form textarea").blur();
+      await page.waitForTimeout(800); // the button waits a beat after a shop is picked
+    };
+    /** A distributor approved today: nothing invoiced yet, so "Primeros pasos" is on the panel with one step left. */
+    const newDistributor = async (page) => {
+      await page.route("**/_next/static/chunks/*.js", async (route) => {
+        const response = await route.fetch();
+        const body = await response.text();
+        if (!/isDemo:!0\},invoices:\w+,total:\w+/.test(body)) return route.fulfill({ response });
+        await route.fulfill({ response, body: body.replace(/isDemo:!0\},invoices:\w+,total:\w+/, "isDemo:!1},invoices:[],total:0") });
+      });
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator("#pasos").waitFor({ timeout: 20_000 });
+    };
+    return [
+      // The booth laptop: the whole form, its button and the slip it makes are in view without scrolling.
+      ["nueva-factura", "/distribuidor/factura", { prepare: filled, inView: { "1280x800": { selector: "main form button[type=submit], main aside section", count: 2 } } }],
+      [
+        "nueva-factura-recibo", // a phone has the slip behind "Ver recibo"
+        "/distribuidor/factura",
+        {
+          prepare: async (page) => {
+            await filled(page);
+            const fold = page.getByRole("button", { name: /Ver recibo|See receipt/ });
+            if (await fold.isVisible()) await fold.click();
+          },
+        },
+      ],
+      [
+        "nueva-factura-creada",
+        "/distribuidor/factura",
+        {
+          prepare: async (page) => {
+            await filled(page);
+            await press(page, /Crear factura|Create invoice/);
+            await page.getByText(/Factura creada|Invoice created/).first().waitFor({ timeout: 20_000 });
+            await page.waitForTimeout(3200); // the hold after the invoice is made, then the next button's beat
+          },
+        },
+      ],
+      [
+        "motoristas", // with one invite's link on show
+        "/distribuidor/motoristas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.locator("button:visible", { hasText: /Ver enlace|Show link/ }).first().click();
+          },
+        },
+      ],
+      [
+        "tiendas", // after a search
+        "/distribuidor/tiendas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.getByLabel(/Nombre de la tienda o teléfono|Shop name or phone/).fill("esperanza");
+            await press(page, /^Buscar$|^Search$/);
+            await page.getByText("Tienda La Esperanza").first().waitFor({ timeout: 20_000 });
+          },
+        },
+      ],
+      [
+        "tiendas-sin-cuenta",
+        "/distribuidor/tiendas",
+        {
+          prepare: async (page) => {
+            await signedIn(page);
+            await page.getByRole("tab", { name: /Agregar sin cuenta|Add without an account/ }).click();
+          },
+        },
+      ],
+      ["admin", "/admin", { prepare: signedIn }],
+      ["primeros-pasos", "/distribuidor", { prepare: newDistributor }],
+      ["sin-sesion", "/distribuidor/motoristas"], // what anyone else sees: one sentence, one way out
+      ["no-encontrada", "/esta-pagina-no-existe"],
+    ];
+  })(),
 };
 
 // The device bands of DESIGN.md. Phones and tablets are also turned on their side.
@@ -411,7 +555,7 @@ mkdirSync(outDir, { recursive: true });
 
 /** Mock reads answer after a second each, one after another: wait until "Cargando..." has gone. */
 const loaded = (page) =>
-  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
+  page.waitForFunction(() => ![...document.querySelectorAll("[role=status]")].some((el) => el.checkVisibility() && /Cargando|Loading/.test(el.textContent)), null, { timeout: 10_000 }).catch(() => {});
 
 for (const [screen, path, { inView = {}, minTarget = MIN_TARGET, prepare } = {}] of GROUPS[group]) {
   if (only && only !== screen) continue;

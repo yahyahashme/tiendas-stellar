@@ -171,7 +171,7 @@ export function Shell({
 
       <nav
         aria-label={t("Secciones", "Sections")}
-        className="fixed inset-x-0 bottom-0 z-4 flex justify-between border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-4 flex justify-between overflow-hidden border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {/* Four places must fit a phone at any text size: a label stops growing where the row is full, and is never under 14 px. */}
         {nav
