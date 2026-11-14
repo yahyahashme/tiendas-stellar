@@ -11,6 +11,20 @@ const input = {
 };
 
 describe("reminderLink", () => {
+  it("goes to the `to` number when one is given, with the same message", () => {
+    const plain = new URL(reminderLink(input));
+    const sent = new URL(reminderLink({ ...input, to: "+1 (555) 010-0199" }));
+    expect(sent.pathname).toBe("/15550100199");
+    expect(sent.href).not.toContain("wa.me/503");
+    expect(sent.searchParams.get("text")).toBe(plain.searchParams.get("text"));
+  });
+
+  it("carries no number when `to` is empty", () => {
+    const url = reminderLink({ ...input, to: "" });
+    expect(url).toMatch(/^https:\/\/wa\.me\/\?text=/);
+    expect(url).not.toContain("7123");
+  });
+
   it.each(["7123-4567", "71234567", "+503 7123 4567", "503 71234567"])(
     "normalizes mobile number %s",
     (phone) => {
