@@ -1,260 +1,201 @@
 import type { ReactNode } from "react";
-import { ActionLink, ButtonLink } from "@/components/kit/button";
-import { Money } from "@/components/kit/money";
-import { Paper, Receipt, ReceiptFoot, ReceiptHeader, ReceiptLine, ReceiptLines, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
-import { Stamp, type StampTone } from "@/components/kit/stamp";
+import { ActionLink } from "@/components/kit/button";
+import { Paper } from "@/components/kit/paper";
 import { Logo } from "@/components/logo";
-import { TAGLINE } from "@/lib/brand";
+import { TAGLINE, TAGLINE_EN } from "@/lib/brand";
 import { T } from "@/lib/i18n";
 import { AccountLink, DriverLinks, ShopLinks } from "./home-links";
 
-// The home page. First screen: the logo, "Paga tu ruta", one sentence, a paid receipt and the two ways in.
-// Under it, the three roles as their three papers (el recibo, la hoja de ruta, el libro mayor), each with
-// its way into the demo. The page is drawn on the server; only the words (two languages) and the demo's
-// links wait for the browser (app/home-links.tsx).
+// The home page, top to bottom: "Crear cuenta" and "Entrar" at the top right (the shop or distributor choice is on
+// /registro), the tagline and what Relay does, the problem
+// in three figures, how it works (three steps joined by hand-drawn arrows), then the demo's three ways in.
+// The page is drawn on the server; only the words (two languages) and the demo's links wait for the browser
+// (app/home-links.tsx). The figures and their sources are in docs/facts.md (entries 1, 9 and 10).
 
 // The same side margins and safe areas as the Slip and Split layouts (components/kit/layout.tsx).
 const SIDE = "pl-[max(var(--gutter),env(safe-area-inset-left))] pr-[max(var(--gutter),env(safe-area-inset-right))]";
 
-/** One delivery told three ways: the same three invoices are on the receipts, the route sheet and the ledger. */
-const INVOICES: { id: number; shop: string; amount: number; tone: StampTone; status: [string, string] }[] = [
-  { id: 1001, shop: "Tienda Rosa", amount: 150, tone: "ok", status: ["Pagada", "Paid"] },
-  { id: 1002, shop: "Tienda Don Luis", amount: 85.5, tone: "credit", status: ["En crédito", "On credit"] },
-  { id: 1003, shop: "Mini Súper La Esquina", amount: 220, tone: "ink", status: ["Pendiente", "Unpaid"] },
+const KICKER = "text-label font-semibold uppercase tracking-[0.1em] text-muted";
+
+/** The problem in three figures (docs/facts.md, entries 1, 9 and 10). */
+const FIGURES: { figure: [string, string]; text: [string, string] }[] = [
+  {
+    figure: ["$2 mil millones", "$2 billion"],
+    text: [
+      "en mercadería al año le venden las distribuidoras a las tiendas de barrio. La mayoría se paga en efectivo al motorista.",
+      "of stock a year is sold to neighbourhood shops by distributors. Most of it is paid in cash to the driver.",
+    ],
+  },
+  {
+    figure: ["6 de cada 10", "6 in 10"],
+    text: ["microempresas informales le han pedido prestado a un prestamista.", "informal small businesses have borrowed from a loan shark."],
+  },
+  {
+    figure: ["$35 por cada $100", "$35 per $100"],
+    text: ["es lo que cobra de interés un prestamista, según una encuesta de 2019.", "is what a loan shark charges in interest, according to a 2019 survey."],
+  },
 ];
-const TOTAL = INVOICES.reduce((sum, invoice) => sum + invoice.amount, 0);
 
-const invoiceNo = (id: number) => (
-  <>
-    <T es="Factura n.º" en="Invoice no." /> {id}
-  </>
-);
+/** How it works, in the order it happens on a delivery day. */
+const STEPS: { icon: ReactNode; title: [string, string]; text: [string, string] }[] = [
+  {
+    icon: (
+      <>
+        <rect x="7" y="2.5" width="10" height="19" rx="2" />
+        <path d="M10 6.5h4M10 10h4M10 13.5h2.5" />
+      </>
+    ),
+    title: ["La factura llega al teléfono", "The invoice reaches the phone"],
+    text: ["El motorista entrega el pedido y la factura aparece en el teléfono de la tienda.", "The driver delivers the order and the invoice shows up on the shop owner's phone."],
+  },
+  {
+    icon: (
+      <>
+        <circle cx="9" cy="9" r="5.5" />
+        <path d="M15.4 9.6a5.5 5.5 0 1 1-5.8 5.8" />
+        <path d="M9 6.5v5" />
+      </>
+    ),
+    title: ["La tienda elige cómo pagar", "The shop chooses how to pay"],
+    text: [
+      "Con dólares digitales, en efectivo confirmado por los dos en la app, o en 7 días sin intereses.",
+      "In digital dollars, in cash that both sides confirm in the app, or in 7 days with no interest.",
+    ],
+  },
+  {
+    icon: (
+      <>
+        <path d="M3 20h18" />
+        <path d="M5 16l5-5 3.5 3.5L20 8" />
+        <path d="M15 8h5v5" />
+      </>
+    ),
+    title: ["Pagar a tiempo abre más crédito", "Paying on time opens more credit"],
+    text: [
+      "Cada pago a tiempo sube el límite $25, de $200 hasta $500. El historial es de la tienda y lo puede mostrar a cualquier distribuidora, banco o cooperativa.",
+      "Each on-time payment raises the limit by $25, from $200 up to $500. The record belongs to the shop, and it can show it to any distributor, bank or cooperative.",
+    ],
+  },
+];
 
-// A phone in the hand that is under 576 px tall (one column, so narrower than 640 px).
-const TINY = "max-[39.99rem]:[@media(max-height:35.99rem)]:hidden";
-
-/** The hero: a real receipt, paid. It prints in once and its stamp lands (no buzz: nothing was paid here). */
-function PaidReceipt() {
+/** A hand-drawn arrow with a loop in it, from one step to the next: across on a laptop, down on a phone. */
+function CurlyArrow() {
   return (
-    <Receipt printIn>
-      {/* On the smallest phones (under 576 px tall) the slip is only its total and its stamp, so both ways in still fit under it. */}
-      <div className={`contents ${TINY}`}>
-        <ReceiptHeader from="Distribuidora El Sol" number={invoiceNo(1001)} />
-      </div>
-      {/* On a phone under 816 px tall (and on a laptop under 576) the lines step aside, so the total, the stamp and
-          both ways in stay in view. So do they on paper too narrow for a name beside its label (a printed line
-          never breaks its figure). */}
-      <div className="contents max-[39.99rem]:[@media(max-height:50.99rem)]:hidden @max-[13.5rem]:hidden [@media(max-height:35.99rem)]:hidden">
-        <ReceiptRule />
-        <ReceiptLines>
-          <ReceiptLine label={<T es="Cliente" en="Customer" />}>Tienda Rosa</ReceiptLine>
-          <ReceiptLine label={<T es="Motorista" en="Driver" />}>Carlos</ReceiptLine>
-          <ReceiptLine label="Arroz 5 lb × 12">
-            <Money value={54} />
-          </ReceiptLine>
-          <ReceiptLine label="Frijol 2 lb × 20">
-            <Money value={46} />
-          </ReceiptLine>
-          <ReceiptLine label="Aceite 750 ml × 10">
-            <Money value={50} />
-          </ReceiptLine>
-        </ReceiptLines>
-      </div>
-      <ReceiptTotal label="Total" value={150} note={<T es="Pagada · Dólares digitales" en="Paid · Digital dollars" />} />
-      {/* The foot of a slip (ReceiptFoot), except that on a very narrow slip the stamp goes under the words instead of squeezing them. */}
-      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p className={`min-w-[7.5rem] flex-1 text-base text-muted text-pretty ${TINY}`}>
-          <T es="Sin comisiones para la tienda." en="No fees for the shop." />
-        </p>
-        <div className="-mt-2 ml-auto shrink-0 pr-1">
-          <Stamp tone="ok" fit={6} className="stamp-land [animation-delay:300ms]">
-            <T es="Pagada" en="Paid" />
-          </Stamp>
-        </div>
-      </div>
-    </Receipt>
+    <div className="flex h-24 w-12 items-center justify-center min-[64rem]:h-9 min-[64rem]:w-auto min-[64rem]:px-2" aria-hidden="true">
+      <svg viewBox="0 0 80 48" className="h-12 w-20 shrink-0 rotate-90 text-brand min-[64rem]:h-auto min-[64rem]:w-full min-[64rem]:rotate-0" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 34C18 36 24 12 38 10C50 8 52 26 42 28C32 30 36 12 52 14C60 15 66 19 72 24" />
+        <path d="M63 25.5L72.5 24.5L69 15.5" />
+      </svg>
+    </div>
   );
 }
 
-/** The shop's paper: el recibo. This one was paid with "Pagar en 7 días". */
-function CreditReceipt() {
-  const invoice = INVOICES[1];
+/** One way into the demo: a number, who you are, one sentence, then the links. */
+function Role({ n, id, who, children, links }: { n: number; id: string; who: ReactNode; children: ReactNode; links: ReactNode }) {
   return (
-    <Receipt>
-      <ReceiptHeader from="Distribuidora El Sol" number={invoiceNo(invoice.id)} />
-      {/* A printed line never breaks its figure, so the customer's name is left out where it would not fit (a folded phone with large text). */}
-      <div className="contents @max-[15.9rem]:hidden">
-        <ReceiptRule />
-        <ReceiptLines>
-          <ReceiptLine label={<T es="Cliente" en="Customer" />}>{invoice.shop}</ReceiptLine>
-        </ReceiptLines>
-      </div>
-      <ReceiptTotal label="Total" value={invoice.amount} note={<T es="Paga en 7 días" en="Pays in 7 days" />} />
-      <ReceiptFoot
-        stamp={
-          <Stamp tone={invoice.tone} tilt={-4} fit={10}>
-            <T es={invoice.status[0]} en={invoice.status[1]} />
-          </Stamp>
-        }
-      />
-    </Receipt>
-  );
-}
-
-/** A small stamp on a sample: on the narrowest paper with the largest text it may break between its words. */
-const MARK = "whitespace-normal text-center";
-
-/** The driver's paper: la hoja de ruta. Numbered stops, each with its amount and its stamp. */
-function RouteSheet() {
-  return (
-    <Paper as="div" className="@container">
-      <p className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-ink px-3 py-2 font-mono text-label font-medium uppercase tracking-[0.04em] text-muted">
-        <T es="Ruta de Carlos" en="Carlos's route" />
-        <span>
-          {INVOICES.length} <T es="paradas" en="stops" />
-        </span>
-      </p>
-      <ol>
-        {INVOICES.map((invoice, i) => (
-          <li key={invoice.id} className="flex items-stretch border-paper-rule not-last:border-b">
-            <span className="flex w-[clamp(2.25rem,14cqi,3rem)] shrink-0 items-center justify-center border-r-2 border-dotted border-paper-rule font-mono text-[1.75rem] font-semibold">{i + 1}</span>
-            {/* Two lines: name and amount, invoice and stamp. Where a pair has no room on one line, its second half goes under, at the right. */}
-            <span className="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2.5">
-              <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="min-w-0 flex-[1_1_6rem] text-[1.0625rem] font-bold text-balance">{invoice.shop}</span>
-                <Money value={invoice.amount} className="ml-auto text-[1.0625rem] font-semibold" />
-              </span>
-              <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <span className="font-mono text-label font-medium text-muted">
-                  <T es="Factura" en="Invoice" /> {invoice.id}
-                </span>
-                <span className="ml-auto min-w-0">
-                  <Stamp small tone={invoice.tone} className={MARK}>
-                    <T es={invoice.status[0]} en={invoice.status[1]} />
-                  </Stamp>
-                </span>
-              </span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </Paper>
-  );
-}
-
-/**
- * The distributor's paper: el libro mayor. Ruled columns, figures to the right, the total under a double rule.
- * On paper too narrow for a stamp beside the column of figures, the rule between the columns goes and the stamp
- * takes the whole width under the name.
- */
-function LedgerPage() {
-  const heading = "flex min-h-10 items-center px-3 text-label font-semibold uppercase tracking-[0.08em] text-muted";
-  const line = "col-span-2 grid grid-cols-subgrid";
-  const ruled = "@min-[17rem]:border-l @min-[17rem]:border-paper-rule";
-  return (
-    <Paper as="div" className="@container">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto]">
-        <p className={`${line} border-b border-ink`}>
-          <span className={heading}>
-            <T es="Tienda" en="Shop" />
+    <article aria-labelledby={id} className="flex flex-col gap-3 min-[64rem]:row-span-3 min-[64rem]:grid min-[64rem]:grid-rows-subgrid">
+      <header className="flex flex-col gap-1.5">
+        <h3 id={id} className="flex items-baseline gap-3 border-b border-counter-rule pb-1">
+          <span className="font-mono text-lead font-semibold text-muted" aria-hidden="true">
+            {n}
           </span>
-          <span className={`${heading} justify-end ${ruled}`}>
-            <T es="Monto" en="Amount" />
-          </span>
-        </p>
-        {INVOICES.map((invoice) => (
-          <p key={invoice.id} className={`${line} border-b border-paper-rule`}>
-            <span className="px-3 pt-2">{invoice.shop}</span>
-            <span className={`px-3 py-2 text-right font-mono font-medium @min-[17rem]:row-span-2 ${ruled}`}>
-              <Money value={invoice.amount} />
-            </span>
-            <span className="col-span-2 px-3 pb-2 pt-1 @min-[17rem]:col-span-1">
-              <Stamp small tone={invoice.tone} className={MARK}>
-                <T es={invoice.status[0]} en={invoice.status[1]} />
-              </Stamp>
-            </span>
-          </p>
-        ))}
-        <p className={`${line} border-t-[3px] border-double border-ink`}>
-          <span className="flex min-h-12 items-center px-3 font-semibold">Total</span>
-          <span className={`flex min-h-12 items-center justify-end px-3 font-mono font-semibold ${ruled}`}>
-            <Money value={TOTAL} />
-          </span>
-        </p>
-      </div>
-    </Paper>
-  );
-}
-
-/**
- * One role: who it is and the name of its paper, one sentence, the paper itself, then the way into the demo.
- * On a phone they stack; on a tablet the paper sits beside the words; on a laptop the three roles stand side by side.
- */
-function Role({ id, who, paper, children, sample, links }: { id: string; who: ReactNode; paper: ReactNode; children: ReactNode; sample: ReactNode; links: ReactNode }) {
-  return (
-    <article
-      aria-labelledby={id}
-      className="grid gap-y-3 min-[40rem]:max-[63.99rem]:grid-cols-2 min-[40rem]:max-[63.99rem]:grid-rows-[auto_1fr] min-[40rem]:max-[63.99rem]:gap-x-8 min-[64rem]:row-span-3 min-[64rem]:grid-rows-subgrid"
-    >
-      <header className="flex flex-col gap-1.5 min-[40rem]:max-[63.99rem]:col-start-2">
-        <h3 id={id} className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-counter-rule pb-1">
           <span className="text-lead font-bold">{who}</span>
-          <span className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{paper}</span>
         </h3>
         <p className="text-pretty">{children}</p>
       </header>
-      <div className="min-[40rem]:max-[63.99rem]:col-start-1 min-[40rem]:max-[63.99rem]:row-span-2 min-[40rem]:max-[63.99rem]:row-start-1">{sample}</div>
-      <div className="flex flex-col gap-2 min-[40rem]:max-[63.99rem]:col-start-2">{links}</div>
+      <div className="flex flex-col gap-2">{links}</div>
     </article>
   );
 }
 
 export default function Home() {
   return (
-    <main className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-1 flex-col gap-10 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-1 min-[40rem]:max-w-[calc(64rem+2*var(--gutter))] min-[40rem]:gap-14 ${SIDE}`}>
-      <section className="grid gap-y-3 min-[40rem]:grid-cols-[minmax(0,28rem)_minmax(0,26rem)] min-[40rem]:grid-rows-[auto_1fr_1fr] min-[40rem]:justify-between min-[40rem]:gap-x-[clamp(1.5rem,5vw,4rem)]">
-        <header className="flex min-h-12 items-center justify-between gap-3 min-[40rem]:col-span-2">
+    <main className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-1 flex-col gap-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-1 min-[40rem]:max-w-[calc(64rem+2*var(--gutter))] min-[40rem]:gap-16 ${SIDE}`}>
+      <section className="flex flex-col gap-y-6">
+        <header className="flex min-h-12 items-center justify-between gap-3">
           {/* 36 px tall; on the narrowest phone with the largest text it gives way to the link beside it. */}
           <Logo className="h-auto max-w-[7.5rem] min-w-0 flex-1" />
           <AccountLink />
         </header>
 
-        <div className="flex flex-col gap-2 min-[40rem]:col-start-2 min-[40rem]:row-start-2 min-[40rem]:gap-3 min-[40rem]:self-end">
-          <h1 className="text-display font-bold tracking-[-0.02em] text-balance">{TAGLINE}</h1>
+        <div className="flex max-w-[44rem] flex-col gap-3 min-[40rem]:pt-6">
+          <p className={KICKER}>
+            <T es="Pagos y crédito para tiendas de barrio · El Salvador" en="Payments and credit for neighbourhood shops · El Salvador" />
+          </p>
+          <h1 className="text-display font-bold tracking-[-0.02em] text-balance">
+            <T es={TAGLINE} en={TAGLINE_EN} />
+          </h1>
           <p className="text-lead text-pretty">
             <T
-              es="La tienda le paga al distribuidor con dólares digitales, en efectivo o en 7 días sin intereses."
-              en="The shop pays its distributor in digital dollars, in cash, or in 7 days with no interest."
+              es="Relay cambia los pagos en efectivo por pagos en línea cuando una tienda compra mercadería. Nuestro sistema de crédito sube el límite de cada tienda con cada pago a tiempo."
+              en="Relay replaces cash payments with online transactions when a shop buys inventory. Our credit system raises each shop's limit with every on-time payment."
             />
           </p>
         </div>
 
-        <div className="min-[40rem]:col-start-1 min-[40rem]:row-span-2 min-[40rem]:row-start-2">
-          <PaidReceipt />
-        </div>
+      </section>
 
-        <div className="flex flex-col gap-2 self-start min-[40rem]:col-start-2 min-[40rem]:row-start-3 min-[40rem]:pt-3">
-          <ButtonLink
-            href="/registro/tienda"
-            hint={
-              <span className="short:hidden">
-                <T es="Compro a distribuidores" en="I buy from distributors" />
-              </span>
-            }
-          >
-            <T es="Soy tienda" en="I'm a shop" />
-          </ButtonLink>
-          <ButtonLink
-            href="/registro/distribuidora"
-            hint={
-              <span className="short:hidden">
-                <T es="Vendo y entrego a tiendas" en="I sell and deliver to shops" />
-              </span>
-            }
-          >
-            <T es="Soy distribuidora" en="I'm a distributor" />
-          </ButtonLink>
-        </div>
+      <section aria-labelledby="problema" className="flex flex-col gap-5">
+        <header className="flex max-w-[44rem] flex-col gap-2">
+          <h2 id="problema" className="text-title font-bold">
+            <T es="El problema" en="The problem" />
+          </h2>
+          <p className="text-lead text-pretty">
+            <T
+              es="Casi todas las tiendas le pagan el pedido al motorista en efectivo. Si el monto no cuadra, es la palabra de uno contra la del otro, y el pago no queda anotado en ningún lado: una tienda que ha pagado a tiempo por diez años se ve igual ante un banco que una que abrió la semana pasada."
+              en="Most shops pay the driver in cash when stock arrives. When the amounts don't match, it's one person's word against the other's, and the payment isn't recorded anywhere: a shop that has paid on time for ten years looks the same to a bank as one that opened last week."
+            />
+          </p>
+        </header>
+        <Paper as="div">
+          <dl className="grid min-[48rem]:grid-cols-3">
+            {FIGURES.map(({ figure, text }, i) => (
+              <div key={i} className="flex flex-col gap-1 border-paper-rule px-5 py-4 not-last:border-b min-[48rem]:not-last:border-b-0 min-[48rem]:not-last:border-r">
+                <dt className="font-mono text-[1.75rem] font-semibold leading-tight tracking-[-0.01em]">
+                  <T es={figure[0]} en={figure[1]} />
+                </dt>
+                <dd className="text-pretty text-muted">
+                  <T es={text[0]} en={text[1]} />
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Paper>
+        <p className="text-label text-muted">
+          <T es="Fuentes: Conamype (estimado, 2026); El Diario de Hoy (estudio de 2026); encuesta a 1,285 comerciantes (2019)." en="Sources: Conamype (estimate, 2026); El Diario de Hoy (2026 study); survey of 1,285 merchants (2019)." />
+        </p>
+      </section>
+
+      <section aria-labelledby="como" className="flex flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h2 id="como" className="text-title font-bold">
+            <T es="Cómo funciona" en="How it works" />
+          </h2>
+        </header>
+        <ol className="grid min-[64rem]:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)_5rem_minmax(0,1fr)] min-[64rem]:items-start">
+          {STEPS.map(({ icon, title, text }, i) => (
+            <li key={i} className="contents">
+              {i > 0 && <CurlyArrow />}
+              <div className="flex flex-col gap-2">
+                <svg viewBox="0 0 24 24" className="size-9 text-brand" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  {icon}
+                </svg>
+                <h3 className="text-lead font-bold text-balance">
+                  <T es={title[0]} en={title[1]} />
+                </h3>
+                <p className="text-pretty">
+                  <T es={text[0]} en={text[1]} />
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p className="max-w-[44rem] text-muted text-pretty">
+          <T
+            es="Si la tienda elige 7 días, un fondo de prestamistas le paga a la distribuidora en el momento. Las reglas de crédito están escritas en un contrato público: no se cambian para una sola tienda ni en secreto."
+            en="If the shop picks 7 days, a lender pool pays the distributor right away. The credit rules are written in a public contract, so they can't be changed for one shop or quietly changed later."
+          />
+        </p>
       </section>
 
       <section aria-labelledby="demo" className="flex flex-col gap-6">
@@ -263,22 +204,24 @@ export default function Home() {
             <T es="Probar la demo" en="Try the demo" />
           </h2>
           <p className="text-lead text-muted text-pretty">
-            <T es="Una entrega, tres papeles. Abra cualquiera." en="One delivery, three papers. Open any of them." />
+            <T
+              es="Elija cómo entrar: como la tienda, como el motorista o como la distribuidora. Todo usa dinero de prueba."
+              en="Choose how to go in: as the shop, as the driver, or as the distributor. Everything uses test money."
+            />
           </p>
         </header>
 
         <div className="grid gap-x-8 gap-y-10 min-[64rem]:grid-cols-3 min-[64rem]:gap-y-3">
-          <Role id="rol-tienda" who={<T es="La tienda" en="The shop" />} paper={<T es="El recibo" en="The receipt" />} sample={<CreditReceipt />} links={<ShopLinks />}>
+          <Role n={1} id="rol-tienda" who={<T es="La tienda" en="The shop" />} links={<ShopLinks />}>
             <T es="Paga cada factura desde el teléfono: ahora, en efectivo o en 7 días sin intereses." en="Pays each invoice from the phone: now, in cash, or in 7 days with no interest." />
           </Role>
-          <Role id="rol-motorista" who={<T es="El motorista" en="The driver" />} paper={<T es="La hoja de ruta" en="The route sheet" />} sample={<RouteSheet />} links={<DriverLinks />}>
+          <Role n={2} id="rol-motorista" who={<T es="El motorista" en="The driver" />} links={<DriverLinks />}>
             <T es="Lleva la ruta del día en el teléfono y registra el efectivo que recibe." en="Carries the day's route on the phone and records the cash received." />
           </Role>
           <Role
+            n={3}
             id="rol-distribuidora"
             who={<T es="La distribuidora" en="The distributor" />}
-            paper={<T es="El libro mayor" en="The ledger" />}
-            sample={<LedgerPage />}
             links={<ActionLink href="/distribuidor" title="Distribuidora El Sol" hint={<T es="Panel y facturas" en="Dashboard and invoices" />} />}
           >
             <T es="Ve qué se cobró, qué falta y cuánto efectivo traen sus motoristas." en="Sees what was collected, what's left, and how much cash the drivers carry." />
