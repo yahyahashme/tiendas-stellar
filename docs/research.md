@@ -88,7 +88,7 @@ Rohan wrote 16 emails on Nov 12. Thirteen were queued in his Outlook Outbox and 
 | Nov 12 | FEDECACES (cooperatives) | Corporate inbox | Email | Default rates on small working-capital loans; how cash-only members pay | Queued, not confirmed |
 | Nov 12 | CrediCampo | Staff contact | Email | Default rates on short micro-loans; use of Tigo Money points for cash payments | Queued, not confirmed |
 | Nov 12 | Banco Hipotecario | Customer service | Email | Options for shops to deposit cash and finance stock; cash-to-digital-dollar deposits | Queued, not confirmed |
-| Nov 12 | BANDESAL | Customer service | Email | Funding lines for 7-day working capital through a licensed institution | Queued, not confirmed |
+| Nov 12 | BANDESAL | Customer service | Email | Funding lines for 7-day working capital through a licensed institution | **Sent; replied Nov 14.** They have small-business lines (working capital, productive assets; some for women and tourism) after pre-qualification, but **no very short-term credit product, and they know of no institution that offers one**: "no disponemos de dicho producto, ni contamos con información sobre otras instituciones financieras que lo ofrezcan" (*we don't have that product, nor do we know of other financial institutions that offer it*). |
 | Nov 12 | SSF (financial supervisor) | General inbox | Email | Which rules apply to our model; channel for fintech questions | Queued, not confirmed |
 | Nov 12 | Superintendencia de Competencia | General inbox | Email | Newer data on how tiendas finance stock | Queued, not confirmed |
 | Nov 12 | FUSADES | General inbox | Email | Data on tienda financing and digital payments | Queued, not confirmed |
