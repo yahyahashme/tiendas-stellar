@@ -53,7 +53,7 @@ Neighbourhood shops (tiendas) in El Salvador pay the trucks that restock them in
 - **Space 1 fit:** fair, cheap credit for stock, and a payment record, for people whose only option today is a loan shark.
 - **Not doing:** cross-border or diaspora money, Bitcoin, more than one country (others go on a "future" slide).
 - **Form (decided Nov 9):** a mobile web app (a website that works like a phone app, opened from the driver's QR code or a WhatsApp link, nothing to install) on our own open Soroban contract. In the pitch, the contract is the engine that partners (banks, cash-in companies, distributors' ordering systems) plug into. Not a native app, and not a feature inside someone else's wallet.
-- **Name: Relay**, with the tagline *Paga tu ruta* ("pay your route") shown under it (decided Nov 12). URLs, the repo (`yahyahashme/relay`) and code use "relay" only; the tagline never appears in a URL.
+- **Name: Relay**, with the tagline *Del efectivo al crédito* ("From cash to credit") shown under it (name decided Nov 12, tagline changed Nov 14). URLs, the repo (`yahyahashme/relay`) and code use "relay" only; the tagline never appears in a URL.
 
 ## 2. Key dates
 
@@ -793,6 +793,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
 | Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
+| Nov 14 | Tagline changed to *Del efectivo al crédito* ("From cash to credit" in English), replacing *Paga tu ruta* (Yahya). |
 | Nov 14 | Lenders: approved licensed lenders anywhere that hold USDC on Stellar, with shares and withdrawals in the contract, and a lender page `/prestamista` (Yahya chose option B). |
 | Nov 13 | English version of every screen, with an ES / EN switch in the top banner (Yahya). Spanish stays the default; the choice is saved per phone, and `?lang=en` opens a link in English. Write new screen text as `t("español", "English")` (`lib/i18n.tsx`); server and contract messages stay Spanish and are translated on screen by `lib/translate.ts`, whose test fails if a message has no English. The WhatsApp reminder stays in Spanish, because it goes to the shop. |
 | Nov 13 | Mi cuenta (#127): money, credit, suppliers, details, security, notifications and help, with "how it will work" screens for sign-in backup, devices and trusted contacts. Payment history per shop (#136) from contract events (about a week back) plus invoices. Relay score (#137, `lib/credit.ts`): 0-100 from on-time record (50%), limit use (20%), length (20%) and suppliers (10%), shown with its top reasons; "Compartir mi historial" makes a read-only link (anyone with it can see it; signing it is a later step), nothing is shared without it. Past-due or written-off debt caps the score. Starting limit from a trade reference waits for distributor-added shops (#132/#134). |

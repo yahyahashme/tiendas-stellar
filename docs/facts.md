@@ -1000,3 +1000,19 @@ _Entry 62 comes from `docs/research.md` on `main` (merged in #152), not from a w
   - "Nonprofits" is the log's word; Claude did not check each organisation's status. The table of requests has no type column, so which organisations are the retailers and which the distributors is only the intro's 4 and 3.
   - Different asks, different logs: don't add these 12 to the 8 organisations emailed about cash-in (entry 58) to make one bigger number.
 - **Checked:** Claude, 14 Nov 2026, against `docs/research.md` on `origin/main` at 4872aa3: counted the rows. 7 in the interview table (5 dated Nov 12, 2 dated Nov 13) and 5 in the nonprofit table (all Nov 13); 5 + 2 = 7 and 7 + 5 = 12, as the log says. The 4 and 3 is the intro's sentence, not countable from the table. No teammate has confirmed it. Not in the Pitch highlights list.
+
+## 63. Suppliers that sell to small shops on credit lose about 0.2% to 0.3%
+- **Claim:** Big consumer-goods suppliers in Peru that sell to small shops on credit reported losses of about 0.2% of their credit portfolio (Backus, Alicorp) and late payments of about 0.30% (San Fernando), below the banks' rate. The same outlet reports that small shops would rather fall behind with banks than with their suppliers.
+- **Number:** about 0.2% uncollectable; about 0.30% late
+- **Source:**
+  - Perú Retail, forum of the Asociación Peruana de Finanzas on consumer-goods credit, https://www.peru-retail.com/?p=14353 (date not shown in the copy Claude saw)
+  - Perú Retail, "Bodegas y autoservicios prefieren atrasarse con entidades bancarias que con proveedores", https://www.peru-retail.com/bodegas-y-autoservicios-prefieren-atrasarse-con-entidades-bancarias-que-con-proveedores/
+- **Exact quote:** "estamos hablando de 0.2% (del total de la cartera)" (UPC Backus's credit director)
+- **Translation:** "we're talking about 0.2% (of the total portfolio)"
+- **Use in:** Q&A only (why a distributor might not want our 1.00% to 1.50% fee for shops it trusts; #185)
+- **Caveat:**
+  - Peru, not El Salvador, and probably old: the same article gives the banks' late rate as 2.11% at the end of July, with no year in the copy Claude saw.
+  - Big brands with credit departments that screen shops. Shops they refuse credit to, which we target, would lose more.
+  - "Uncollectable" (lost) and "late" (morosidad) are different measures. Don't add them.
+  - The San Fernando figure is paraphrased (one quote per entry).
+- **Checked:** Pending: a teammate must open the links and confirm. (Claude matched the quote in the search engine's copy of the page on 13 Nov 2026; both pages refused Claude's direct fetch on 14 Nov.)

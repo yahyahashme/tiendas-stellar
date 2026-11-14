@@ -50,7 +50,7 @@ Rows that start "Cleared" are merged and stay in the table so the history is vis
 
 | Blocker | Affects | Where it stands |
 |---|---|---|
-| Team name | #41 slide 1, #39, trifold title | **Cleared.** Decided Nov 12: **Relay**, tagline **Paga tu ruta** (PR #100, merged; `lib/brand.ts`, context §1). `[NAME]` became Relay in `docs/pitch/pitch.md` and `docs/pitch/trifold/trifold.html` in PR #107 (merged), so nothing is left to do for the name. |
+| Team name | #41 slide 1, #39, trifold title | **Cleared.** Decided Nov 12: **Relay**, tagline **Del efectivo al crédito** (PR #100, merged; `lib/brand.ts`, context §1). `[NAME]` became Relay in `docs/pitch/pitch.md` and `docs/pitch/trifold/trifold.html` in PR #107 (merged), so nothing is left to do for the name. |
 | Pitcher | #39, #43, #45 | **Open.** #26 is closed and no pitcher is written in the repo or on the issue. Ask in the group chat who the pitcher is, then put the first name in `docs/testing/run-throughs/log.csv` for each run. |
 | Pitch script v1 | #39, #41, #40 | **Cleared.** PR #83 (#37) merged Thu Nov 12: `docs/pitch/pitch.md` and `docs/pitch/trifold/*` are on `main`. `[NAME]` is gone (PR #107 made it Relay; its "Open items" rows 2 and 6 now say the name is done and the QR opens relay-sv). It still has the `[N]` placeholders (see the "what we heard" row). |
 | Worldwide number, expansion path | #41 slides 2 and 6 | **Cleared.** PR #73 (#51) merged Thu Nov 12: facts entries 22 to 28 are on `main`. |

@@ -31,7 +31,7 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 
 | # | Do this | Expect (the exact text on the redesigned screens) | Pass? |
 |---|---|---|---|
-| 0 | Open the URL. Ask Yahya which branch production tracks. | The band at the top, "Demo en testnet · dinero de prueba · cash-in simulado" (shown in capitals), is on every screen. The app title is "Relay · Paga tu ruta". | |
+| 0 | Open the URL. Ask Yahya which branch production tracks. | The band at the top, "Demo en testnet · dinero de prueba · cash-in simulado" (shown in capitals), is on every screen. The app title is "Relay · Del efectivo al crédito". | |
 | 1 | Home page `/` | Under "Probar la demo": "La tienda" (each shop; tap one to see its "Factura N" links and "Mi cuenta"), "El motorista" (Carlos and Ana, each with "Ruta de hoy") and "La distribuidora" ("Distribuidora El Sol", "Panel y facturas"). | |
 | 2 | Driver: open Carlos's route `/ruta/motorista-1` | The "Hoja de ruta" with "Carlos" and today's date, the lines "Por cobrar (N de M)" and "Efectivo en mano $X", then the stops to collect; the first one is marked "Siguiente parada". | |
 | 3 | Driver: tap a stop | A QR code and "La tienda escanea este código para pagar." | |
