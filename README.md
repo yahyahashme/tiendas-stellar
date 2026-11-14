@@ -40,11 +40,11 @@ Three screens (a website that works like a phone app): the **shop** pays an invo
 <!-- contract-ids:start -->
 ## Contract IDs
 
-Stellar testnet, deployed 2026-11-13 by `scripts/deploy.sh`.
+Stellar testnet, deployed 2026-11-14 by `scripts/deploy.sh`.
 
 | What | ID | Explorer |
 |---|---|---|
-| `route_ledger` contract | `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) |
+| `route_ledger` contract | `CAFETNTS4KOPZWDCIKN3YC42AZGZWXKRD743G275SOT6KOBY5EA7BZZO` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CAFETNTS4KOPZWDCIKN3YC42AZGZWXKRD743G275SOT6KOBY5EA7BZZO) |
 | Test USDC token | `CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP` | [stellar.expert](https://stellar.expert/explorer/testnet/contract/CANWPJKTWATAQKWD4VNDRMPHHWONWJ5IMCIJ2OTJNYFZ5IDQWX2E2NUP) |
 
 Test USDC is our own, issued by `tiendas-issuer`, not Circle's.
