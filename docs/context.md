@@ -124,7 +124,7 @@ Built for real weeks: classes, quizzes, the datathon, and days where nothing hap
 7. The 1-minute demo video.
 
 **Should** (judges reward these; start only when every Must works)
-- Fee sponsorship, so users never hold XLM (the server wraps each transaction in a fee-bump).
+- Fee sponsorship, so users never hold XLM (the server wraps each transaction in a fee-bump). **Done Nov 13 (#113):** the sponsor pays the network fee for every app transaction; the demo accounts still hold test XLM.
 - The three risk options per shop (§5).
 - Lower the amount at delivery when items are missing (part payment).
 - The driver hands cash in at the warehouse, and the dashboard updates.
@@ -271,7 +271,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 2. The pool's idle money in a Treasury stand-in
 3. Auto-pay
 4. Options 2 and 3 in code (keep them on the trifold and in the pitch)
-5. Fee sponsorship (explain how it would work instead)
+5. Fee sponsorship (explain how it would work instead). **Not cut: built in #113.**
 6. CSV import (use the seed script)
 
 **Never cut:** pay now, cash two-tap, pay in 7 days and repay, the basic dashboard, the live testnet deploy with contract IDs, the video.
