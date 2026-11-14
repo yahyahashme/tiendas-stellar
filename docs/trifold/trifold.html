@@ -11,11 +11,14 @@
   Anything still missing is a yellow box or yellow text (class "todo"). On Nov 14 every product number
   (fee, payout, days to pay, credit limit, outreach counts) is yellow on purpose: the team agrees the final
   product first (by Sunday afternoon), then the numbers go in. Market facts from docs/facts.md stay.
+  There is no "what we heard" panel (Jack, #172): messages sent are not conversations, and the team rule
+  (#61) is that a zero means the line is cut. Add the panel back only with a real count.
   The name is Relay, tagline "Paga tu ruta" (PR #100); the app is at relay-sv.vercel.app.
   `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
 
-  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the grey
-  testnet banner in frame):  shop-pay.png  shop-credit.png  driver-cash.png
+  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the
+  testnet banner in frame; the driver one is scrolled so the QR and the button show):
+  shop-pay.png  shop-credit.png  driver-cash.png. Retaken Nov 14 from main in mock mode (docs/trifold-assembly.md).
 
   Type: body 24 pt (the bottom of Velocity's 24 to 32 pt, because the board is small), headings 28 to 30 pt,
   title 72 pt. The three big numbers (76 pt) and the two key points (36 pt) are display type.
@@ -139,7 +142,7 @@
     <div class="grp">
       <h2>The problem</h2>
       <p>Rosa's truck is at the door and she is short on cash. A loan shark hands her the money today, at about $35 for every $100 (2019 survey).</p>
-      <p>Delivery crews in El Salvador have been robbed and extorted, and in a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.</p>
+      <p>In a four-country survey, 8 in 10 small businesses pay suppliers mainly in cash.</p>
     </div>
 
     <div class="stats">
@@ -162,7 +165,7 @@
       <p>$5.7 trillion: IFC and SME Finance Forum, "MSME Finance Gap", Mar 2025 (2019 data). Facts entry 22.</p>
       <p>$2 billion: Conamype estimate, via Diario El Salvador, 27 Feb 2026. Shop count: Distribución Dinámica, via Diario El Mundo, 1 Mar 2026. Entries 1 and 3.</p>
       <p>$35 per $100: CIOPS (UTEC) survey of 1,285 merchants, 2019, via Revista E&amp;N. 6 in 10: FUSAI and ASOMI, via El Diario de Hoy, Jul 2026. Entries 9 and 10.</p>
-      <p>Crews: robbed, El Diario de Hoy, 23 Jul 2024; extorted, Brown et al., Review of Economic Studies. Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entries 11 and 40.</p>
+      <p>Cash: El Salvador, Guatemala, Honduras and Mexico, 2022 survey, via Diario El Mundo, 10 Apr 2025. Entry 11.</p>
     </div>
   </section>
 
@@ -243,10 +246,6 @@
     <div>
       <h3>Risk #1: cash to digital dollars</h3>
       <p>Not solved yet. Our demo simulates it. Plan: shops repay weekly like a bill at a bank or payment point, and a licensed partner converts in bulk and does KYC and KYB.</p>
-    </div>
-    <div>
-      <h3>What we heard</h3>
-      <p>We talked to <span class="todo">[N]</span> people and <span class="todo">[N]</span> tried the prototype. Because of them we changed <span class="todo">[what we changed]</span>.</p>
     </div>
   </section>
 
