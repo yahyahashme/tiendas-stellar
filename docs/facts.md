@@ -549,7 +549,12 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 ## Outside findings added under #61 (retrieved 12 Nov 2026)
 
-_Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one is **pending**: a teammate must open the link and confirm the quote before we say it out loud. None has a line in the Pitch highlights list yet._
+_Entries 36 to 40 come from web pages first checked on Nov 12, 2026. See the Checked field for the latest status of each entry._
+
+### Proposed pitch highlights pending teammate verification
+
+- Stellar says its ledgers close in about five seconds and describes network fees as under a cent (36, 37).
+- MoneyGram's Ramps coverage data lists cash-out for El Salvador. We found no cash-in in that listing (38).
 
 ## 36. Stellar settles in about five seconds
 - **Claim:** Stellar ledgers close in about 5 seconds, and the transactions in them are final when they do.
@@ -563,7 +568,7 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
   - "~5" is an approximate time, not a guarantee. When the network is busy, fees rise under surge pricing (entry 37) and a transaction may wait for a later ledger.
   - It is the network's time. Our own screens also wait for our app and the contract call, so don't promise "5 seconds" for a delivery or a payment.
   - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
-- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched the page on 12 Nov 2026 and the sentence matched.)
+- **Checked:** Pending teammate verification. Codex reopened Stellar's developer homepage and matched the quote on Nov 12, 2026 (ET).
 
 ## 37. Stellar network fees are under a cent
 - **Claim:** Stellar says its network fees are under a cent. The fee for a plain transaction is 100 stroops, which the docs write as .00001 XLM.
@@ -583,12 +588,12 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
   - Don't turn stroops into dollars without an XLM price on a stated date. We have none.
   - The text we fetched from the two pages showed no update dates (the earlier reading noted 3 Nov for stellar.org and 22 Oct for the docs; unconfirmed).
   - Safe wording: "Stellar payments finalize in about five seconds, and Stellar describes its fees as under a cent." (entries 36 and 37)
-- **Checked:** Pending: a teammate must open the link and confirm the quote. (Claude fetched both pages on 12 Nov 2026 and both sentences matched; PR #81's 6,677 stroops read from its description.)
+- **Checked:** Pending teammate verification. Codex reopened both Stellar pages and matched both quotes on Nov 12, 2026 (ET). The example of 6,677 stroops comes from the description of PR #81.
 
 ## 38. MoneyGram's Stellar service: where cash-out and cash-in work
 - **Claim:** MoneyGram Ramps (the service the moneygram.com/stellar page describes; the page covers Solana and Stellar together) offers cash-out in 170+ countries and territories and cash-in in 25+ countries.
 - **Number:** 170+ countries and territories (cash-out); 25+ countries (cash-in); 480,000+ MoneyGram locations (same sentence of the page)
-- **Source:** MoneyGram, "Stellar", https://www.moneygram.com/stellar (retrieved 12 Nov 2026). It is the page's FAQ answer to "Where is it available?"
+- **Source:** MoneyGram Ramps, https://xramps.moneygram.com/ (FAQ, "Where is it available?") and https://xramps.moneygram.com/api/v1/public/coverage (country coverage, retrieved Nov 12, 2026 ET).
 - **Exact quote:** "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"
 - **Translation:** n/a (English source)
 - **Use in:** Q&A / deck
@@ -601,7 +606,7 @@ _Entries 36 to 40 come from web pages Claude opened on Nov 12, 2026. Every one i
   - Limits of $5 to $950 per cash-in and $5 to $2,500 per cash-out come from MoneyGram's deprecated developer docs page (https://developer.moneygram.com/moneygram-developer/docs/moneygram-ramps, updated 2026-08-20). Claude did not open that page, so treat the limits as unconfirmed and don't say them.
   - This is MoneyGram describing its own product.
   - Safe wording: "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Keep the "as far as we found" until a person has looked at the map.
-- **Checked:** Pending: a teammate must open the link and confirm the quote. (The page returned 403 to the first fetch tool; Claude read the quote from the page's own FAQ text fetched with curl on 12 Nov 2026, where it matched. A browser may show the answer collapsed.)
+- **Checked:** Pending teammate verification. Codex matched the FAQ quote and independently fetched the `SLV` record on Nov 12, 2026 (ET). MoneyGram's published record had `cashIn: false` and `cashOut: true`. A visual check of the coverage map remains pending.
 
 ## 39. The US dollar is El Salvador's legal tender
 - **Claim:** The US dollar has been El Salvador's legal tender since 1 January 2001.
@@ -884,5 +889,80 @@ _Entry 57 comes from `docs/research.md` on `main`, not from a web page. Claude r
 - **Caveat:**
   - It is our own log of what the advisors said, not a recording or a transcript. The log is the only source.
   - Advisors are not users or customers. Never count them in "what we heard from N people" (#30) or call them traction.
-  - Only the calls are logged on `main`. The one-pager's "emails to 4 banks and a supermarket chain" has no entry here: the outreach log is only in PR #89, which is not merged. Don't add that count until its source is on `main`.
+  - Only the calls are logged here. The one-pager's "emails to 4 banks and a supermarket chain" is entry 58 (the outreach log merged in #89).
 - **Checked:** Claude, 13 Nov 2026, against `docs/research.md` on main (044f987): the file has two advisor sections, and the line "Yahya took both calls on Mon Nov 9." is in it.
+
+## 58. We emailed 5 organisations in El Salvador on Nov 10
+- **Claim:** On Mon Nov 10 we emailed 5 organisations in El Salvador about cash-in for small shops: 4 banks and a supermarket chain. As of the log, none has answered beyond one out-of-office auto-reply.
+- **Number:** 5 organisations (4 banks and 1 supermarket chain), all emailed on 10 Nov 2026. A second email to a Davivienda colleague on 11 Nov is not counted as a sixth organisation.
+- **Source:** `docs/research.md`, section "Partner outreach", the five rows dated Nov 10: Banco Promerica, Banco Abank, Súper Selectos, Banco Integral, Banco Davivienda (merged in #89; issue #10).
+- **Exact quote:** "We emailed 5 organisations in El Salvador, 4 banks and a supermarket chain; no replies yet beyond one auto-reply, and we follow up Friday." (the log's "Pitch line (so far)")
+- **Translation:** n/a (English source)
+- **Use in:** one-pager answer 6 ("emails to 4 banks and a supermarket chain"); Q&A, as outreach only
+- **Caveat:**
+  - These are emails sent, not conversations and not users. No bank has replied with more than an auto-reply, so never say a bank "is interested", "agreed" or "is a partner". Never count them in "what we heard from N people" (#30).
+  - The Nov 12 round of 16 emails is not counted. The log says 13 sat in the Outbox as "Queued" and none is confirmed sent, and the last 3 were never sent (#120). Add them to this entry only after Sent Items confirms them.
+  - "Sent" rests on the log, written by Rohan from his university email. Nobody else can see Sent Items.
+  - The Nov 10 rows planned follow-ups for Fri Nov 13. The log shows no reply to them yet, so check it before saying anything about replies.
+  - The log's own pitch line says 5 organisations. A line elsewhere that says "6 banks and cash-in companies" counts the Nov 11 email to Davivienda's colleague as a sixth. Use 5.
+- **Checked:** Claude, 13 Nov 2026, against `docs/research.md` on main (61e2cc6): the table has five rows dated Nov 10 (four banks and Súper Selectos), one Nov 11 row (the second Davivienda email), and the pitch line above. No teammate has confirmed Sent Items.
+
+---
+
+## From the repo and the public ledger, added under #61 (13 Nov 2026)
+
+_Entries 59 to 61 come from our own code and from Stellar's public testnet ledger, not from a web page. Claude read the code and fetched the ledger on Nov 13, 2026; no teammate has confirmed them yet. None of them is in the Pitch highlights list._
+
+## 59. Our sponsor account pays the network fees
+- **Claim:** In the demo, our sponsor account pays the Stellar network fee for the app's transactions, so shops, drivers and the distributor never spend XLM on fees.
+- **Number:** none.
+- **Source:** PR #113 (merged 13 Nov 2026), `lib/stellar/sponsor.ts` (`sponsorFeeBump`) and `lib/stellar/send.ts` line 58 (`canSponsor() ? sponsorFeeBump(signed) : signed`) on `main` at 61e2cc6. On Stellar's public testnet ledger (Horizon), the test transaction from #113, `1491673fd05c96601248dd814bd2b0013421fe32b747d8c8cfa25f0ffc4cf83b` (https://stellar.expert/explorer/testnet/tx/1491673fd05c96601248dd814bd2b0013421fe32b747d8c8cfa25f0ffc4cf83b), is successful, its `fee_account` is `GA4Q52RF5TT2QHYGZER3A6QX23KTVWBTEV67EH4OHQENUDIDFA5J7LQS` (equal to `accounts.sponsor` in `config/testnet.json`) and its source account is Tienda Rosa, `GD2HWNZT4DQ4FXKKJ6FUXL4B5XWLSAJTRX2EGPQL5U3Q2VINRL4LRSOA`.
+- **Exact quote:** "When `STELLAR_SECRET_SPONSOR` is set (it is in Vercel), every transaction leaves `lib/stellar/send.ts` inside a fee bump that the sponsor pays and signs." (PR #113)
+- **Translation:** n/a (English source)
+- **Use in:** the architecture picture ("Pays the network fees (fee sponsorship)"); Q&A. It is not in the three-minute script.
+- **Caveat:**
+  - Say "our sponsor account pays the network fees". Never "gasless" or "users never need XLM": the demo accounts hold test XLM. In the real product, shops would use passkey wallets, which are not built (`docs/security.md` section 3).
+  - Testnet only. The sponsor is a funded testnet account.
+  - "It is in Vercel" is PR #113's statement. Claude did not look at Vercel's settings. The ledger shows the sponsor paid the 8 most recent transactions on its account (19:41 to 19:51 UTC on 13 Nov), from 6 different accounts, all successful, so the deployed app was sponsoring then.
+  - The fee on a contract call is more than the plain 100-stroop payment fee, so don't quote a fee per payment. Stellar's "under a cent" is entry 37, attributed to Stellar.
+- **Checked:** Claude, 13 Nov 2026: the transaction and the sponsor account's latest transactions fetched from Horizon testnet; `sponsor.ts`, `send.ts` and `config/testnet.json` read on `main`. Not in the Pitch highlights list until a teammate opens the transaction link and confirms it.
+
+## 60. The credit fee slides from 1.50% to 1.00% (as built in #139)
+- **Claim:** The distributor's credit fee is at most 1.50%. It drops toward 1.00% the more of the invoice the shop paid up front. Lenders always get 0.50%, and the rest splits 3:1 between the loss buffer and us. The shop never pays it.
+- **Number:**
+  - Top rate 150 basis points (`CREDIT_FEE_BPS`), when the whole invoice goes on credit. Floor 100 (`MIN_CREDIT_FEE_BPS`), when 10% or less does.
+  - In between: 100 + 50 × (f − 0.10) ÷ 0.90 basis points, where f is the part on credit divided by the invoice, rounded down.
+  - Split of each $100 put on credit (buffer / lenders / us): at 1.50%, $0.75 / $0.50 / $0.25. At 1.22% (half the invoice on credit), $0.54 / $0.50 / $0.18. At 1.00% (a tenth or less), $0.38 / $0.50 / $0.12.
+  - Worked example from the contract's own test: a $100 invoice, $50 paid first, then "pay in 7 days" on the other $50. The fee is $0.61 (1.22% of $50) and the distributor gets $49.39 on top of the $49.95 from the first part.
+  - "$98.50 per $100" holds only when the whole invoice goes on credit.
+- **Source:** `contracts/route_ledger/src/lib.rs` on `main` at 517b426 (#139, merged 13 Nov 2026): `USAGE_FEE_BPS` line 20, `CREDIT_FEE_BPS` line 24, `MIN_CREDIT_FEE_BPS` line 26, `LENDER_BPS` line 30; `credit_fee_bps` line 837; `fee_split` line 852; the fee is applied in `pay_with_credit` from line 616 and stored on the invoice as `credit_fee` (line 654). Tests in `contracts/route_ledger/src/test.rs`: `credit_fee_slides_with_the_share_on_credit` (line 1392), `half_paid_up_front_pays_a_lower_fee` (line 1437) and `fee_split(100) == (38, 12)`. The app does the same maths in `lib/labels.ts` (`creditFeeBps` line 50, `creditFee` line 60), and the README's "Pagar en 7 días" bullet states it.
+- **Exact quote:** "So 1.50% when the whole invoice goes on credit, 1.22% for half, 1.00% for a tenth or less." (code comment, `lib.rs` lines 835 and 836, line breaks removed)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A and `docs/assumptions.md` ("how do you make money?"). Always say "up to 1.5%". Not a headline.
+- **Caveat:**
+  - Testnet demo parameters. Fees round down. The 1.22% applies only to the part left on credit.
+  - Say "at most 25 cents of each $100 is ours". Our share is 0.25% at the top and 0.12% at the floor: the contract gives the odd basis point to the buffer (38 / 12), so the unrounded 0.125% is not what is charged.
+  - The yearly-cost numbers in entry 56 (79% simple, 120% compounded) are for the top rate, so they are the most it can cost the distributor.
+  - Still a fee the distributor pays to be paid early, not interest. The lawyer check in entry 29 applies at every rate.
+  - Entry 29's update line says the same in short; this entry adds the split at each rate, the code lines and the tests. Entries 30, 31 and 56 get their own #139 notes in PR #163.
+  - The only live credit sale we checked is in entry 61, at the top rate. The lower rates are covered by the contract tests, not by a live sale.
+- **Checked:** Claude, 13 Nov 2026: `lib.rs` read on `origin/main` at 517b426, arithmetic redone (150: rest 100, us 25, buffer 75. 122: rest 72, us 18, buffer 54. 100: rest 50, us 12, buffer 38. Half on credit: (10 × 50 − 100) × 50 ÷ (9 × 100) = 22.2, so 122). `cargo test` at the repo root, on this branch merged with `main` at 517b426: 76 passed, 0 failed. No teammate has confirmed it yet.
+
+## 61. The live contract: a 7-day credit period, and a credit sale charged 1.50%
+- **Claim:** The contract in `config/testnet.json` and the README is set to a credit period of 7 days. A credit sale on it was charged the 1.50% fee, with our 0.25% going to the treasury.
+- **Number:**
+  - `credit_period_secs` = 604,800 seconds = 7 days.
+  - Invoice 1002: $85.50 on credit. The distributor was paid $84.2175, so the fee was $1.2825 (1.50%). The treasury got $0.21375 (0.25%).
+  - Pool when read: $4,914.93 available and $50.64 in the buffer. These change whenever anyone pays, so they are a snapshot only.
+- **Source:** Stellar's public testnet, read by Claude on 13 Nov 2026.
+  - Soroban RPC (`soroban-testnet.stellar.org`): a read-only simulation of `get_config` and `get_pool` on `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML`, which equals `contracts.routeLedger` in `config/testnet.json` on `main` at 517b426 and the README table. Read at ledger 5,721,089 at 11:05 PM ET (04:05 UTC on 14 Nov). A public account was the source; nothing was signed or sent.
+  - Transaction `951af940c18a6201a80f2f5f08d5f81612d21b3f015811a571fbc31b7e520a09` (https://stellar.expert/explorer/testnet/tx/951af940c18a6201a80f2f5f08d5f81612d21b3f015811a571fbc31b7e520a09): successful, ledger 5,717,936, 6:42 PM ET on 13 Nov (23:42:04 UTC). It calls `pay_with_credit` on that contract with invoice id 1002. Its source account is `GDX3MH…` (Tienda Don Luis in the README). Its `paid_with_credit` event has amount 855,000,000 units and payout 842,175,000 (7 decimals). The two token transfers out of the contract went to the distributor `GBGNJT…` (842,175,000) and the treasury `GBCFUV…` (2,137,500). Both addresses are in `config/testnet.json`.
+- **Exact quote:** `"credit_period_secs": "604800"` (the value `get_config` returned)
+- **Translation:** n/a (ledger data)
+- **Use in:** Q&A ("is it really 7 days?", "is it live?"). It is the `get_config` check that entries 31 and 32 ask Yahya to run.
+- **Caveat:**
+  - The ledger shows the settings and one sale. It does not show that the deployed code is the `lib.rs` on `main`: we could not compare code hashes (no Stellar CLI here). PR #139 says Yahya deployed after commit f31c795, and the sale's fee matches `credit_fee_bps` for a fully credited invoice. That sale only tests the top rate.
+  - Entries 31 and 32 still say the credit period is unverified, and their line numbers are from 044f987. They keep that wording until a teammate repeats this read (any Soroban RPC client can simulate `get_config`) and the entries are re-cited.
+  - The transaction's `fee_account` is `GA4Q52…`, the sponsor account in entry 59, so it is a second sponsor-paid transaction.
+  - Testnet can be reset by the Stellar Development Foundation (`docs/security.md` section 5). The contract and these balances would disappear.
+- **Checked:** Claude, 13 Nov 2026, 11:05 PM ET, from Soroban RPC and Horizon on the public testnet. No teammate has opened the links yet.

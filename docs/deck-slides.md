@@ -4,9 +4,9 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Rules each slide follows:** a headline of 8 words or fewer, at most 3 lines of about 10 words (12 at most), readable in 5 seconds. Sources go in the small print under the slide, never in the 3 lines. A `[bracket]` is something the team has not decided or we don't have yet: **do not paste a bracket into the real deck.** Words were counted on Thu Nov 12 (a "$2" or "pay-in-7-days" counts as one word); recount after any edit. Slide 7 was recounted Sat Nov 14 after its third line was cut: headline 7 words, lines 7 and 11.
 
-**Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Do not say fee sponsorship works**: it is not built (PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
+**Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Fee sponsorship is built** (#113): if you say it, say "our sponsor account pays the network fees" (the diagram says it), not "gasless" or "users never need XLM". Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
-**Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
+**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The code-slide image needs PR #163 (new contract ID after #139), and the phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 **Update Fri Nov 13 night:** PR #82 is merged and #139 (the sliding fee) is merged with the new contract ID, so `docs/img/code-slide.png` was re-rendered after #139 and slide 5 is ready (see slide 5). Slide 6 now says "up to 1.5%" (line 2 is now about 21 words, over the limit of 12: the .pptx draft sets the bracket sentence small, and it can be cut if the slide reads as too much). Slide 3's phone screenshots (PR #119) predate #125 and #126 and need a retake before the deck is final (steps in `docs/deck-outline.md`).
 
@@ -45,8 +45,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 3. Cash, confirmed by two taps.
 
 **Small print:** Live at https://relay-sv.vercel.app, on Stellar testnet with test dollars. Cash-in is simulated.
-**Visual:** three phone screenshots of the live app, left to right as the three lines (steps in `docs/deck-outline.md`, "Capturing the three phone screenshots"). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
-**Waiting on:** Jack's capture. The redeploy is done (#90) and the name is set (#100), so the shots can be taken now from https://relay-sv.vercel.app. Check the page header reads "Relay" with "Paga tu ruta" under it before each capture.
+**Visual:** the three phone screenshots on `main`, left to right as the three lines: `docs/trifold/img/shop-pay.png`, `shop-credit.png` and `driver-cash.png`, captured from the live app (PR #119). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
+**Waiting on:** a comparison with the live app. #125 and #126 merged after the captures (Fri Nov 13, 7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). If the images differ, recapture (steps in `docs/deck-outline.md`, "Capturing the three phone screenshots") and check the page header reads "Relay" with "Paga tu ruta" under it.
 
 ## 4. How it works on Stellar (20 s)
 
@@ -57,8 +57,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 3. Testnet, test dollars.
 
 **Small print:** none (the diagram carries it).
-**Visual:** `docs/img/architecture.png`, **with one fix first.** Its server box says "Will pay the network fees (fee sponsorship)". Fee sponsorship is not built and stays out of the deck until after the finals, so delete that bullet in `docs/slides/architecture.html`, re-render with `node docs/slides/render.mjs`, and look at the result. Don't use the picture as it is on `main`.
-**Waiting on:** the architecture picture without the fee-sponsorship line. That edit is not in this PR.
+**Visual:** `docs/img/architecture.png` as it is on `main` (re-rendered in #119). Its server box says "Pays the network fees (fee sponsorship)", which has been true since #113 (evidence: `docs/pitch.md` section 3). The three lines above don't mention it; the diagram carries it.
+**Waiting on:** nothing.
 
 ## 5. The code (15 s)
 
@@ -69,7 +69,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Small print:** Abridged from `pay_with_credit` in `contracts/route_ledger/src/lib.rs`. The contract ID and its stellar.expert link are on the image.
 **Visual:** `docs/img/code-slide.png`. Ready on `main`: re-rendered Fri Nov 13 after #139 merged, so it shows the current contract ID (CAGCZ3I7...), equal to `contracts.routeLedger` in `config/testnet.json`, and the three blocks as they are now in `pay_with_credit`. `node docs/slides/render.mjs` reads both the ID and the code, so the script can't drift, but the PNG can: re-render it after any redeploy or any change to `pay_with_credit`. The old IDs (CAPQ6ZDD..., CDHDZX7V...) are gone from it. It shows no fee code, and its first callout ("No new credit while a payment is late") is still true: #139 changed what `repay` does about lateness, not the overdue check. Re-render at the print size too if the slide is printed (`SCALE=3 node docs/slides/render.mjs`).
-**Waiting on:** Yahya confirming the deployed contract is this code (the open line of #56).
+**Waiting on:** nothing: the deployed WASM hash matches #139's code (checked Nov 13).
 
 ## 6. Money in 30 seconds, and go-to-market (30 s)
 

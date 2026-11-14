@@ -49,7 +49,7 @@ The deployed Wasm uses the root `Cargo.toml` `[profile.release]`, which has `ove
 
 | | Demo (what judges see) | Real product |
 |---|---|---|
-| Who signs | our server, with one key per role | each person signs: shops with a passkey smart wallet (fingerprint or face, no seed phrase), with fees sponsored |
+| Who signs | our server, with one key per role; a sponsor account pays the network fees | each person signs: shops with a passkey smart wallet (fingerprint or face, no seed phrase), with fees sponsored |
 | Identity | none. Addresses are made up | a licensed partner does KYC on shop owners and KYB on distributors, and registers the distributors (`approve_distributor`) |
 | Money | test dollars we issue on testnet | USDC |
 | Cash in and out | simulated and labelled on screen | a licensed partner; see Risk #1 in `docs/context.md` section 6 |
