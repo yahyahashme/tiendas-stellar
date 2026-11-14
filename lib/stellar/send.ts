@@ -4,7 +4,7 @@ import { rpc, type Transaction } from "@stellar/stellar-sdk";
 import type { AssembledTransaction } from "@stellar/stellar-sdk/contract";
 import type { Client } from "@/packages/route_ledger/src/index";
 import { clientFor } from "./client";
-import { config, type Role } from "./config";
+import { config } from "./config";
 import { ContractError, contractErrorCode } from "./errors";
 import { canSponsor, describeResult, innerResultCode, sponsorFeeBump } from "./sponsor";
 
@@ -90,9 +90,9 @@ export async function submitSigned(signed: Transaction): Promise<{ hash: string 
 
 // One queue per account: calls signed by the same account wait their turn,
 // so this server never races itself for a sequence number.
-const queues = new Map<Role, Promise<unknown>>();
+const queues = new Map<string, Promise<unknown>>();
 
-function enqueue<T>(role: Role, job: () => Promise<T>): Promise<T> {
+function enqueue<T>(role: string, job: () => Promise<T>): Promise<T> {
   const next = (queues.get(role) ?? Promise.resolve()).then(job, job);
   queues.set(role, next.catch(() => undefined));
   return next;
@@ -103,10 +103,10 @@ function enqueue<T>(role: Role, job: () => Promise<T>): Promise<T> {
  * (ContractError carries the Spanish message). On txBadSeq (e.g. another
  * Vercel instance used the same account) it waits, rebuilds and retries, up to 6 times.
  */
-export function run(role: Role, call: (client: Client) => Promise<AssembledTransaction<unknown>>) {
+export function run(role: string, call: (client: Client) => Promise<AssembledTransaction<unknown>>) {
   return enqueue(role, async () => {
     for (let attempt = 0; ; attempt++) {
-      const tx = await call(clientFor(role));
+      const tx = await call(await clientFor(role));
       checkSimulation(tx);
       await tx.sign();
       if (!tx.signed) throw new Error("Transaction was not signed");

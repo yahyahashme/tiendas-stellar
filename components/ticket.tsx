@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /** The invoice drawn as the paper factura a shop already knows: white slip, torn bottom edge. */
@@ -63,8 +64,8 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-/** Brings a panel that just unfolded into view, clear of the bottom bar. Stable, so it runs once per opening. */
-function reveal(panel: HTMLDivElement | null) {
+/** Brings something that just appeared into view, clear of the bottom bar. Stable, so it runs once per appearance. */
+export function reveal(panel: HTMLDivElement | null) {
   panel?.scrollIntoView({ block: "nearest" });
 }
 
@@ -110,6 +111,25 @@ export function Option({
         </div>
       )}
     </div>
+  );
+}
+
+/** A row in the same list that opens another screen; `children` is the figure on the right. */
+export function OptionLink({ href, title, hint, children }: { href: string; title: string; hint?: ReactNode; children?: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-14 items-center justify-between gap-3 px-4 py-2 text-brand -outline-offset-3 transition-colors duration-150 ease-snap active:bg-brand-soft"
+    >
+      <span className="flex flex-col">
+        <span className="text-lg font-semibold">{title}</span>
+        {hint && <span className="text-sm text-muted">{hint}</span>}
+      </span>
+      <span className="flex items-center gap-2">
+        <span className="text-lg font-semibold text-ink tabular-nums">{children}</span>
+        <Chevron open={false} />
+      </span>
+    </Link>
   );
 }
 

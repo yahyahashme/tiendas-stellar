@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import type { ReactNode } from "react";
+import { DemoBanner } from "@/components/ui";
 import { APP_NAME, TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -17,9 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className={`${sans.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <p className="bg-warn-soft px-4 py-2 text-center text-sm font-medium text-warn">
-          Demo en testnet · dinero de prueba · cash-in simulado
-        </p>
+        <DemoBanner />
         {children}
       </body>
     </html>

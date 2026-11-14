@@ -7,9 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:setup": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/db-setup.ts",
+    "make-admin": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/make-admin.ts",
+    "resync-contract": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/resync-contract.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "1.0.2",
     "@stellar/stellar-sdk": "17.4.0",
     "next": "16.4.6",
     "qrcode.react": "4.2.0",
@@ -18,6 +22,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^22.20.5",
     "@types/react": "^19",
@@ -25,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
     "typescript": "^5",
     "vitest": "^5.1.0"
   }

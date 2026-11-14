@@ -6,6 +6,9 @@ const { addressOf, roleOf, SHOP_IDS, DRIVER_IDS } = await import("./config");
 const { contractErrorCode, errorMessage, ContractError, FALLBACK_MESSAGE } = await import("./errors");
 const { secretEnvName } = await import("./keys");
 const { toInvoice, toShop } = await import("./map");
+const { Directory, seedParties } = await import("@/lib/server/directory");
+const DIR = new Directory(seedParties());
+const ROSA = DIR.byId("tienda-1")!;
 const { fromUnits, toDollars, toUnits } = await import("./units");
 
 const SHOP = addressOf("tienda-1") as string;
@@ -36,7 +39,7 @@ describe("errors", () => {
   });
   it("says it in Spanish, with a fallback", () => {
     expect(errorMessage(5)).toBe("Esta factura ya está pagada.");
-    expect(errorMessage(13)).toBe(FALLBACK_MESSAGE);
+    expect(errorMessage(14)).toBe(FALLBACK_MESSAGE);
     expect(errorMessage(null)).toBe(FALLBACK_MESSAGE);
     expect(new ContractError(4).message).toBe("El monto es mayor que lo pendiente.");
   });
@@ -66,10 +69,11 @@ describe("map", () => {
     due: 1_795_154_400n,
     status: { tag: "PartPaid", values: undefined },
     method: { tag: "Digital", values: undefined },
+    credit_fee: 0n,
   } as const;
 
   it("turns a contract invoice into the screens' invoice", () => {
-    expect(toInvoice(chainInvoice)).toEqual({
+    expect(toInvoice(chainInvoice, DIR)).toEqual({
       id: 1001,
       shopId: "tienda-1",
       driverId: "motorista-1",
@@ -82,19 +86,19 @@ describe("map", () => {
   });
 
   it("adds a pending cash claim when there is one", () => {
-    expect(toInvoice(chainInvoice, 500_000_000n).cashClaim).toBe(50);
-    expect(toInvoice(chainInvoice, 0n)).not.toHaveProperty("cashClaim");
+    expect(toInvoice(chainInvoice, DIR, 500_000_000n).cashClaim).toBe(50);
+    expect(toInvoice(chainInvoice, DIR, 0n)).not.toHaveProperty("cashClaim");
   });
 
   it("leaves method out while nothing is paid", () => {
     const unpaid = { ...chainInvoice, paid: 0n, status: { tag: "Due", values: undefined }, method: { tag: "None", values: undefined } } as const;
-    expect(toInvoice(unpaid)).not.toHaveProperty("method");
-    expect(toInvoice(unpaid).status).toBe("due");
+    expect(toInvoice(unpaid, DIR)).not.toHaveProperty("method");
+    expect(toInvoice(unpaid, DIR).status).toBe("due");
   });
 
   it("turns a ShopView into the screens' shop", () => {
-    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n };
-    expect(toShop("tienda-1", view)).toEqual({
+    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n };
+    expect(toShop(ROSA, view)).toEqual({
       id: "tienda-1",
       name: "Tienda Rosa",
       owner: "Rosa Martínez",
@@ -104,7 +108,10 @@ describe("map", () => {
       overdue: false,
       onTime: 2,
       late: 0,
+      lateMinor: 0,
+      lateMajor: 0,
+      maxDaysLate: 0,
     });
-    expect(toShop("tienda-1", { ...view, owed: 0n, due_at: 0n })).not.toHaveProperty("creditDue");
+    expect(toShop(ROSA, { ...view, owed: 0n, due_at: 0n })).not.toHaveProperty("creditDue");
   });
 });

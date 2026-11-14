@@ -134,4 +134,23 @@ describe("parseInvoiceCsv", () => {
       ],
     });
   });
+
+  it("takes a real distributor's shop and driver names, ignoring case and accents (#133)", () => {
+    const named = {
+      shops: [{ id: "t-0", name: "Tienda de Marta, frente a la iglesia" }, { id: "t-1", name: "Tienda Marta" }, { id: "t-2", name: "Abarrotes Doña Rosa" }, { id: "t-3", name: "La Esquina" }, { id: "t-4", name: "La Esquina" }],
+      drivers: [{ id: "m-1", name: "Pedro López" }, { id: "m-2", name: 'Pedro "Pelón" López' }],
+    };
+    const csv = `${header}\n"2000","Tienda de Marta, frente a la iglesia","Pedro ""Pelón"" López",10,2026-11-20\n2001,tienda marta,pedro lopez,10,2026-11-20\n2002,ABARROTES DONA ROSA,m-1,5,2026-11-20\n2003,La Esquina,Pedro López,5,2026-11-20\n2004,Otra,Pedro,5,2026-11-20`;
+    const { rows, errors } = parseInvoiceCsv(csv, named);
+    expect(rows.map((r) => [r.invoiceId, r.shopId, r.driverId])).toEqual([
+      [2000, "t-0", "m-2"],
+      [2001, "t-1", "m-1"],
+      [2002, "t-2", "m-1"],
+    ]);
+    expect(errors).toEqual([
+      { line: 5, field: "shop_id", message: "Hay dos tiendas con ese nombre: La Esquina" },
+      { line: 6, field: "shop_id", message: "Tienda desconocida: Otra" },
+      { line: 6, field: "driver_id", message: "Motorista desconocido: Pedro" },
+    ]);
+  });
 });

@@ -326,6 +326,14 @@
                   },
                   {
                     "key": {
+                      "symbol": "credit_fee"
+                    },
+                    "val": {
+                      "i128": "0"
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "distributor"
                     },
                     "val": {

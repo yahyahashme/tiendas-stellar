@@ -18,25 +18,41 @@ use soroban_sdk::{
 /// Credit sales don't pay it: our cut there is inside the 1.50% credit fee,
 /// so the distributor sees one number ($98.50 for every $100).
 pub const USAGE_FEE_BPS: i128 = 10;
-/// 1.50% on credit, split three ways:
+/// The credit fee slides with how much of the invoice goes on credit (#135):
+/// 1.50% when all of it does, down to 1.00% when the shop paid 90% up front.
+/// See `credit_fee_bps`. It is split three ways:
 pub const CREDIT_FEE_BPS: i128 = 150;
-/// 0.75% stays in the pool as a buffer against shops that never repay,
-pub const BUFFER_BPS: i128 = 75;
-/// 0.50% is the lenders' return (it stays in `available`),
+/// The lowest rate, reached when 10% or less of the invoice goes on credit.
+pub const MIN_CREDIT_FEE_BPS: i128 = 100;
+/// The lenders' return is always 0.50% (it stays in `available`).
+/// What's left of the rate splits 3:1 buffer : us, rounding to the buffer:
+/// at 1.50% that is 0.75% buffer and 0.25% us, at 1.00% it is 0.38% and 0.12%.
 pub const LENDER_BPS: i128 = 50;
-/// 0.25% goes to us.
-pub const OUR_BPS: i128 = 25;
-const _: () = assert!(BUFFER_BPS + LENDER_BPS + OUR_BPS == CREDIT_FEE_BPS);
 
 /// Each on-time repayment raises the shop's limit by $25...
 pub const LIMIT_STEP: i128 = 250_000_000;
 /// ...up to $500. This is our own credit record.
 pub const LIMIT_CAP: i128 = 5_000_000_000;
 /// A repayment only raises the limit if the shop borrowed at least $40 in
-/// that cycle (about one small delivery)...
+/// that cycle (about one small delivery), unless it paid at least half of
+/// every credited invoice up front (#135)...
 pub const MIN_BORROW_TO_GROW: i128 = 400_000_000;
+/// The half-up-front waiver still needs $10 on credit in the cycle, so a $1
+/// invoice paid half up front can't farm the limit (Jack's review of #139).
+pub const MIN_BORROW_WITH_HALF: i128 = 100_000_000;
 // ...and at most once per credit period. Together these stop a shop from
 // taking $1 of credit and repaying it over and over to reach $500.
+
+/// Lateness is graded in "days" past `due_at` (#137). A day is a seventh of
+/// the credit period, so the 2-minute demo period still has all the bands.
+/// Up to this many days late still counts as on time (a grace day).
+pub const GRACE_DAYS: u64 = 1;
+/// Up to this many days late is a minor late payment: the limit drops $25.
+pub const MINOR_LATE_DAYS: u64 = 7;
+/// Later than that is a major one: the limit drops $50 and doesn't grow
+/// again for `NO_RAISE_PERIODS` credit periods.
+pub const MAJOR_LATE_STEP: i128 = 500_000_000;
+pub const NO_RAISE_PERIODS: u64 = 4;
 
 /// A shop this many credit periods past its due date can be written off:
 /// 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period.
@@ -109,6 +125,8 @@ pub struct Invoice {
     pub due: u64,
     pub status: InvoiceStatus,
     pub method: PayMethod,
+    /// The credit fee the distributor paid on this invoice; 0 if no credit.
+    pub credit_fee: i128,
 }
 
 #[contracttype]
@@ -145,6 +163,18 @@ pub struct Shop {
     pub last_raise_at: u64,
     /// Debt the buffer covered after a default and the shop still owes.
     pub written_off: i128,
+    /// True while every invoice credited this cycle had at least half paid
+    /// up front. Then the $40 minimum to grow the limit doesn't apply.
+    pub cycle_half_up_front: bool,
+    /// Repaid 2-7 days late / 8+ days late (`late` counts both, and defaults).
+    pub late_minor: u32,
+    pub late_major: u32,
+    /// The most days late the shop has ever repaid (or defaulted).
+    pub max_days_late: u32,
+    /// Unix seconds of the shop's first credit; 0 if never.
+    pub first_credit_at: u64,
+    /// Unix seconds; no limit raise before this (after a major late payment).
+    pub no_raise_until: u64,
 }
 
 /// Everything ever paid, by method, so the dashboard's totals cover the
@@ -171,6 +201,10 @@ pub struct ShopView {
     pub late: u32,
     pub total_repaid: i128,
     pub written_off: i128,
+    pub late_minor: u32,
+    pub late_major: u32,
+    pub max_days_late: u32,
+    pub first_credit_at: u64,
 }
 
 #[contracttype]
@@ -349,6 +383,7 @@ impl RouteLedger {
             due,
             status: InvoiceStatus::Due,
             method: PayMethod::None,
+            credit_fee: 0,
         };
         put(&env, &DataKey::Invoice(id), &invoice);
         let mut totals = load_totals(&env);
@@ -575,11 +610,14 @@ impl RouteLedger {
             Some(total) if total <= terms.limit => {}
             _ => return Err(Error::OverLimit),
         }
-        // 3. Fees: the distributor gets the amount minus the 1.50% credit fee
-        //    (no usage fee on credit: our 0.25% is inside the 1.50%).
-        let payout = amount - bps(amount, CREDIT_FEE_BPS)?;
-        let ours = bps(amount, OUR_BPS)?;
-        let to_buffer = bps(amount, BUFFER_BPS)?;
+        // 3. Fees: the distributor gets the amount minus the credit fee, 1.00%
+        //    to 1.50% depending on how much the shop paid up front (no usage
+        //    fee on credit: our cut is inside the credit fee).
+        let rate = credit_fee_bps(amount, invoice.amount);
+        let (to_buffer_bps, our_bps) = fee_split(rate);
+        let payout = amount - bps(amount, rate)?;
+        let ours = bps(amount, our_bps)?;
+        let to_buffer = bps(amount, to_buffer_bps)?;
         // The lenders' 0.50% never leaves `available`, so the pool gives up the rest.
         let from_pool = payout + ours + to_buffer;
         // 4. Only lend money the pool has, never the buffer.
@@ -601,12 +639,19 @@ impl RouteLedger {
         if terms.owed == 0 {
             terms.due_at = now + config.credit_period_secs;
             terms.cycle_borrowed = 0;
+            terms.cycle_half_up_front = true;
         }
+        if terms.first_credit_at == 0 {
+            terms.first_credit_at = now;
+        }
+        // At least half paid up front, on every credited invoice this cycle.
+        terms.cycle_half_up_front &= invoice.paid.saturating_mul(2) >= invoice.amount;
         terms.owed += amount;
         terms.cycle_borrowed += amount;
         save_shop(&env, &shop, &terms);
 
         invoice.paid = invoice.amount;
+        invoice.credit_fee = amount - payout;
         record_payment(&env, &mut invoice, PayMethod::Credit, amount);
         PaidWithCredit { id, shop, amount, payout, due_at: terms.due_at }.publish(&env);
         Ok(())
@@ -667,25 +712,40 @@ impl RouteLedger {
         terms.owed -= amount;
         if terms.owed == 0 {
             let now = env.ledger().timestamp();
-            if now <= terms.due_at {
+            let period = config.credit_period_secs;
+            let days = days_late(now, terms.due_at, period);
+            terms.max_days_late = terms.max_days_late.max(days_u32(days));
+            if days <= GRACE_DAYS {
                 terms.on_time += 1;
                 // +$25 for paying on time, never past $500, and only if the shop
-                // borrowed at least $40 this cycle and wasn't raised in the last
-                // credit period. A limit the admin set above $500 is left alone.
-                let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW;
-                let waited = terms.last_raise_at == 0
-                    || now >= terms.last_raise_at + config.credit_period_secs;
-                if big_enough && waited && terms.limit < LIMIT_CAP {
+                // borrowed at least $40 this cycle (or $10, with half of every credited
+                // invoice paid up front), wasn't raised in the last credit period, and
+                // isn't serving a no-raise after a major late payment. A limit the
+                // admin set above $500 is left alone.
+                let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
+                    || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
+                let waited =
+                    terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
+                if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
                     terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
                     terms.last_raise_at = now;
                 }
-            } else {
-                // Late: the limit drops one step ($25).
+            } else if days <= MINOR_LATE_DAYS {
+                // 2-7 days late: the limit drops $25.
                 terms.late += 1;
+                terms.late_minor += 1;
                 terms.limit = (terms.limit - LIMIT_STEP).max(0);
+            } else {
+                // 8+ days late: the limit drops $50 and can't grow for 4 periods.
+                terms.late += 1;
+                terms.late_major += 1;
+                terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
+                terms.no_raise_until =
+                    now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
             }
             terms.due_at = 0;
             terms.cycle_borrowed = 0;
+            terms.cycle_half_up_front = false;
         }
         save_shop(&env, &shop, &terms);
         Repaid { shop, amount, owed: terms.owed }.publish(&env);
@@ -714,10 +774,13 @@ impl RouteLedger {
         pool.available += covered;
         save_pool(&env, &pool);
 
+        let days = days_late(env.ledger().timestamp(), terms.due_at, config.credit_period_secs);
+        terms.max_days_late = terms.max_days_late.max(days_u32(days));
         terms.written_off += owed;
         terms.owed = 0;
         terms.due_at = 0;
         terms.cycle_borrowed = 0;
+        terms.cycle_half_up_front = false;
         terms.late += 1;
         terms.limit = 0;
         save_shop(&env, &shop, &terms);
@@ -756,6 +819,10 @@ impl RouteLedger {
             late: terms.late,
             total_repaid: terms.total_repaid,
             written_off: terms.written_off,
+            late_minor: terms.late_minor,
+            late_major: terms.late_major,
+            max_days_late: terms.max_days_late,
+            first_credit_at: terms.first_credit_at,
         }
     }
 }
@@ -763,6 +830,45 @@ impl RouteLedger {
 // ---------- helpers ----------
 
 /// `amount * bps / 10_000`, rounded down.
+/// The credit fee in bps when `credited` of an invoice of `total` goes on
+/// credit (#135). With f = credited / total, clamped to [0.10, 1.00]:
+/// 100 + 50 * (f - 0.10) / 0.90, rounded down. So 1.50% when the whole
+/// invoice goes on credit, 1.22% for half, 1.00% for a tenth or less.
+pub fn credit_fee_bps(credited: i128, total: i128) -> i128 {
+    if total <= 0 || credited >= total {
+        return CREDIT_FEE_BPS;
+    }
+    // (f - 0.10) / 0.90 = (10 * credited - total) / (9 * total)
+    let tenfold = credited.saturating_mul(10).clamp(total, total.saturating_mul(10));
+    let span = CREDIT_FEE_BPS - MIN_CREDIT_FEE_BPS;
+    match ((tenfold - total).checked_mul(span), total.checked_mul(9)) {
+        (Some(top), Some(bottom)) => MIN_CREDIT_FEE_BPS + top / bottom,
+        _ => CREDIT_FEE_BPS, // too big to work out: charge the full rate
+    }
+}
+
+/// (buffer bps, our bps) for a credit fee `rate`. Lenders always get
+/// `LENDER_BPS`; the rest splits 3:1 buffer : us, the odd part to the buffer.
+pub fn fee_split(rate: i128) -> (i128, i128) {
+    let rest = rate - LENDER_BPS;
+    let ours = rest / 4;
+    (rest - ours, ours)
+}
+
+/// How many "days" past `due_at` it is now, rounded up; 0 if not past it.
+/// A day is a seventh of the credit period (at least 1 second).
+fn days_late(now: u64, due_at: u64, credit_period_secs: u64) -> u64 {
+    if due_at == 0 || now <= due_at {
+        return 0;
+    }
+    let day = (credit_period_secs / 7).max(1);
+    (now - due_at).div_ceil(day)
+}
+
+fn days_u32(days: u64) -> u32 {
+    u32::try_from(days).unwrap_or(u32::MAX)
+}
+
 fn bps(amount: i128, bps: i128) -> Result<i128, Error> {
     amount.checked_mul(bps).map(|x| x / 10_000).ok_or(Error::InvalidAmount)
 }

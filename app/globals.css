@@ -78,6 +78,11 @@ body {
   animation: panel-in 200ms var(--ease-snap) both;
 }
 
+/* A pay button that just came on screen. It can't be tapped until it has landed (useQuietOnArrival). */
+.arrive {
+  animation: arrive 500ms ease-out backwards;
+}
+
 @keyframes stamp-land {
   from {
     opacity: 0;
@@ -92,9 +97,17 @@ body {
   }
 }
 
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stamp-fresh,
-  .unfold {
+  .unfold,
+  .arrive {
     animation: fade-in 200ms ease-out both;
   }
 }

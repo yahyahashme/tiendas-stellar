@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { creditPayout, parseAmount, partPayError } from "./labels";
+import { creditFee, creditFeeBps, parseAmount, partPayError } from "./labels";
 
-describe("creditPayout", () => {
-  it("takes the 1.5% credit fee off, like the contract", () => {
-    expect(creditPayout(100)).toBe(98.5);
-    expect(creditPayout(150)).toBe(147.75);
-    expect(creditPayout(85.5)).toBe(84.2175);
+describe("credit fee", () => {
+  it("is 1.5% when the whole invoice goes on credit", () => {
+    expect(creditFee(100, 100)).toBe(1.5);
+    expect(creditFee(150, 150)).toBe(2.25);
+    expect(creditFee(85.5, 85.5)).toBe(1.2825);
+  });
+  it("slides down to 1% the more the shop paid up front, like the contract's tests", () => {
+    expect(creditFeeBps(50, 100)).toBe(122);
+    expect(creditFee(50, 100)).toBe(0.61);
+    expect(creditFeeBps(100, 150)).toBe(131);
+    expect(creditFeeBps(10, 100)).toBe(100);
+    expect(creditFeeBps(1, 100)).toBe(100);
+    // The same rate whether amounts are in cents or 7-decimal units.
+    expect(creditFeeBps(50_00, 100_00)).toBe(creditFeeBps(500_000_000, 1_000_000_000));
   });
 });
 

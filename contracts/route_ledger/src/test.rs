@@ -13,6 +13,7 @@ use soroban_sdk::{
 /// $1 in token units (7 decimals).
 const USD: i128 = 10_000_000;
 const WEEK: u64 = 7 * 24 * 60 * 60;
+const DAY: u64 = WEEK / 7;
 const START: u64 = 1_000_000;
 
 struct Setup {
@@ -486,7 +487,8 @@ fn part_digital_then_credit_is_mixed() {
 
     // Credit covers the remaining $100 only.
     assert_eq!(t.client.get_shop(&t.shop).owed, 1_000_000_000);
-    assert_eq!(t.balance(&t.distributor) - distributor_before, 985_000_000);
+    // Two thirds on credit: 1.31% (#135), so $98.69 instead of $98.50.
+    assert_eq!(t.balance(&t.distributor) - distributor_before, 986_900_000);
     let invoice = t.client.get_invoice(&1);
     assert_eq!(invoice.status, InvoiceStatus::Paid);
     assert_eq!(invoice.method, PayMethod::Mixed);
@@ -537,21 +539,83 @@ fn full_cycle_on_time() {
 }
 
 #[test]
-fn late_repayment_drops_the_limit_one_step() {
+fn repaying_within_the_grace_day_counts_as_on_time() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 100 * USD);
     t.client.pay_with_credit(&t.shop, &1);
 
-    t.env.ledger().set_timestamp(START + WEEK + 1);
+    t.env.ledger().set_timestamp(START + WEEK + DAY); // one full day late
     t.client.repay(&t.shop, &(100 * USD));
 
     let shop = t.client.get_shop(&t.shop);
-    assert_eq!(shop.late, 1);
-    assert_eq!(shop.on_time, 0);
-    assert_eq!(shop.limit, 1_750_000_000);
-    assert_eq!(shop.owed, 0);
-    assert_eq!(shop.due_at, 0);
+    assert_eq!((shop.on_time, shop.late), (1, 0));
+    assert_eq!(shop.limit, 2_250_000_000);
+    assert_eq!(shop.max_days_late, 1);
+}
+
+#[test]
+fn two_to_seven_days_late_is_minor_and_drops_25() {
+    for late_by in [DAY + 1, 2 * DAY, 7 * DAY] {
+        let t = setup();
+        t.with_credit();
+        t.invoice(1, 100 * USD);
+        t.client.pay_with_credit(&t.shop, &1);
+
+        t.env.ledger().set_timestamp(START + WEEK + late_by);
+        t.client.repay(&t.shop, &(100 * USD));
+
+        let shop = t.client.get_shop(&t.shop);
+        assert_eq!((shop.late, shop.late_minor, shop.late_major), (1, 1, 0), "{late_by}");
+        assert_eq!(shop.on_time, 0);
+        assert_eq!(shop.limit, 1_750_000_000);
+        assert_eq!((shop.owed, shop.due_at), (0, 0));
+        assert_eq!(shop.max_days_late as u64, late_by.div_ceil(DAY));
+    }
+}
+
+#[test]
+fn eight_or_more_days_late_is_major_drops_50_and_stops_raises_for_4_periods() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+
+    let repaid_at = START + WEEK + 7 * DAY + 1; // 8 days late
+    t.env.ledger().set_timestamp(repaid_at);
+    t.client.repay(&t.shop, &(100 * USD));
+
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.late, shop.late_minor, shop.late_major), (1, 0, 1));
+    assert_eq!(shop.limit, 1_500_000_000);
+    assert_eq!(shop.max_days_late, 8);
+
+    // On time, but inside the 4 periods: no raise.
+    t.invoice(2, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &2);
+    t.client.repay(&t.shop, &(100 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.on_time, shop.limit), (1, 1_500_000_000));
+
+    // After the 4 periods, on time raises the limit again.
+    t.env.ledger().set_timestamp(repaid_at + 4 * WEEK);
+    t.invoice(3, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &3);
+    t.client.repay(&t.shop, &(100 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.on_time, shop.limit), (2, 1_750_000_000));
+}
+
+#[test]
+fn first_credit_date_is_kept() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 50 * USD);
+    t.invoice(2, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    t.env.ledger().set_timestamp(START + DAY);
+    t.client.pay_with_credit(&t.shop, &2);
+    assert_eq!(t.client.get_shop(&t.shop).first_credit_at, START);
 }
 
 #[test]
@@ -633,7 +697,11 @@ fn shop_without_terms_shows_zeros() {
             on_time: 0,
             late: 0,
             total_repaid: 0,
-            written_off: 0
+            written_off: 0,
+            late_minor: 0,
+            late_major: 0,
+            max_days_late: 0,
+            first_credit_at: 0,
         }
     );
 }
@@ -1310,24 +1378,138 @@ fn huge_amounts_overflow_nothing_and_move_nothing() {
 }
 
 #[test]
+fn every_credit_fee_rate_splits_into_lenders_buffer_and_us() {
+    for rate in MIN_CREDIT_FEE_BPS..=CREDIT_FEE_BPS {
+        let (buffer, ours) = fee_split(rate);
+        assert_eq!(LENDER_BPS + buffer + ours, rate, "{rate}");
+        assert!(buffer >= 3 * ours && buffer <= 3 * ours + 3, "{rate}: {buffer}/{ours}");
+    }
+    assert_eq!(fee_split(150), (75, 25)); // same as before #135
+    assert_eq!(fee_split(100), (38, 12)); // the odd part goes to the buffer
+}
+
+#[test]
+fn credit_fee_slides_with_the_share_on_credit() {
+    let a = 100 * USD;
+    assert_eq!(credit_fee_bps(a, a), 150); // all on credit
+    assert_eq!(credit_fee_bps(a / 2, a), 122); // half: 100 + 50 * 0.4 / 0.9 = 122.2
+    assert_eq!(credit_fee_bps(a / 10, a), 100); // a tenth
+    assert_eq!(credit_fee_bps(a / 20, a), 100); // below a tenth: still 1.00%
+    assert_eq!(credit_fee_bps(1, a), 100);
+    // Every share from 10% to 100% is between the two ends and never goes down.
+    let mut last = MIN_CREDIT_FEE_BPS;
+    for pct in 10..=100 {
+        let rate = credit_fee_bps(a * pct / 100, a);
+        assert!((MIN_CREDIT_FEE_BPS..=CREDIT_FEE_BPS).contains(&rate), "{pct}%");
+        assert!(rate >= last, "{pct}%");
+        last = rate;
+    }
+    // Huge invoices don't overflow.
+    assert_eq!(credit_fee_bps(i128::MAX, i128::MAX), 150);
+    assert_eq!(credit_fee_bps(i128::MAX / 2, i128::MAX), 150);
+}
+
+#[test]
 fn credit_split_never_pays_out_more_than_the_invoice() {
     let big = i128::MAX / CREDIT_FEE_BPS;
     let amounts = (1..=200_000).chain([big - 1, big, 10_i128.pow(30), 10_i128.pow(36) + 7]);
-    for a in amounts {
-        let fee = bps(a, CREDIT_FEE_BPS).unwrap();
-        let payout = a - fee;
-        let ours = bps(a, OUR_BPS).unwrap();
-        let to_buffer = bps(a, BUFFER_BPS).unwrap();
-        let lenders = fee - ours - to_buffer;
+    for rate in [MIN_CREDIT_FEE_BPS, 122, CREDIT_FEE_BPS] {
+        let (buffer_bps, our_bps) = fee_split(rate);
+        for a in amounts.clone() {
+            let fee = bps(a, rate).unwrap();
+            let payout = a - fee;
+            let ours = bps(a, our_bps).unwrap();
+            let to_buffer = bps(a, buffer_bps).unwrap();
+            let lenders = fee - ours - to_buffer;
 
-        assert!(payout >= 0 && ours >= 0 && to_buffer >= 0, "{a}");
-        // Rounding down on the three parts never adds up to more than the 1.50%,
-        assert!(lenders >= 0, "{a}");
-        // so what the pool gives up (payout + ours + to_buffer) is at most A.
-        assert!(payout + ours + to_buffer <= a, "{a}");
+            assert!(payout >= 0 && ours >= 0 && to_buffer >= 0, "{a}");
+            // Rounding down on the three parts never adds up to more than the fee,
+            assert!(lenders >= 0, "{a}");
+            // so what the pool gives up (payout + ours + to_buffer) is at most A.
+            assert!(payout + ours + to_buffer <= a, "{a}");
+        }
     }
     // One past the edge is refused, not wrapped around.
     assert_eq!(bps(big + 1, CREDIT_FEE_BPS), Err(Error::InvalidAmount));
+}
+
+#[test]
+fn half_paid_up_front_pays_a_lower_fee() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 100 * USD);
+    let distributor_before = t.balance(&t.distributor);
+
+    t.client.pay(&t.shop, &1, &(50 * USD));
+    let after_pay = t.balance(&t.distributor);
+    assert_eq!(after_pay - distributor_before, 499_500_000); // $49.95 after the 0.10% usage fee
+
+    t.client.pay_with_credit(&t.shop, &1);
+    // $50 on credit at 1.22%: fee $0.61, the distributor gets $49.39.
+    assert_eq!(t.balance(&t.distributor) - after_pay, 493_900_000);
+    assert_eq!(t.client.get_invoice(&1).credit_fee, 6_100_000);
+    let (buffer_bps, _) = fee_split(122);
+    assert_eq!(t.client.get_pool().buffer, bps(50 * USD, buffer_bps).unwrap());
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn half_up_front_waives_the_40_dollar_minimum_to_grow() {
+    let t = setup();
+    t.with_credit();
+    // $30 invoice, $15 up front, $15 on credit: under $40, but half was paid first.
+    t.invoice(1, 30 * USD);
+    t.client.pay(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1);
+    t.client.repay(&t.shop, &(15 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+}
+
+#[test]
+fn half_up_front_on_a_tiny_invoice_does_not_grow_the_limit() {
+    let t = setup();
+    t.with_credit();
+    // $1 invoice, $0.50 up front and $0.50 on credit, repaid every week: never grows.
+    for week in 0..3u64 {
+        t.env.ledger().set_timestamp(START + week * WEEK);
+        let id = week + 1;
+        t.invoice(id, USD);
+        t.client.pay(&t.shop, &id, &(USD / 2));
+        t.client.pay_with_credit(&t.shop, &id);
+        let owed = t.client.get_shop(&t.shop).owed;
+        t.client.repay(&t.shop, &owed);
+    }
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.on_time, shop.limit), (3, 2_000_000_000));
+
+    // $10 on credit with half up front is enough.
+    t.env.ledger().set_timestamp(START + 3 * WEEK);
+    t.invoice(9, 20 * USD);
+    t.client.pay(&t.shop, &9, &(10 * USD));
+    t.client.pay_with_credit(&t.shop, &9);
+    t.client.repay(&t.shop, &(10 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_250_000_000);
+}
+
+#[test]
+fn one_credited_invoice_without_half_up_front_keeps_the_40_dollar_minimum() {
+    let t = setup();
+    t.with_credit();
+    t.invoice(1, 30 * USD);
+    t.invoice(2, 20 * USD);
+    t.client.pay(&t.shop, &1, &(15 * USD));
+    t.client.pay_with_credit(&t.shop, &1); // half up front
+    t.client.pay_with_credit(&t.shop, &2); // nothing up front
+    t.client.repay(&t.shop, &(35 * USD)); // $35 borrowed: under $40
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.on_time, shop.limit), (1, 2_000_000_000));
+
+    // The flag resets with the cycle: a new full-credit cycle under $40 doesn't grow.
+    t.env.ledger().set_timestamp(START + WEEK);
+    t.invoice(3, 30 * USD);
+    t.client.pay_with_credit(&t.shop, &3);
+    t.client.repay(&t.shop, &(30 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).limit, 2_000_000_000);
 }
 
 #[test]
@@ -1349,7 +1531,8 @@ fn credit_never_pays_out_more_than_the_invoice_in_the_contract() {
         let left_contract = contract_before - t.contract_balance();
         assert!(pool_before.available - pool.available <= a, "pool gave up more than {a}");
         assert!(left_contract <= a, "{a} paid out {left_contract}");
-        assert_eq!(left_contract, bps(a, OUR_BPS).unwrap() + a - bps(a, CREDIT_FEE_BPS).unwrap());
+        let (_, our_bps) = fee_split(CREDIT_FEE_BPS);
+        assert_eq!(left_contract, bps(a, our_bps).unwrap() + a - bps(a, CREDIT_FEE_BPS).unwrap());
         t.assert_pool_matches_balance();
     }
 }
