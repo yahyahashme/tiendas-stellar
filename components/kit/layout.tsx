@@ -112,6 +112,8 @@ export type ShellItem = {
   href: string;
   label: string;
   current?: boolean;
+  /** For a place that is a section of the page you are on: told when it is chosen, so the page can mark it. */
+  onClick?: () => void;
   /** Only in the sidebar. A phone's bottom navigation has room for four places; the page links to the rest. */
   sidebarOnly?: boolean;
 };
@@ -147,7 +149,8 @@ export function Shell({
             <Link
               key={item.href}
               href={item.href}
-              aria-current={item.current ? "page" : undefined}
+              onClick={item.onClick}
+              aria-current={item.current ? (item.href.includes("#") ? "location" : "page") : undefined}
               className={`flex min-h-12 items-center rounded-l-paper px-3 text-[1.0625rem] font-bold -outline-offset-3 ${
                 item.current ? "bg-paper text-ink" : "text-brand hover:bg-brand/6"
               }`}
@@ -180,7 +183,8 @@ export function Shell({
             <Link
               key={item.href}
               href={item.href}
-              aria-current={item.current ? "page" : undefined}
+              onClick={item.onClick}
+              aria-current={item.current ? (item.href.includes("#") ? "location" : "page") : undefined}
               className={`flex min-h-14 min-w-0 flex-auto items-center justify-center px-1.5 text-center text-[min(var(--text-label),max(14px,4.4vw))] leading-tight font-bold -outline-offset-3 ${
                 item.current ? "rounded-b-paper bg-paper text-ink" : "text-brand"
               }`}

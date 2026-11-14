@@ -41,6 +41,8 @@ function shopReminder(shop: Shop, now: number): string | null {
   if (!phone || shop.creditOwed <= 0) return null;
   const site = process.env.NEXT_PUBLIC_SITE_URL || (typeof window === "undefined" ? "" : window.location.origin);
   try {
+    // The demo's shops have made-up numbers that a real person may own, so the demo's link carries the message and
+    // no number: WhatsApp asks who to send it to.
     return reminderLink({
       phone,
       shopName: shop.name,
@@ -48,7 +50,7 @@ function shopReminder(shop: Shop, now: number): string | null {
       dueAt: shop.creditDue ? Math.floor(Date.parse(shop.creditDue) / 1000) : 0,
       now: Math.floor(now / 1000),
       link: site ? `${site}/tienda/cuenta/${shop.id}` : undefined,
-    });
+    }).replace(/^https:\/\/wa\.me\/\d+\?/, "https://wa.me/?");
   } catch {
     return null;
   }

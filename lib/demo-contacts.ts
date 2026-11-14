@@ -1,7 +1,8 @@
 // Demo phone numbers for the "Recordar por WhatsApp" button (#32). They are
 // off-chain on purpose: phone numbers never go on the public ledger (context §8.4).
-// They are made up but look real, so a real person may own them: the button only
-// opens WhatsApp with the message ready. Never press send in a demo.
+// They are made up but look real, so a real person may own them. The dashboard uses them only to
+// decide which shops get the button: its link carries the message and no number, so WhatsApp asks
+// who to send it to and nobody is messaged by mistake.
 /** The demo's shops, so the dashboard shows each one even when none of its invoices is on the loaded page. */
 export const DEMO_SHOP_IDS = ["tienda-1", "tienda-2", "tienda-3"];
 

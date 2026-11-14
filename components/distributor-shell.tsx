@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ButtonLink } from "@/components/kit/button";
 import { Shell, type ShellItem } from "@/components/kit/layout";
 import { Logo } from "@/components/logo";
@@ -33,11 +33,19 @@ export function DistributorShell({
   children: ReactNode;
 }) {
   const { t } = useT();
+  // On the dashboard, Facturas (and in the demo Motoristas and Tiendas) are parts of the same page: the tab for the
+  // part in view is the marked one, whether it was tapped or scrolled to.
+  const section = useSectionInView(current === "panel" ? (demo ? ["facturas", "motoristas", "tiendas"] : ["facturas"]) : []);
+  const at = (id: string | null) => current === "panel" && section.id === id;
   const nav: ShellItem[] = [
-    { href: "/distribuidor", label: t("Panel", "Dashboard"), current: current === "panel" },
-    { href: "/distribuidor#facturas", label: t("Facturas", "Invoices") },
-    { href: demo ? "/distribuidor#motoristas" : "/distribuidor/motoristas", label: t("Motoristas", "Drivers"), current: current === "motoristas" },
-    { href: demo ? "/distribuidor#tiendas" : "/distribuidor/tiendas", label: t("Tiendas", "Shops"), current: current === "tiendas" },
+    { href: "/distribuidor", label: t("Panel", "Dashboard"), current: at(null), onClick: () => section.choose(null) },
+    { href: "/distribuidor#facturas", label: t("Facturas", "Invoices"), current: at("facturas"), onClick: () => section.choose("facturas") },
+    demo
+      ? { href: "/distribuidor#motoristas", label: t("Motoristas", "Drivers"), current: at("motoristas"), onClick: () => section.choose("motoristas") }
+      : { href: "/distribuidor/motoristas", label: t("Motoristas", "Drivers"), current: current === "motoristas" },
+    demo
+      ? { href: "/distribuidor#tiendas", label: t("Tiendas", "Shops"), current: at("tiendas"), onClick: () => section.choose("tiendas") }
+      : { href: "/distribuidor/tiendas", label: t("Tiendas", "Shops"), current: current === "tiendas" },
     ...(firstSteps ? [{ href: "/distribuidor#pasos", label: t("Primeros pasos", "First steps"), sidebarOnly: true }] : []),
   ];
   return (
@@ -54,6 +62,44 @@ export function DistributorShell({
       {children}
     </Shell>
   );
+}
+
+/**
+ * Which of a page's sections is in view: the last one whose top has passed the upper third of the screen, or null
+ * above the first. A tap on a tab decides at once (`choose`), and scrolling takes over again a moment later, so the
+ * short last section of a page can still be marked.
+ */
+function useSectionInView(ids: string[]) {
+  const [id, setId] = useState<string | null>(null);
+  const chosenAt = useRef(0);
+  const key = ids.join(",");
+  useEffect(() => {
+    const list = key ? key.split(",") : [];
+    if (list.length === 0) return;
+    const read = () => {
+      if (Date.now() - chosenAt.current < 1200) return;
+      let found: string | null = null;
+      for (const name of list) {
+        const el = document.getElementById(name);
+        if (el && el.getBoundingClientRect().top <= window.innerHeight / 3) found = name;
+      }
+      setId(found);
+    };
+    const start = window.location.hash.slice(1);
+    if (list.includes(start)) {
+      chosenAt.current = Date.now();
+      setId(start);
+    }
+    window.addEventListener("scroll", read, { passive: true });
+    return () => window.removeEventListener("scroll", read);
+  }, [key]);
+  return {
+    id,
+    choose: (next: string | null) => {
+      chosenAt.current = Date.now();
+      setId(next);
+    },
+  };
 }
 
 /** "Nueva factura" for the shell's action slot, on the pages of a signed-in distributor. */

@@ -2,7 +2,7 @@
 
 import { setLang, useT } from "@/lib/i18n";
 
-/** Español / English. The language on screen is plain ink (a fact); the other one is a blue link (an action). */
+/** Español / English. The language on screen is ink with a rule under it (where you are); the other one is blue (an action). */
 export function LangSwitch() {
   const { lang } = useT();
   const option = (value: "es" | "en", label: string, name: string) => (
@@ -13,7 +13,7 @@ export function LangSwitch() {
       aria-label={name}
       lang={value}
       className={`relative h-4 min-w-11 px-2 text-label/4 font-bold tracking-[0.08em] before:absolute before:inset-x-0 before:-top-3 before:-bottom-4 gloves:min-w-[56px] gloves:before:-top-4 gloves:before:-bottom-6 ${
-        lang === value ? "text-ink" : "text-brand underline decoration-2 underline-offset-4"
+        lang === value ? "text-ink underline decoration-2 underline-offset-4" : "text-brand"
       }`}
     >
       {label}
