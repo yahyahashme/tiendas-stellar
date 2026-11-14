@@ -1,6 +1,6 @@
 # Finals deck outline (#41)
 
-Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
+Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Thu Nov 12 late evening against `main` at 9c1b0fe (#72, #73, #83, #84, #85, #86, #90, #100 and #102 are merged; #81 and #82 are still open). Update Fri Nov 13 night: #82 is merged, and `docs/img/code-slide.png` was re-rendered after #139 with the new contract ID (see slide 5). Update Sat Nov 14: slide 7's "what users told us" line is cut (no conversation with a user is logged; see slide 7). **The text to paste into the template is in `docs/deck-slides.md`.** This file keeps the plan: the time budget, the source and visual for each slide, what each still needs, the screenshot steps and the open questions. Every `[bracket]` is something we don't have yet.
 
 ## Rules
 
@@ -21,7 +21,7 @@ Scaffold written Wed Nov 11; the slide text was added the same day. Refreshed Th
 | 4. How it works on Stellar | 20 | 1:25 |
 | 5. The code | 15 | 1:40 |
 | 6. Money and go-to-market | 30 | 2:10 |
-| 7. Risk #1, our plan, what users told us | 30 | 2:40 |
+| 7. Risk #1 and our plan | 30 | 2:40 |
 | 8. Team and our ask | 20 | 3:00 |
 
 If the 1-minute video plays at the finals, slide 3 stands in for it and this budget changes. Whether it plays is not stated anywhere in our notes (see "Open questions").
@@ -45,28 +45,31 @@ The words for each slide are in `docs/deck-slides.md`, under the same number.
 ### 3. The product
 - **Message:** one shop screen, three ways to pay.
 - **Visual:** 3 phone screenshots of the live app, captured at 360 px wide with the testnet banner in frame: the shop's pay screen, the shop's "Debe ... vence ..." screen after a credit payment, the driver's "Recibí efectivo" screen. Steps are in "Capturing the three phone screenshots" below. `docs/screenshots/mock-screens-nov10.png` is a mock, so don't use it.
-- **Needs:** a fresh capture. The live app is on a stable URL, https://relay-sv.vercel.app (`curl -sI` returned HTTP 200 on Thu Nov 12, about 7:50 PM ET; the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). The redeploy has landed (#90) and the name is set (#100), so the shots can be taken now. Check the page header reads "Relay" with "Paga tu ruta" under it before capturing. The URL goes in the slide's small print.
+- **Needs:** a check, and probably a recapture. PR #119 (Fri Nov 13) put the three captures in `docs/trifold/img/` (`shop-pay.png`, `shop-credit.png`, `driver-cash.png`), taken from https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). #126 and #125 merged after that (7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). Compare the three images with the live app; if they differ, recapture with the steps below and check the page header reads "Relay" with "Paga tu ruta" under it. We have not compared them. The URL goes in the slide's small print.
 
 ### 4. How it works on Stellar
 - **Message:** the rules live in a public contract, and names stay off it.
-- **Visual:** `docs/img/architecture.png` (from #56), **after one fix.** Its server box says "Will pay the network fees (fee sponsorship)". Fee sponsorship is not built (#33, PR #81 is a draft), and it stays out of the pitch and the deck until after the finals. Delete that bullet in `docs/slides/architecture.html` and re-render with `node docs/slides/render.mjs`. If #81 merges before the finals and the team decides to say it, change the wording then, not before.
+- **Visual:** `docs/img/architecture.png` (from #56, re-rendered in #119). Its server box says "Pays the network fees (fee sponsorship)", which has been true since #113 (evidence: `docs/pitch.md` section 3), so no change is needed. If you edit that line, re-render with `node docs/slides/render.mjs`.
 
 ### 5. The code
 - **Message:** the credit rules are real contract code, not a mock-up.
-- **Visual:** `docs/img/code-slide.png` (from #56). **Not ready on `main`:** it shows the old contract ID (CAPQ6ZDD..., from before the redeploy), and its limit check is the pre-#66 code. PR #82 (open, not merged) repairs the render, re-renders the PNG with the new ID (CDHDZX7V..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `match` block, and adds `SCALE=3 node docs/slides/render.mjs` for print-size images. Use the image only after #82 merges.
-- **Needs:** PR #82 merged, then Yahya's confirmation that the code on the slide is what's deployed (the open "Done means" line of #56). `git log` shows nothing under `contracts/` since #80 (Thu Nov 12, 4:33 PM ET), which came before the redeploy (#90, 6:22 PM ET).
+- **Visual:** `docs/img/code-slide.png` (from #56). Ready on `main`: PR #82 (merged) repaired the render and added `SCALE=3 node docs/slides/render.mjs` for print-size images, and the PNG was re-rendered Fri Nov 13 after #139, so it shows the current contract ID (CAGCZ3I7..., equal to `contracts.routeLedger` in `config/testnet.json`) and the current `pay_with_credit` blocks (overdue check, `match` limit check, pool check). The two older IDs it used to show (CAPQ6ZDD... before #90, CDHDZX7V... between #90 and #139) are gone. The script reads the ID and the code itself, but the PNG does not update itself: re-render it after any redeploy or any change to `pay_with_credit`.
+- **Needs:** nothing. The deployed contract's WASM hash matches a fresh build of #139's code (checked Nov 13, comment on #139). `git log` shows #139 (Fri Nov 13, 7:36 PM ET, commit 517b426) as the last change under `contracts/`; its merge also put the new ID in `config/testnet.json`.
 
 ### 6. Money in 30 seconds, and go-to-market
 - **Message:** distributors pay, shops never do.
 - **Source:** facts entry 29 (#84) for the fees; entries 25 and 26 (#73) for Ecuador and Panama; context §14 for "one distributor first". All on `main`.
-- **Never say:** "$98.40", "$0.35 per credit sale", a "$2.5 million" revenue figure (facts, "Never use"), or that fee sponsorship works. Fee wording: "$98.50 per $100", with the 1.5% paid by the distributor.
+- **Never say:** "$98.40", "$0.35 per credit sale", or a "$2.5 million" revenue figure (facts, "Never use"). Fee wording: "$98.50 per $100" for an invoice fully on credit, with a fee of "up to 1.5%" paid by the distributor (facts entry 29, update Nov 13: #139 made the fee slide from 1.50% down to 1.00% the more the shop pays up front, so never say a flat 1.5%).
 - **Visual:** the $100 example as 3 rows.
 
-### 7. Risk #1, our plan, what users told us
+### 7. Risk #1 and our plan
 - **Message:** we name the hard part before a judge does.
 - **Source:** context §6 and §13; `docs/security.md` section 3 (demo versus real).
 - **Rule:** our plan is a plan, not a deal. No bank, cash-in company or lender has agreed to anything, so don't word it as if one had.
-- **Needs:** the real count and the one change, from #30 (still open). `docs/research.md` is on `main` (#72) but logs only the two advisor calls; advisors aren't users, so they don't count toward "[N] people".
+- **Cut Sat Nov 14:** the line "We spoke to [N] people and changed [one thing]." `docs/research.md` on `main` (#72) logs only the two advisor calls and the partner emails. PR #152 (open) adds 7 interview requests to shops and distributors and 5 advice emails to nonprofits: messages sent, 0 conversations. Advisors aren't users. The team rule (#61) is exact counts only, and 0 means cut the line, not say 0. Add it back only with a real count from #30.
+- **Not used instead:** the advisors' advice to partner with banks and cash-in companies (facts entry 57 only counts the 2 calls and says never to count advisors as users or traction), and "we emailed 5 organisations" (entry 58 is on PR #159, not on `main` yet, and an email sent is not a conversation).
+- **Spoken line:** PR #166 (open) changes the `docs/pitch.md` 2:30 to 2:50 line to "We've asked [7] grocers and distributors to talk; zero conversations yet." The slide says nothing about users, so the two don't contradict. Re-read the `[7]` from `docs/research.md` before each run; the team decides whether to keep a spoken zero, given rule #61.
+- **Needs:** nothing for the slide.
 - **MoneyGram:** say "as far as we found". Entry 38 (pending a person's check) says MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25, and its coverage data lists El Salvador as cash-out only. Look at the coverage map by eye before the line goes on a slide.
 
 ### 8. Team and our ask
@@ -107,12 +110,12 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 | Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch.md`; `[NAME]` became Relay in PR #107, the `[N]` placeholders are still open) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
 | Our fees, limits, safety numbers | facts entries 29 to 35, #84 | merged |
-| "What we heard from N people" | #30; `docs/research.md` (#72) | open; the log has only the two advisor calls |
-| Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12 (brackets still open) |
-| Real phone screenshots | live app, captured by Jack, steps above | not started; unblocked (redeploy landed, #90) |
-| Code slide with the real contract ID | #56 follow-up, PR #82 | PR #82 (open, not merged) has the re-render; `docs/img/code-slide.png` on `main` is stale until it merges |
-| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | option written in PR #82 |
-| Architecture picture without the fee-sponsorship line | edit `docs/slides/architecture.html`, re-render | not done |
+| "What we heard from N people" | #30; `docs/research.md` (#72) | cut from slide 7 on Nov 14: 0 conversations with users (PR #152 logs messages sent only). Add it back only with a real count |
+| Slide text for the 8 slides | `docs/deck-slides.md` | refreshed Nov 12; slide 7 updated Nov 14. The only bracket left is slide 8's `[our ask]` |
+| Real phone screenshots | live app; steps above | captured in PR #119 (`docs/trifold/img/`); #125 and #126 merged after, so compare with the live app and recapture if they differ |
+| Code slide with the real contract ID | #56 follow-up, PR #82 | done (Nov 13): PR #82 merged, and the PNG was re-rendered after #139; `docs/img/code-slide.png` on `main` shows the current ID (CAGCZ3I7...). Re-render after any redeploy |
+| Print-size slide images | `SCALE=3 node docs/slides/render.mjs` (PR #82) | merged; the option is in `docs/slides/render.mjs` (render on the computer that prints, after the last redeploy) |
+| Architecture picture with the fee-sponsorship line | #119 put it back after #113 turned sponsorship on | done, on `main` |
 | Our ask | team decision | open |
 
 ## The organisers' template (opened Nov 12)
@@ -125,7 +128,7 @@ The public export of the template downloads without a login. It is 20 x 11.25 in
 | (Specific) Problem | 2. The problem |
 | Your Solution | 3. The product |
 | How it's used/integrated with existing systems | 4. How it works on Stellar |
-| Your Evidence (who you talked to, what you read) | 7. Risk #1, our plan, what users told us (partly) |
+| Your Evidence (who you talked to, what you read) | 7. Risk #1 and our plan (partly: the "who you talked to" line is cut until there is a real count) |
 | Your Impact (how many people you are helping x how much you are helping them) | none |
 | Your team (who you are and why you are the right people to do this) | 8. Team and our ask |
 | Optional: how you would use the prize money to actually get this started | none (it could be our ask) |
@@ -139,12 +142,13 @@ Our slides 5 (the code) and 6 (money and go-to-market) have no template slot, an
 - **MoneyGram:** "MoneyGram Ramps offers cash-out in 170+ countries and cash-in in about 25. For El Salvador, its coverage data lists cash-out but, as far as we found, not cash-in." Entry 38.
 - **Why not the state bank (BFA):** entry 20 has the answer. Not on a slide.
 - **Delivery crews:** "have been robbed and extorted" (entry 40, one reported case plus a study of 2012 to 2019 data). Don't say "no record of who collected what" as a fact (it has no source).
+- **Users (if asked):** slide 7 no longer mentions users, so a judge may ask. Say the real number (context §13): no conversations with shop owners or distributors yet; we have sent interview requests (the count is in `docs/research.md` once PR #152 merges) and held 2 advisor calls, and advisors are not users (entry 57). Never "we spoke to". The wording is answer 8 in `docs/pitch.md` (PR #166).
 
 ## How to build it
 
 1. Open the template and make a copy. Keep its layouts and fonts.
 2. Paste the slide text from `docs/deck-slides.md`, replacing every `[bracket]`.
-3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` only after the fee-sponsorship line is removed, and `docs/img/code-slide.png` only after PR #82 is merged.
+3. Insert the images and the three screenshots. Our PNGs are 1920 x 1080 and the template is 16:9, so they fit. Use `docs/img/architecture.png` as it is on `main` (its fee-sponsorship line has been true since #113), and `docs/img/code-slide.png` after checking that the ID on it equals `contracts.routeLedger` in `config/testnet.json` (re-render after any redeploy).
 4. Check there are no animations or transitions on any slide.
 5. Download as PowerPoint (.pptx) and open it in PowerPoint itself, not only in Google Slides, to check fonts and layout.
 6. Save it where all four of us can open it, and post the link in the group chat.

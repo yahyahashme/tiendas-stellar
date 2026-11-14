@@ -43,7 +43,7 @@ const NEVER = [
 const WARN = [
   [/\bopen(-source| Soroban| contract)/i, 'says "open": the licence is all rights reserved (#48). Say "public".'],
   [/\baudit(ed)?\b/i, "says audited: we did a safety review with tests, not an outside audit"],
-  [/passkey|fee sponsorship/i, "fee sponsorship and passkeys are not on main"],
+  [/passkey/i, "passkeys are not on main"],
   [/MoneyGram[^.]{0,60}only/i, "MoneyGram claim: our own locator check found cash-out points, not that cash-in is missing (docs/submit-one-pager.md)"],
   [/fraction of a cent/i, '"fraction of a cent" has no entry in docs/facts.md: add a source or cut it'],
 ];
