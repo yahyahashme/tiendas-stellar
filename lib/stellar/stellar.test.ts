@@ -97,7 +97,7 @@ describe("map", () => {
   });
 
   it("turns a ShopView into the screens' shop", () => {
-    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n };
+    const view = { limit: 2_000_000_000n, owed: 500_000_000n, due_at: 1_795_154_400n, overdue: false, on_time: 2, late: 0, total_repaid: 0n, written_off: 0n, late_minor: 0, late_major: 0, max_days_late: 0, first_credit_at: 0n, good_cycles: 0, voucher: null, vouched_owed: 0n, covered_by_distributor: 0n };
     expect(toShop(ROSA, view)).toEqual({
       id: "tienda-1",
       name: "Tienda Rosa",
@@ -111,7 +111,9 @@ describe("map", () => {
       lateMinor: 0,
       lateMajor: 0,
       maxDaysLate: 0,
+      goodCycles: 0,
     });
     expect(toShop(ROSA, { ...view, owed: 0n, due_at: 0n })).not.toHaveProperty("creditDue");
+    expect(toShop(ROSA, { ...view, good_cycles: 5, voucher: "GDIST", vouched_owed: 300_000_000n }, DIR)).toMatchObject({ goodCycles: 5, voucherId: "GDIST", vouchedOwed: 30 });
   });
 });

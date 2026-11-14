@@ -239,3 +239,43 @@ describe("Mi cuenta (#127)", () => {
     expect(mock.getShop("tienda-1")?.name).toBe("Tienda Rosa #2");
   });
 });
+
+describe("trusted shops and the recourse tier (#185)", () => {
+  /** A $50 invoice for Tienda Rosa on credit, repaid on time, one week later each time. */
+  const goodCycle = () => {
+    const invoice = mock.createDemoInvoice("tienda-1");
+    mock.payLater(invoice.id);
+    mock.repay("tienda-1", mock.getShop("tienda-1")!.creditOwed);
+    now += 7 * DAY;
+  };
+
+  it("counts good cycles and charges a trusted shop less", () => {
+    for (let i = 0; i < 4; i++) goodCycle();
+    expect(mock.getShop("tienda-1")?.goodCycles).toBe(4);
+    const invoice = mock.createDemoInvoice("tienda-1");
+    mock.payLater(invoice.id);
+    expect(mock.getInvoice(invoice.id)?.creditFee).toBeCloseTo(invoice.amount * 0.0125, 6);
+  });
+
+  it("charges 0.25% when the distributor vouches and the deposit covers it", () => {
+    expect(mock.vouchShop("tienda-1", true).ok).toBe(true);
+    const invoice = mock.createDemoInvoice("tienda-1");
+    // No deposit yet: the normal fee.
+    mock.payLater(invoice.id);
+    expect(mock.getInvoice(invoice.id)?.creditFee).toBeCloseTo(invoice.amount * 0.015, 6);
+    expect(mock.vouchShop("tienda-1", false).message).toBe("Solo puede cambiar el respaldo cuando la tienda no debe nada.");
+    mock.repay("tienda-1", mock.getShop("tienda-1")!.creditOwed);
+
+    expect(mock.depositRecourse(40).message).toBe("Listo. Su depósito de respaldo es $40.00.");
+    const next = mock.createDemoInvoice("tienda-1");
+    mock.payLater(next.id);
+    expect(mock.getInvoice(next.id)?.creditFee).toBeCloseTo(next.amount * 0.0025, 6);
+    expect(mock.getShop("tienda-1")).toMatchObject({ voucherId: "distributor", vouchedOwed: next.amount });
+    expect(mock.getRecourse()).toMatchObject({ deposit: 40, vouchedOut: next.amount });
+    // The deposit can't drop under 20% of what it backs.
+    expect(mock.withdrawRecourse(40).ok).toBe(false);
+    mock.repay("tienda-1", next.amount);
+    expect(mock.getRecourse().vouchedOut).toBe(0);
+    expect(mock.withdrawRecourse(40).ok).toBe(true);
+  });
+});

@@ -69,9 +69,10 @@ export async function getInvoice(id: number): Promise<Invoice | null> {
 }
 
 export async function getShop(shopId: string): Promise<Shop | null> {
-  const party = (await getDirectory()).find(shopId, "shop");
+  const directory = await getDirectory();
+  const party = directory.find(shopId, "shop");
   if (!party) return null;
-  return toShop(party, await read(readClient().get_shop({ shop: party.address })));
+  return toShop(party, await read(readClient().get_shop({ shop: party.address })), directory);
 }
 
 export async function getDrivers(): Promise<Driver[]> {

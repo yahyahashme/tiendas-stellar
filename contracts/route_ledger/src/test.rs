@@ -5,8 +5,8 @@ use super::*;
 use soroban_sdk::{
     symbol_short,
     testutils::{Address as _, AuthorizedFunction, Ledger, MockAuth, MockAuthInvoke},
-    xdr::ScErrorType,
     token::{StellarAssetClient, TokenClient},
+    xdr::ScErrorType,
     Address, Env, IntoVal, Symbol,
 };
 
@@ -99,7 +99,10 @@ impl Setup {
     /// The pool's books always match the contract's token balance.
     fn assert_pool_matches_balance(&self) {
         let pool = self.client.get_pool();
-        assert_eq!(pool.available + pool.buffer, self.contract_balance());
+        assert_eq!(
+            pool.available + pool.buffer + pool.recourse,
+            self.contract_balance()
+        );
     }
 }
 
@@ -152,27 +155,44 @@ fn pay_twice_is_already_paid() {
     let t = setup();
     t.invoice(1, 150 * USD);
     t.client.pay(&t.shop, &1, &(150 * USD));
-    assert_eq!(t.client.try_pay(&t.shop, &1, &USD), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &1, &USD),
+        Err(Ok(Error::AlreadyPaid))
+    );
 }
 
 #[test]
 fn overpay_is_rejected() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(t.client.try_pay(&t.shop, &1, &(151 * USD)), Err(Ok(Error::Overpay)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &1, &(151 * USD)),
+        Err(Ok(Error::Overpay))
+    );
 
     t.client.pay(&t.shop, &1, &(100 * USD));
-    assert_eq!(t.client.try_pay(&t.shop, &1, &(51 * USD)), Err(Ok(Error::Overpay)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &1, &(51 * USD)),
+        Err(Ok(Error::Overpay))
+    );
 }
 
 #[test]
 fn zero_or_negative_amounts_are_invalid() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(t.client.try_pay(&t.shop, &1, &0), Err(Ok(Error::InvalidAmount)));
-    assert_eq!(t.client.try_pay(&t.shop, &1, &-USD), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &1, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
+    assert_eq!(
+        t.client.try_pay(&t.shop, &1, &-USD),
+        Err(Ok(Error::InvalidAmount))
+    );
 
-    let result = t.client.try_create_invoice(&t.distributor, &2, &t.shop, &t.driver, &0, &START);
+    let result = t
+        .client
+        .try_create_invoice(&t.distributor, &2, &t.shop, &t.driver, &0, &START);
     assert_eq!(result, Err(Ok(Error::InvalidAmount)));
 }
 
@@ -192,8 +212,9 @@ fn wrong_shop_cannot_pay() {
 fn duplicate_id_already_exists() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    let result =
-        t.client.try_create_invoice(&t.distributor, &1, &t.shop, &t.driver, &USD, &START);
+    let result = t
+        .client
+        .try_create_invoice(&t.distributor, &1, &t.shop, &t.driver, &USD, &START);
     assert_eq!(result, Err(Ok(Error::AlreadyExists)));
 }
 
@@ -201,7 +222,10 @@ fn duplicate_id_already_exists() {
 fn unknown_invoice_is_not_found() {
     let t = setup();
     assert_eq!(t.client.try_get_invoice(&404), Err(Ok(Error::NotFound)));
-    assert_eq!(t.client.try_pay(&t.shop, &404, &USD), Err(Ok(Error::NotFound)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &404, &USD),
+        Err(Ok(Error::NotFound))
+    );
 }
 
 #[test]
@@ -298,7 +322,10 @@ fn cash_payment_after_shop_confirms() {
 fn confirm_without_a_claim_fails() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(150 * USD)), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(150 * USD)),
+        Err(Ok(Error::NoCashClaim))
+    );
 }
 
 #[test]
@@ -316,7 +343,10 @@ fn only_the_invoice_driver_can_claim() {
 fn cash_claim_checks_amounts() {
     let t = setup();
     t.invoice(1, 150 * USD);
-    assert_eq!(t.client.try_cash_claim(&t.driver, &1, &0), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_cash_claim(&t.driver, &1, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
     assert_eq!(
         t.client.try_cash_claim(&t.driver, &1, &(151 * USD)),
         Err(Ok(Error::Overpay))
@@ -344,11 +374,17 @@ fn stale_cash_claim_cannot_overpay() {
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
     // The shop pays $100 digitally before confirming the cash.
     t.client.pay(&t.shop, &1, &(100 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)), Err(Ok(Error::Overpay)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
+        Err(Ok(Error::Overpay))
+    );
 
     // And once the invoice is fully paid, a leftover claim cannot be confirmed.
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
+        Err(Ok(Error::AlreadyPaid))
+    );
 }
 
 #[test]
@@ -358,11 +394,13 @@ fn cash_handed_in_reduces_what_the_driver_holds() {
     t.client.cash_claim(&t.driver, &1, &(150 * USD));
     t.client.cash_confirm(&t.shop, &1, &(150 * USD));
 
-    t.client.cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
+    t.client
+        .cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 500_000_000);
 
     assert_eq!(
-        t.client.try_cash_handed_in(&t.distributor, &t.driver, &(51 * USD)),
+        t.client
+            .try_cash_handed_in(&t.distributor, &t.driver, &(51 * USD)),
         Err(Ok(Error::InvalidAmount))
     );
     assert_eq!(
@@ -379,11 +417,20 @@ fn deposit_moves_money_into_the_pool() {
     t.client.deposit(&t.lender, &(5_000 * USD));
     assert_eq!(
         t.client.get_pool(),
-        Pool { available: 50_000_000_000, buffer: 0, lent: 0, shares: 50_000_000_000 }
+        Pool {
+            available: 50_000_000_000,
+            buffer: 0,
+            lent: 0,
+            shares: 50_000_000_000,
+            recourse: 0
+        }
     );
     assert_eq!(t.contract_balance(), 50_000_000_000);
     assert_eq!(t.balance(&t.lender), 450_000_000_000);
-    assert_eq!(t.client.try_deposit(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_deposit(&t.lender, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
 }
 
 #[test]
@@ -440,13 +487,19 @@ fn credit_over_the_limit_fails() {
     let t = setup();
     t.with_credit();
     t.invoice(1, 220 * USD);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &1), Err(Ok(Error::OverLimit)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &1),
+        Err(Ok(Error::OverLimit))
+    );
 
     // Two invoices together cannot pass the limit either.
     t.invoice(2, 150 * USD);
     t.invoice(3, 60 * USD);
     t.client.pay_with_credit(&t.shop, &2);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &3), Err(Ok(Error::OverLimit)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &3),
+        Err(Ok(Error::OverLimit))
+    );
 }
 
 #[test]
@@ -455,7 +508,10 @@ fn credit_needs_money_in_the_pool() {
     t.client.deposit(&t.lender, &(50 * USD));
     t.client.set_terms(&t.shop, &(200 * USD));
     t.invoice(1, 100 * USD);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &1), Err(Ok(Error::PoolTooLow)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &1),
+        Err(Ok(Error::PoolTooLow))
+    );
 }
 
 #[test]
@@ -463,7 +519,10 @@ fn credit_needs_terms() {
     let t = setup();
     t.client.deposit(&t.lender, &(5_000 * USD));
     t.invoice(1, 100 * USD);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &1), Err(Ok(Error::NoCreditTerms)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &1),
+        Err(Ok(Error::NoCreditTerms))
+    );
 }
 
 #[test]
@@ -476,7 +535,10 @@ fn no_new_credit_while_overdue() {
 
     t.env.ledger().set_timestamp(START + WEEK + 1);
     assert!(t.client.get_shop(&t.shop).overdue);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::Overdue)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &2),
+        Err(Ok(Error::Overdue))
+    );
 }
 
 #[test]
@@ -504,13 +566,19 @@ fn credit_on_a_paid_invoice_fails() {
     t.with_credit();
     t.invoice(1, 100 * USD);
     t.client.pay_with_credit(&t.shop, &1);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &1), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &1),
+        Err(Ok(Error::AlreadyPaid))
+    );
 }
 
 #[test]
 fn set_terms_rejects_a_negative_limit() {
     let t = setup();
-    assert_eq!(t.client.try_set_terms(&t.shop, &-1), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_set_terms(&t.shop, &-1),
+        Err(Ok(Error::InvalidAmount))
+    );
 }
 
 // ---------- v3: repayment and the credit record (#24) ----------
@@ -529,7 +597,10 @@ fn full_cycle_on_time() {
 
     assert_eq!(t.contract_balance(), 50_012_500_000);
     let pool = t.client.get_pool();
-    assert_eq!((pool.available, pool.buffer, pool.lent), (50_005_000_000, 7_500_000, 0));
+    assert_eq!(
+        (pool.available, pool.buffer, pool.lent),
+        (50_005_000_000, 7_500_000, 0)
+    );
     t.assert_pool_matches_balance();
     assert_eq!(t.balance(&t.shop), 4_000_000_000);
 
@@ -571,7 +642,11 @@ fn two_to_seven_days_late_is_minor_and_drops_25() {
         t.client.repay(&t.shop, &(100 * USD));
 
         let shop = t.client.get_shop(&t.shop);
-        assert_eq!((shop.late, shop.late_minor, shop.late_major), (1, 1, 0), "{late_by}");
+        assert_eq!(
+            (shop.late, shop.late_minor, shop.late_major),
+            (1, 1, 0),
+            "{late_by}"
+        );
         assert_eq!(shop.on_time, 0);
         assert_eq!(shop.limit, 1_750_000_000);
         assert_eq!((shop.owed, shop.due_at), (0, 0));
@@ -678,14 +753,26 @@ fn a_limit_above_the_cap_is_left_alone() {
 fn repay_checks() {
     let t = setup();
     t.with_credit();
-    assert_eq!(t.client.try_repay(&t.shop, &USD), Err(Ok(Error::NothingOwed)));
+    assert_eq!(
+        t.client.try_repay(&t.shop, &USD),
+        Err(Ok(Error::NothingOwed))
+    );
     let stranger = Address::generate(&t.env);
-    assert_eq!(t.client.try_repay(&stranger, &USD), Err(Ok(Error::NothingOwed)));
+    assert_eq!(
+        t.client.try_repay(&stranger, &USD),
+        Err(Ok(Error::NothingOwed))
+    );
 
     t.invoice(1, 100 * USD);
     t.client.pay_with_credit(&t.shop, &1);
-    assert_eq!(t.client.try_repay(&t.shop, &(101 * USD)), Err(Ok(Error::InvalidAmount)));
-    assert_eq!(t.client.try_repay(&t.shop, &0), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_repay(&t.shop, &(101 * USD)),
+        Err(Ok(Error::InvalidAmount))
+    );
+    assert_eq!(
+        t.client.try_repay(&t.shop, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
 }
 
 #[test]
@@ -707,6 +794,10 @@ fn shop_without_terms_shows_zeros() {
             late_major: 0,
             max_days_late: 0,
             first_credit_at: 0,
+            good_cycles: 0,
+            voucher: None,
+            vouched_owed: 0,
+            covered_by_distributor: 0,
         }
     );
 }
@@ -735,7 +826,8 @@ fn only_approved_distributors_create_invoices() {
     assert!(t.client.is_distributor(&t.distributor));
     assert!(!t.client.is_distributor(&stranger));
     assert_eq!(
-        t.client.try_create_invoice(&stranger, &1, &t.shop, &t.driver, &(100 * USD), &START),
+        t.client
+            .try_create_invoice(&stranger, &1, &t.shop, &t.driver, &(100 * USD), &START),
         Err(Ok(Error::NotApproved))
     );
 }
@@ -800,7 +892,10 @@ fn default_is_covered_by_the_buffer() {
 
     // Not yet: 4 weeks late is the line.
     t.env.ledger().set_timestamp(START + WEEK + 4 * WEEK);
-    assert_eq!(t.client.try_cover_default(&t.shop), Err(Ok(Error::NotInDefault)));
+    assert_eq!(
+        t.client.try_cover_default(&t.shop),
+        Err(Ok(Error::NotInDefault))
+    );
 
     t.env.ledger().set_timestamp(START + WEEK + 4 * WEEK + 1);
     t.client.cover_default(&t.shop);
@@ -814,17 +909,26 @@ fn default_is_covered_by_the_buffer() {
     assert_eq!((shop.owed, shop.limit, shop.late), (0, 0, 1));
     assert_eq!(shop.written_off, 100 * USD);
     assert!(!shop.overdue);
-    assert_eq!(t.client.try_cover_default(&t.shop), Err(Ok(Error::NothingOwed)));
+    assert_eq!(
+        t.client.try_cover_default(&t.shop),
+        Err(Ok(Error::NothingOwed))
+    );
 
     // Credit is off.
     t.invoice(2, 10 * USD);
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::OverLimit)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &2),
+        Err(Ok(Error::OverLimit))
+    );
 
     // Paying it back later refills the buffer.
     t.client.repay(&t.shop, &(30 * USD));
     assert_eq!(t.client.get_pool().buffer, 30 * USD);
     assert_eq!(t.client.get_shop(&t.shop).written_off, 70 * USD);
-    assert_eq!(t.client.try_repay(&t.shop, &(71 * USD)), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_repay(&t.shop, &(71 * USD)),
+        Err(Ok(Error::InvalidAmount))
+    );
     t.assert_pool_matches_balance();
 }
 
@@ -845,7 +949,10 @@ fn small_buffer_covers_what_it_can() {
 #[test]
 fn fund_buffer_checks_the_amount() {
     let t = setup();
-    assert_eq!(t.client.try_fund_buffer(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_fund_buffer(&t.lender, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
     t.client.fund_buffer(&t.lender, &(10 * USD));
     let pool = t.client.get_pool();
     assert_eq!((pool.available, pool.buffer), (0, 10 * USD));
@@ -868,7 +975,10 @@ macro_rules! assert_not_signed {
             Err(Err(_)) => {}
             Err(Ok(e)) => {
                 let e: soroban_sdk::Error = e.clone().into();
-                assert!(!e.is_type(ScErrorType::Contract), "a contract error, not auth: {result:?}");
+                assert!(
+                    !e.is_type(ScErrorType::Contract),
+                    "a contract error, not auth: {result:?}"
+                );
             }
             _ => panic!("went through without the right signature: {result:?}"),
         }
@@ -932,7 +1042,12 @@ impl Setup {
     /// The last call asked for exactly one signature: `who`, on `fn_name`.
     fn assert_signed_by(&self, who: &Address, fn_name: &str) {
         let auths = self.env.auths();
-        assert_eq!(auths.len(), 1, "{fn_name} asked for {} signers", auths.len());
+        assert_eq!(
+            auths.len(),
+            1,
+            "{fn_name} asked for {} signers",
+            auths.len()
+        );
         let (signer, invocation) = &auths[0];
         assert_eq!(signer, who, "{fn_name} was signed by the wrong address");
         match &invocation.function {
@@ -947,7 +1062,10 @@ impl Setup {
     /// No invoice is ever paid for more than it is worth.
     fn assert_nothing_overpaid(&self) {
         for invoice in self.client.list_invoices().iter() {
-            assert!(invoice.paid >= 0 && invoice.paid <= invoice.amount, "{invoice:?}");
+            assert!(
+                invoice.paid >= 0 && invoice.paid <= invoice.amount,
+                "{invoice:?}"
+            );
         }
     }
 }
@@ -956,8 +1074,13 @@ impl Setup {
 fn constructor_cannot_be_run_again() {
     let t = setup();
     let attacker = Address::generate(&t.env);
-    let args: Vec<Val> =
-        (attacker.clone(), t.token.address.clone(), attacker.clone(), 1u64).into_val(&t.env);
+    let args: Vec<Val> = (
+        attacker.clone(),
+        t.token.address.clone(),
+        attacker.clone(),
+        1u64,
+    )
+        .into_val(&t.env);
     let result = t.env.try_invoke_contract::<(), Error>(
         &t.client.address,
         &Symbol::new(&t.env, "__constructor"),
@@ -989,7 +1112,8 @@ fn each_function_asks_for_exactly_its_documented_signer() {
     t.client.cash_confirm(&t.shop, &1, &(20 * USD));
     t.assert_signed_by(&t.shop, "cash_confirm");
 
-    t.client.cash_handed_in(&t.distributor, &t.driver, &(10 * USD));
+    t.client
+        .cash_handed_in(&t.distributor, &t.driver, &(10 * USD));
     t.assert_signed_by(&t.distributor, "cash_handed_in");
 
     t.client.deposit(&t.lender, &(5_000 * USD));
@@ -1018,33 +1142,46 @@ fn wrong_signer_cannot_create_invoices_or_approve_distributors() {
     let t = setup();
     let stranger = t.stranger();
 
-    t.only(&stranger, "approve_distributor", (stranger.clone(),).into_val(&t.env));
+    t.only(
+        &stranger,
+        "approve_distributor",
+        (stranger.clone(),).into_val(&t.env),
+    );
     assert_not_signed!(t.client.try_approve_distributor(&stranger));
     assert!(!t.client.is_distributor(&stranger));
 
     // A distributor can't approve another one, and can't sign as the admin.
-    t.only(&t.distributor, "approve_distributor", (stranger.clone(),).into_val(&t.env));
+    t.only(
+        &t.distributor,
+        "approve_distributor",
+        (stranger.clone(),).into_val(&t.env),
+    );
     assert_not_signed!(t.client.try_approve_distributor(&stranger));
     assert!(!t.client.is_distributor(&stranger));
 
     // Signing as someone else's distributor address doesn't work either.
-    let args: Vec<Val> =
-        (t.distributor.clone(), 1u64, t.shop.clone(), t.driver.clone(), 100 * USD, START)
-            .into_val(&t.env);
+    let args: Vec<Val> = (
+        t.distributor.clone(),
+        1u64,
+        t.shop.clone(),
+        t.driver.clone(),
+        100 * USD,
+        START,
+    )
+        .into_val(&t.env);
     t.only(&stranger, "create_invoice", args);
-    let result = t.client.try_create_invoice(
-        &t.distributor,
-        &1,
-        &t.shop,
-        &t.driver,
-        &(100 * USD),
-        &START,
-    );
+    let result =
+        t.client
+            .try_create_invoice(&t.distributor, &1, &t.shop, &t.driver, &(100 * USD), &START);
     assert_not_signed!(result);
     assert_eq!(t.client.try_get_invoice(&1), Err(Ok(Error::NotFound)));
 
     // Control: the right signer, alone, is enough.
-    t.only(&t.admin, "approve_distributor", (stranger.clone(),).into_val(&t.env));
+    t.only(
+        &t.admin,
+        "approve_distributor",
+        (stranger.clone(),).into_val(&t.env),
+    );
     t.client.approve_distributor(&stranger);
     assert!(t.client.is_distributor(&stranger));
 }
@@ -1061,13 +1198,25 @@ fn wrong_signer_cannot_move_a_shops_money() {
 
     // Anyone but the shop: a stranger, the distributor, the driver.
     for signer in [t.stranger(), t.distributor.clone(), t.driver.clone()] {
-        t.only(&signer, "pay", (t.shop.clone(), 2u64, 10 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "pay",
+            (t.shop.clone(), 2u64, 10 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_pay(&t.shop, &2, &(10 * USD)));
 
-        t.only(&signer, "pay_with_credit", (t.shop.clone(), 2u64).into_val(&t.env));
+        t.only(
+            &signer,
+            "pay_with_credit",
+            (t.shop.clone(), 2u64).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_pay_with_credit(&t.shop, &2));
 
-        t.only(&signer, "repay", (t.shop.clone(), 50 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "repay",
+            (t.shop.clone(), 50 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_repay(&t.shop, &(50 * USD)));
     }
 
@@ -1088,7 +1237,11 @@ fn wrong_signer_cannot_record_cash() {
 
     // Not the driver: a stranger, or the shop itself.
     for signer in [t.stranger(), t.shop.clone()] {
-        t.only(&signer, "cash_claim", (t.driver.clone(), 1u64, 100 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "cash_claim",
+            (t.driver.clone(), 1u64, 100 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_cash_claim(&t.driver, &1, &(100 * USD)));
     }
     assert_eq!(t.client.get_cash_claim(&1), 0);
@@ -1098,7 +1251,11 @@ fn wrong_signer_cannot_record_cash() {
 
     // Not the shop: a stranger, or the driver confirming their own claim.
     for signer in [t.stranger(), t.driver.clone()] {
-        t.only(&signer, "cash_confirm", (t.shop.clone(), 1u64, 100 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "cash_confirm",
+            (t.shop.clone(), 1u64, 100 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)));
     }
     let invoice = t.client.get_invoice(&1);
@@ -1114,14 +1271,17 @@ fn wrong_signer_cannot_record_cash() {
     for signer in [t.stranger(), t.driver.clone()] {
         let args: Vec<Val> = (t.distributor.clone(), t.driver.clone(), 50 * USD).into_val(&t.env);
         t.only(&signer, "cash_handed_in", args);
-        assert_not_signed!(t.client.try_cash_handed_in(&t.distributor, &t.driver, &(50 * USD)));
+        assert_not_signed!(t
+            .client
+            .try_cash_handed_in(&t.distributor, &t.driver, &(50 * USD)));
     }
     assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
 
     // Control: the distributor's own signature works.
     let args: Vec<Val> = (t.distributor.clone(), t.driver.clone(), 50 * USD).into_val(&t.env);
     t.only(&t.distributor, "cash_handed_in", args);
-    t.client.cash_handed_in(&t.distributor, &t.driver, &(50 * USD));
+    t.client
+        .cash_handed_in(&t.distributor, &t.driver, &(50 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 50 * USD);
 }
 
@@ -1133,10 +1293,18 @@ fn wrong_signer_cannot_touch_the_pool() {
 
     // Someone else can't spend the lender's dollars on the lender's behalf.
     for signer in [t.stranger(), t.shop.clone(), t.distributor.clone()] {
-        t.only(&signer, "deposit", (t.lender.clone(), 100 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "deposit",
+            (t.lender.clone(), 100 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_deposit(&t.lender, &(100 * USD)));
 
-        t.only(&signer, "fund_buffer", (t.lender.clone(), 100 * USD).into_val(&t.env));
+        t.only(
+            &signer,
+            "fund_buffer",
+            (t.lender.clone(), 100 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_fund_buffer(&t.lender, &(100 * USD)));
     }
     assert_eq!(t.snapshot(), before);
@@ -1153,8 +1321,17 @@ fn set_terms_needs_the_admin_and_anyone_can_cover_a_due_default() {
     let before = t.snapshot();
 
     // The shop can't raise its own limit, and nobody else can either.
-    for signer in [t.stranger(), t.shop.clone(), t.distributor.clone(), t.lender.clone()] {
-        t.only(&signer, "set_terms", (t.shop.clone(), 500 * USD).into_val(&t.env));
+    for signer in [
+        t.stranger(),
+        t.shop.clone(),
+        t.distributor.clone(),
+        t.lender.clone(),
+    ] {
+        t.only(
+            &signer,
+            "set_terms",
+            (t.shop.clone(), 500 * USD).into_val(&t.env),
+        );
         assert_not_signed!(t.client.try_set_terms(&t.shop, &(500 * USD)));
     }
     assert_eq!(t.snapshot(), before);
@@ -1162,12 +1339,20 @@ fn set_terms_needs_the_admin_and_anyone_can_cover_a_due_default() {
     assert_eq!(t.client.get_shop(&t.shop).owed, 100 * USD);
 
     // Control: with only the admin's signature both calls go through.
-    t.only(&t.admin, "set_terms", (t.shop.clone(), 500 * USD).into_val(&t.env));
+    t.only(
+        &t.admin,
+        "set_terms",
+        (t.shop.clone(), 500 * USD).into_val(&t.env),
+    );
     t.client.set_terms(&t.shop, &(500 * USD));
     assert_eq!(t.client.get_shop(&t.shop).limit, 500 * USD);
 
     // A stranger can cover a due default, so lenders never wait on the admin.
-    t.only(&t.stranger(), "cover_default", (t.shop.clone(),).into_val(&t.env));
+    t.only(
+        &t.stranger(),
+        "cover_default",
+        (t.shop.clone(),).into_val(&t.env),
+    );
     t.client.cover_default(&t.shop);
     assert_eq!(t.client.get_shop(&t.shop).written_off, 100 * USD);
 }
@@ -1182,7 +1367,10 @@ fn double_cash_confirm_is_no_cash_claim() {
     assert_eq!(invoice.paid, 50 * USD);
 
     // The claim is used up: the second confirm finds nothing and adds nothing.
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(50 * USD)), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(50 * USD)),
+        Err(Ok(Error::NoCashClaim))
+    );
     assert_eq!(t.client.get_invoice(&1), invoice);
     assert_eq!(t.client.get_driver_cash(&t.driver), 50 * USD);
     assert_eq!(t.client.get_usage_owed(&t.distributor), 500_000);
@@ -1191,7 +1379,10 @@ fn double_cash_confirm_is_no_cash_claim() {
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
     t.client.cash_confirm(&t.shop, &1, &(100 * USD));
     assert_eq!(t.client.get_invoice(&1).status, InvoiceStatus::Paid);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)), Err(Ok(Error::NoCashClaim)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(100 * USD)),
+        Err(Ok(Error::NoCashClaim))
+    );
     assert_eq!(t.client.get_invoice(&1).paid, 150 * USD);
     assert_eq!(t.client.get_driver_cash(&t.driver), 150 * USD);
     t.assert_nothing_overpaid();
@@ -1204,7 +1395,10 @@ fn confirming_another_shops_claim_is_not_your_invoice() {
     t.invoice(1, 150 * USD);
     t.client.cash_claim(&t.driver, &1, &(100 * USD));
 
-    assert_eq!(t.client.try_cash_confirm(&other, &1, &(100 * USD)), Err(Ok(Error::NotYourInvoice)));
+    assert_eq!(
+        t.client.try_cash_confirm(&other, &1, &(100 * USD)),
+        Err(Ok(Error::NotYourInvoice))
+    );
     // The claim is untouched and nothing was recorded.
     assert_eq!(t.client.get_cash_claim(&1), 100 * USD);
     assert_eq!(t.client.get_invoice(&1).paid, 0);
@@ -1224,23 +1418,38 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     t.invoice(1, 100 * USD);
     t.client.cash_claim(&t.driver, &1, &(60 * USD));
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)), Err(Ok(Error::Overpay)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)),
+        Err(Ok(Error::Overpay))
+    );
     let invoice = t.client.get_invoice(&1);
-    assert_eq!((invoice.paid, invoice.status), (50 * USD, InvoiceStatus::PartPaid));
+    assert_eq!(
+        (invoice.paid, invoice.status),
+        (50 * USD, InvoiceStatus::PartPaid)
+    );
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
     assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
 
     // Paying the rest closes it, and the old claim is still rejected.
     t.client.pay(&t.shop, &1, &(50 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(60 * USD)),
+        Err(Ok(Error::AlreadyPaid))
+    );
     assert_eq!(t.client.get_invoice(&1).paid, 100 * USD);
 
     // The shop pays all of it digitally after a full cash claim: rejected.
     t.invoice(2, 100 * USD);
     t.client.cash_claim(&t.driver, &2, &(100 * USD));
     t.client.pay(&t.shop, &2, &(100 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &2, &(100 * USD)), Err(Ok(Error::AlreadyPaid)));
-    assert_eq!(t.client.try_cash_claim(&t.driver, &2, &USD), Err(Ok(Error::AlreadyPaid)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &2, &(100 * USD)),
+        Err(Ok(Error::AlreadyPaid))
+    );
+    assert_eq!(
+        t.client.try_cash_claim(&t.driver, &2, &USD),
+        Err(Ok(Error::AlreadyPaid))
+    );
     assert_eq!(t.client.get_invoice(&2).paid, 100 * USD);
 
     // A claim that fits what is left is fine and lands exactly on the amount.
@@ -1249,7 +1458,10 @@ fn a_stale_claim_never_pushes_paid_above_amount() {
     t.client.pay(&t.shop, &3, &(60 * USD));
     t.client.cash_confirm(&t.shop, &3, &(40 * USD));
     let invoice = t.client.get_invoice(&3);
-    assert_eq!((invoice.paid, invoice.status), (100 * USD, InvoiceStatus::Paid));
+    assert_eq!(
+        (invoice.paid, invoice.status),
+        (100 * USD, InvoiceStatus::Paid)
+    );
 
     // Only the confirmed $40 was ever cash.
     assert_eq!(t.client.get_driver_cash(&t.driver), 40 * USD);
@@ -1264,14 +1476,24 @@ fn repay_by_a_different_shop_leaves_the_first_debt_alone() {
     t.client.set_terms(&other, &(200 * USD));
 
     t.invoice(1, 100 * USD);
-    t.client.create_invoice(&t.distributor, &2, &other, &t.driver, &(30 * USD), &(START + WEEK));
+    t.client.create_invoice(
+        &t.distributor,
+        &2,
+        &other,
+        &t.driver,
+        &(30 * USD),
+        &(START + WEEK),
+    );
     t.client.pay_with_credit(&t.shop, &1);
     t.client.pay_with_credit(&other, &2);
     let first_shop = t.client.get_shop(&t.shop);
     assert_eq!(first_shop.owed, 100 * USD);
 
     // The other shop can't repay more than its own $30, even though $100 is owed overall.
-    assert_eq!(t.client.try_repay(&other, &(31 * USD)), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_repay(&other, &(31 * USD)),
+        Err(Ok(Error::InvalidAmount))
+    );
     assert_eq!(t.client.get_shop(&t.shop), first_shop);
 
     // Its own repayment only touches its own record.
@@ -1280,8 +1502,14 @@ fn repay_by_a_different_shop_leaves_the_first_debt_alone() {
     assert_eq!(t.client.get_shop(&t.shop), first_shop);
 
     // With nothing owed, it can't pay anything down: the first shop's debt stays.
-    assert_eq!(t.client.try_repay(&other, &(10 * USD)), Err(Ok(Error::NothingOwed)));
-    assert_eq!(t.client.try_repay(&t.stranger(), &(10 * USD)), Err(Ok(Error::NothingOwed)));
+    assert_eq!(
+        t.client.try_repay(&other, &(10 * USD)),
+        Err(Ok(Error::NothingOwed))
+    );
+    assert_eq!(
+        t.client.try_repay(&t.stranger(), &(10 * USD)),
+        Err(Ok(Error::NothingOwed))
+    );
     assert_eq!(t.client.get_shop(&t.shop), first_shop);
     t.assert_pool_matches_balance();
 }
@@ -1296,7 +1524,10 @@ fn credit_on_another_shops_invoice_is_not_your_invoice() {
     let before = t.snapshot();
     let other_before = t.client.get_shop(&other);
 
-    assert_eq!(t.client.try_pay_with_credit(&other, &1), Err(Ok(Error::NotYourInvoice)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&other, &1),
+        Err(Ok(Error::NotYourInvoice))
+    );
 
     // No pool money moved, and nobody took on a debt.
     assert_eq!(t.snapshot(), before);
@@ -1315,20 +1546,39 @@ fn zero_and_negative_amounts_are_invalid_everywhere() {
     let before = t.snapshot();
 
     for bad in [0, -1, -USD, i128::MIN] {
-        assert_eq!(t.client.try_deposit(&t.lender, &bad), Err(Ok(Error::InvalidAmount)));
-        assert_eq!(t.client.try_fund_buffer(&t.lender, &bad), Err(Ok(Error::InvalidAmount)));
-        assert_eq!(t.client.try_pay(&t.shop, &2, &bad), Err(Ok(Error::InvalidAmount)));
-        assert_eq!(t.client.try_repay(&t.shop, &bad), Err(Ok(Error::InvalidAmount)));
-        assert_eq!(t.client.try_cash_claim(&t.driver, &2, &bad), Err(Ok(Error::InvalidAmount)));
+        assert_eq!(
+            t.client.try_deposit(&t.lender, &bad),
+            Err(Ok(Error::InvalidAmount))
+        );
+        assert_eq!(
+            t.client.try_fund_buffer(&t.lender, &bad),
+            Err(Ok(Error::InvalidAmount))
+        );
+        assert_eq!(
+            t.client.try_pay(&t.shop, &2, &bad),
+            Err(Ok(Error::InvalidAmount))
+        );
+        assert_eq!(
+            t.client.try_repay(&t.shop, &bad),
+            Err(Ok(Error::InvalidAmount))
+        );
+        assert_eq!(
+            t.client.try_cash_claim(&t.driver, &2, &bad),
+            Err(Ok(Error::InvalidAmount))
+        );
         assert_eq!(
             t.client.try_cash_handed_in(&t.distributor, &t.driver, &bad),
             Err(Ok(Error::InvalidAmount))
         );
         let result =
-            t.client.try_create_invoice(&t.distributor, &3, &t.shop, &t.driver, &bad, &START);
+            t.client
+                .try_create_invoice(&t.distributor, &3, &t.shop, &t.driver, &bad, &START);
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
     }
-    assert_eq!(t.client.try_set_terms(&t.shop, &i128::MIN), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_set_terms(&t.shop, &i128::MIN),
+        Err(Ok(Error::InvalidAmount))
+    );
 
     assert_eq!(t.snapshot(), before);
     assert_eq!(t.client.try_get_invoice(&3), Err(Ok(Error::NotFound)));
@@ -1347,25 +1597,41 @@ fn huge_amounts_overflow_nothing_and_move_nothing() {
     let before = t.snapshot();
 
     // Digital: the 0.10% fee would overflow, so it is refused before any transfer.
-    assert_eq!(t.client.try_pay(&t.shop, &2, &i128::MAX), Err(Ok(Error::InvalidAmount)));
-    assert_eq!(t.client.try_pay(&t.shop, &2, &(i128::MAX / 10 + 1)), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_pay(&t.shop, &2, &i128::MAX),
+        Err(Ok(Error::InvalidAmount))
+    );
+    assert_eq!(
+        t.client.try_pay(&t.shop, &2, &(i128::MAX / 10 + 1)),
+        Err(Ok(Error::InvalidAmount))
+    );
     // A fee that fits but a wallet that doesn't: the token refuses, nothing moves.
     assert!(t.client.try_pay(&t.shop, &2, &(i128::MAX / 10)).is_err());
 
     // Cash: the claim is only a note; confirming it would overflow the fee and is refused.
     t.client.cash_claim(&t.driver, &2, &i128::MAX);
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &2, &i128::MAX), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &2, &i128::MAX),
+        Err(Ok(Error::InvalidAmount))
+    );
     assert_eq!(t.client.get_invoice(&2).paid, 0);
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
     assert_eq!(t.client.get_usage_owed(&t.distributor), 0);
     assert_eq!(
-        t.client.try_cash_handed_in(&t.distributor, &t.driver, &i128::MAX),
+        t.client
+            .try_cash_handed_in(&t.distributor, &t.driver, &i128::MAX),
         Err(Ok(Error::InvalidAmount))
     );
 
     // Credit: the shop already owes $100, so `owed + amount` would overflow.
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::OverLimit)));
-    assert_eq!(t.client.try_repay(&t.shop, &i128::MAX), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &2),
+        Err(Ok(Error::OverLimit))
+    );
+    assert_eq!(
+        t.client.try_repay(&t.shop, &i128::MAX),
+        Err(Ok(Error::InvalidAmount))
+    );
 
     // Pool: nobody has i128::MAX dollars.
     assert!(t.client.try_deposit(&t.lender, &i128::MAX).is_err());
@@ -1377,7 +1643,10 @@ fn huge_amounts_overflow_nothing_and_move_nothing() {
 
     // With nothing owed the shop is at 0, and the fee math refuses the huge credit sale.
     t.client.repay(&t.shop, &(100 * USD));
-    assert_eq!(t.client.try_pay_with_credit(&t.shop, &2), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_pay_with_credit(&t.shop, &2),
+        Err(Ok(Error::InvalidAmount))
+    );
     t.assert_pool_matches_balance();
     t.assert_nothing_overpaid();
 }
@@ -1387,7 +1656,10 @@ fn every_credit_fee_rate_splits_into_lenders_buffer_and_us() {
     for rate in MIN_CREDIT_FEE_BPS..=CREDIT_FEE_BPS {
         let (buffer, ours) = fee_split(rate);
         assert_eq!(LENDER_BPS + buffer + ours, rate, "{rate}");
-        assert!(buffer >= 3 * ours && buffer <= 3 * ours + 3, "{rate}: {buffer}/{ours}");
+        assert!(
+            buffer >= 3 * ours && buffer <= 3 * ours + 3,
+            "{rate}: {buffer}/{ours}"
+        );
     }
     assert_eq!(fee_split(150), (75, 25)); // same as before #135
     assert_eq!(fee_split(100), (38, 12)); // the odd part goes to the buffer
@@ -1405,7 +1677,10 @@ fn credit_fee_slides_with_the_share_on_credit() {
     let mut last = MIN_CREDIT_FEE_BPS;
     for pct in 10..=100 {
         let rate = credit_fee_bps(a * pct / 100, a);
-        assert!((MIN_CREDIT_FEE_BPS..=CREDIT_FEE_BPS).contains(&rate), "{pct}%");
+        assert!(
+            (MIN_CREDIT_FEE_BPS..=CREDIT_FEE_BPS).contains(&rate),
+            "{pct}%"
+        );
         assert!(rate >= last, "{pct}%");
         last = rate;
     }
@@ -1454,7 +1729,10 @@ fn half_paid_up_front_pays_a_lower_fee() {
     assert_eq!(t.balance(&t.distributor) - after_pay, 493_900_000);
     assert_eq!(t.client.get_invoice(&1).credit_fee, 6_100_000);
     let (buffer_bps, _) = fee_split(122);
-    assert_eq!(t.client.get_pool().buffer, bps(50 * USD, buffer_bps).unwrap());
+    assert_eq!(
+        t.client.get_pool().buffer,
+        bps(50 * USD, buffer_bps).unwrap()
+    );
     t.assert_pool_matches_balance();
 }
 
@@ -1523,8 +1801,12 @@ fn credit_never_pays_out_more_than_the_invoice_in_the_contract() {
     t.client.deposit(&t.lender, &(10_000 * USD));
     t.client.set_terms(&t.shop, &i128::MAX);
     // Small amounts, round numbers and rounding edges.
-    let amounts = [1, 2, 3, 66, 67, 99, 100, 101, 133, 199, 333, 999, 9_999, 10_000, 10_001];
-    let amounts = amounts.into_iter().chain([12_345_679, 400_000_000, 1_000_000_001]);
+    let amounts = [
+        1, 2, 3, 66, 67, 99, 100, 101, 133, 199, 333, 999, 9_999, 10_000, 10_001,
+    ];
+    let amounts = amounts
+        .into_iter()
+        .chain([12_345_679, 400_000_000, 1_000_000_001]);
     for (id, a) in (1u64..).zip(amounts) {
         t.invoice(id, a);
         let pool_before = t.client.get_pool();
@@ -1534,10 +1816,16 @@ fn credit_never_pays_out_more_than_the_invoice_in_the_contract() {
 
         let pool = t.client.get_pool();
         let left_contract = contract_before - t.contract_balance();
-        assert!(pool_before.available - pool.available <= a, "pool gave up more than {a}");
+        assert!(
+            pool_before.available - pool.available <= a,
+            "pool gave up more than {a}"
+        );
         assert!(left_contract <= a, "{a} paid out {left_contract}");
         let (_, our_bps) = fee_split(CREDIT_FEE_BPS);
-        assert_eq!(left_contract, bps(a, our_bps).unwrap() + a - bps(a, CREDIT_FEE_BPS).unwrap());
+        assert_eq!(
+            left_contract,
+            bps(a, our_bps).unwrap() + a - bps(a, CREDIT_FEE_BPS).unwrap()
+        );
         t.assert_pool_matches_balance();
     }
 }
@@ -1577,7 +1865,8 @@ fn contract_balance_equals_the_pool_and_only_credit_sends_money_out() {
     check("cash_claim", false);
     t.client.cash_confirm(&t.shop, &1, &(50 * USD));
     check("cash_confirm", false);
-    t.client.cash_handed_in(&t.distributor, &t.driver, &(20 * USD));
+    t.client
+        .cash_handed_in(&t.distributor, &t.driver, &(20 * USD));
     check("cash_handed_in", false);
 
     // Credit: the only step that sends money out.
@@ -1628,13 +1917,18 @@ fn cash_handed_in_needs_an_approved_distributor() {
     // Anyone can sign for themselves, but they must be an approved distributor.
     let stranger = t.stranger();
     assert_eq!(
-        t.client.try_cash_handed_in(&stranger, &t.driver, &(100 * USD)),
+        t.client
+            .try_cash_handed_in(&stranger, &t.driver, &(100 * USD)),
         Err(Ok(Error::NotApproved))
     );
-    assert_eq!(t.client.try_cash_handed_in(&t.shop, &t.driver, &USD), Err(Ok(Error::NotApproved)));
+    assert_eq!(
+        t.client.try_cash_handed_in(&t.shop, &t.driver, &USD),
+        Err(Ok(Error::NotApproved))
+    );
     assert_eq!(t.client.get_driver_cash(&t.driver), 100 * USD);
 
-    t.client.cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
+    t.client
+        .cash_handed_in(&t.distributor, &t.driver, &(100 * USD));
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
 }
 
@@ -1647,7 +1941,10 @@ fn confirm_fails_if_the_driver_changed_the_claim() {
     t.client.cash_claim(&t.driver, &1, &(10 * USD));
     // The shop is shown $10. Before it taps "Confirmo", the driver swaps the claim to $90.
     t.client.cash_claim(&t.driver, &1, &(90 * USD));
-    assert_eq!(t.client.try_cash_confirm(&t.shop, &1, &(10 * USD)), Err(Ok(Error::ClaimChanged)));
+    assert_eq!(
+        t.client.try_cash_confirm(&t.shop, &1, &(10 * USD)),
+        Err(Ok(Error::ClaimChanged))
+    );
     assert_eq!(t.client.get_invoice(&1).paid, 0);
     assert_eq!(t.client.get_driver_cash(&t.driver), 0);
     // Only the amount the shop actually agrees to goes through.
@@ -1676,16 +1973,28 @@ fn the_whole_history_reads_a_page_at_a_time() {
 
     // Pages go newest first and cover everything exactly once.
     let page1 = t.client.list_invoices_page(&75, &30);
-    assert_eq!(ids(&page1), (1046..=1075u64).rev().collect::<std::vec::Vec<_>>());
+    assert_eq!(
+        ids(&page1),
+        (1046..=1075u64).rev().collect::<std::vec::Vec<_>>()
+    );
     let page2 = t.client.list_invoices_page(&45, &30);
-    assert_eq!(ids(&page2), (1016..=1045u64).rev().collect::<std::vec::Vec<_>>());
+    assert_eq!(
+        ids(&page2),
+        (1016..=1045u64).rev().collect::<std::vec::Vec<_>>()
+    );
     let page3 = t.client.list_invoices_page(&15, &30);
-    assert_eq!(ids(&page3), (1001..=1015u64).rev().collect::<std::vec::Vec<_>>());
+    assert_eq!(
+        ids(&page3),
+        (1001..=1015u64).rev().collect::<std::vec::Vec<_>>()
+    );
     assert_eq!(t.client.list_invoices_page(&0, &30).len(), 0);
 
     // A page is never bigger than MAX_PAGE, and `before` past the end means "from the newest".
     assert_eq!(t.client.list_invoices_page(&75, &1000).len(), MAX_PAGE);
-    assert_eq!(ids(&t.client.list_invoices_page(&u32::MAX, &2)), [1075, 1074]);
+    assert_eq!(
+        ids(&t.client.list_invoices_page(&u32::MAX, &2)),
+        [1075, 1074]
+    );
     assert_eq!(t.client.list_invoices_page(&75, &0).len(), 0);
 }
 
@@ -1708,7 +2017,14 @@ fn totals_cover_every_payment_by_method() {
     t.client.set_terms(&t.shop, &(200 * USD));
     t.invoice(1, 100 * USD);
     t.invoice(2, 60 * USD);
-    assert_eq!(t.client.get_totals(), Totals { invoices: 2, invoiced: 160 * USD, ..Totals::default() });
+    assert_eq!(
+        t.client.get_totals(),
+        Totals {
+            invoices: 2,
+            invoiced: 160 * USD,
+            ..Totals::default()
+        }
+    );
 
     // A mixed invoice counts each part under its own method.
     t.client.pay(&t.shop, &1, &(30 * USD));
@@ -1751,7 +2067,10 @@ fn only_approved_lenders_can_deposit() {
     let stranger = Address::generate(&t.env);
     t.minter.mint(&stranger, &(100 * USD));
     assert!(!t.client.is_lender(&stranger));
-    assert_eq!(t.client.try_deposit(&stranger, &(100 * USD)), Err(Ok(Error::NotLender)));
+    assert_eq!(
+        t.client.try_deposit(&stranger, &(100 * USD)),
+        Err(Ok(Error::NotLender))
+    );
     t.client.approve_lender(&stranger);
     t.assert_signed_by(&t.admin, "approve_lender");
     assert!(t.client.is_lender(&stranger));
@@ -1792,9 +2111,18 @@ fn lent_money_cannot_be_withdrawn_until_repaid() {
     t.invoice(1, 150 * USD);
     t.client.pay_with_credit(&t.shop, &1);
     let shares = t.client.get_lender(&t.lender).shares;
-    assert_eq!(t.client.try_withdraw(&t.lender, &shares), Err(Ok(Error::PoolTooLow)));
-    assert_eq!(t.client.try_withdraw(&t.lender, &(shares + 1)), Err(Ok(Error::NotEnoughShares)));
-    assert_eq!(t.client.try_withdraw(&t.lender, &0), Err(Ok(Error::InvalidAmount)));
+    assert_eq!(
+        t.client.try_withdraw(&t.lender, &shares),
+        Err(Ok(Error::PoolTooLow))
+    );
+    assert_eq!(
+        t.client.try_withdraw(&t.lender, &(shares + 1)),
+        Err(Ok(Error::NotEnoughShares))
+    );
+    assert_eq!(
+        t.client.try_withdraw(&t.lender, &0),
+        Err(Ok(Error::InvalidAmount))
+    );
     // A part that is not lent can leave.
     t.client.withdraw(&t.lender, &(shares / 10));
     t.assert_pool_matches_balance();
@@ -1813,7 +2141,10 @@ fn a_later_lender_does_not_take_earlier_earnings() {
     let v = t.client.get_lender(&late).value;
     // Rounds down by at most a unit, never up.
     assert!(v <= 1_000 * USD && v >= 1_000 * USD - 1);
-    assert_eq!(t.client.get_lender(&t.lender).value, 5_000 * USD + 10_000_000);
+    assert_eq!(
+        t.client.get_lender(&t.lender).value,
+        5_000 * USD + 10_000_000
+    );
 }
 
 #[test]
@@ -1823,7 +2154,9 @@ fn a_default_the_buffer_cannot_cover_is_shared_by_lenders() {
     t.invoice(1, 200 * USD);
     t.client.pay_with_credit(&t.shop, &1);
     let pool = t.client.get_pool();
-    t.env.ledger().set_timestamp(START + WEEK * (DEFAULT_AFTER_PERIODS + 2));
+    t.env
+        .ledger()
+        .set_timestamp(START + WEEK * (DEFAULT_AFTER_PERIODS + 2));
     t.client.cover_default(&t.shop);
     let after = t.client.get_pool();
     assert_eq!(after.lent, 0);
@@ -1831,7 +2164,10 @@ fn a_default_the_buffer_cannot_cover_is_shared_by_lenders() {
     // Lenders lose what the buffer could not cover.
     let loss = 200 * USD - pool.buffer.min(200 * USD);
     assert!(loss > 0);
-    assert_eq!(t.client.get_lender(&t.lender).value, 5_000 * USD + USD - loss);
+    assert_eq!(
+        t.client.get_lender(&t.lender).value,
+        5_000 * USD + USD - loss
+    );
     t.assert_pool_matches_balance();
 }
 
@@ -1840,8 +2176,342 @@ fn wrong_signer_cannot_approve_lenders_or_withdraw() {
     let t = setup();
     let stranger = Address::generate(&t.env);
     t.client.deposit(&t.lender, &(100 * USD));
-    t.only(&stranger, "approve_lender", (stranger.clone(),).into_val(&t.env));
+    t.only(
+        &stranger,
+        "approve_lender",
+        (stranger.clone(),).into_val(&t.env),
+    );
     assert_not_signed!(t.client.try_approve_lender(&stranger));
-    t.only(&stranger, "withdraw", (t.lender.clone(), 1i128).into_val(&t.env));
+    t.only(
+        &stranger,
+        "withdraw",
+        (t.lender.clone(), 1i128).into_val(&t.env),
+    );
     assert_not_signed!(t.client.try_withdraw(&t.lender, &1));
+}
+
+// ---------- #185: trusted shops pay less for the buffer ----------
+
+impl Setup {
+    /// One credit cycle in week `week`: a `amount` invoice on credit, repaid on time.
+    fn good_cycle(&self, week: u64, amount: i128) {
+        self.env.ledger().set_timestamp(START + week * WEEK);
+        let id = 1000 + week;
+        self.minter.mint(&self.shop, &amount);
+        self.invoice(id, amount);
+        self.client.pay_with_credit(&self.shop, &id);
+        self.client
+            .repay(&self.shop, &self.client.get_shop(&self.shop).owed);
+    }
+
+    /// What the distributor receives for a $100 invoice put fully on credit now, in week `week`.
+    fn payout_of_100(&self, week: u64, id: u64) -> i128 {
+        self.env.ledger().set_timestamp(START + week * WEEK);
+        let before = self.balance(&self.distributor);
+        self.invoice(id, 100 * USD);
+        self.client.pay_with_credit(&self.shop, &id);
+        self.balance(&self.distributor) - before
+    }
+}
+
+#[test]
+fn trusted_buffer_share_shrinks_by_thirds() {
+    assert_eq!(trusted_buffer_bps(75, 0), 75);
+    assert_eq!(trusted_buffer_bps(75, TRUSTED_CYCLES - 1), 75);
+    assert_eq!(trusted_buffer_bps(75, TRUSTED_CYCLES), 50);
+    assert_eq!(trusted_buffer_bps(75, HIGHLY_TRUSTED_CYCLES), 25);
+    // At the 1.00% floor the buffer gets 38 bps: 25, then 12.
+    assert_eq!(trusted_buffer_bps(38, TRUSTED_CYCLES), 25);
+    assert_eq!(trusted_buffer_bps(38, HIGHLY_TRUSTED_CYCLES), 12);
+}
+
+#[test]
+fn a_trusted_shop_costs_its_distributor_less() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..4 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 4);
+    // 4 good cycles: buffer 0.50% instead of 0.75%, so the fee is 1.25% and the distributor gets $98.75.
+    let buffer_before = t.client.get_pool().buffer;
+    assert_eq!(t.payout_of_100(4, 1), 987_500_000);
+    assert_eq!(t.client.get_invoice(&1).credit_fee, 12_500_000);
+    assert_eq!(t.client.get_pool().buffer - buffer_before, 5_000_000);
+    t.client.repay(&t.shop, &t.client.get_shop(&t.shop).owed);
+    for week in 5..9 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 9);
+    // 8+ good cycles: buffer 0.25%, fee 1.00%, the distributor gets $99.00. Lenders and we keep 0.50% and 0.25%.
+    let treasury_before = t.balance(&t.treasury);
+    assert_eq!(t.payout_of_100(9, 2), 990_000_000);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, 2_500_000);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn good_cycles_need_the_growth_bar_and_count_once_a_period() {
+    let t = setup();
+    t.with_credit();
+    // $20 on credit, nothing up front: under the $40 bar, on time but not a good cycle.
+    t.good_cycle(0, 20 * USD);
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 0);
+    // Two $50 cycles in the same week count once.
+    t.good_cycle(1, 50 * USD);
+    t.env.ledger().set_timestamp(START + WEEK + DAY);
+    t.minter.mint(&t.shop, &(50 * USD));
+    t.invoice(77, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &77);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 1);
+}
+
+#[test]
+fn a_late_repayment_resets_the_trusted_record() {
+    let t = setup();
+    t.with_credit();
+    for week in 0..4 {
+        t.good_cycle(week, 50 * USD);
+    }
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 4);
+    // Borrow in week 4, repay 3 days past due: minor late, back to 0 and the full fee.
+    t.env.ledger().set_timestamp(START + 4 * WEEK);
+    t.invoice(50, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &50);
+    t.env.ledger().set_timestamp(START + 5 * WEEK + 3 * DAY);
+    t.client.repay(&t.shop, &(50 * USD));
+    assert_eq!(t.client.get_shop(&t.shop).good_cycles, 0);
+    assert_eq!(t.payout_of_100(6, 51), 985_000_000);
+}
+
+// ---------- #185: recourse tier (the distributor vouches and keeps a deposit) ----------
+
+impl Setup {
+    /// The distributor puts `deposit` in its recourse deposit and vouches for the shop.
+    fn vouched(&self, deposit: i128) {
+        self.minter.mint(&self.distributor, &deposit);
+        self.client.deposit_recourse(&self.distributor, &deposit);
+        self.client.vouch(&self.distributor, &self.shop, &true);
+    }
+}
+
+#[test]
+fn a_vouched_shop_costs_its_distributor_a_quarter_percent() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(20 * USD);
+    let pool_before = t.client.get_pool();
+    let treasury_before = t.balance(&t.treasury);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    // 0.25%: the distributor gets $99.75, we get $0.10, lenders keep $0.15, the buffer nothing.
+    assert_eq!(t.balance(&t.distributor), 997_500_000);
+    assert_eq!(t.balance(&t.treasury) - treasury_before, 1_000_000);
+    let pool = t.client.get_pool();
+    assert_eq!(pool.buffer, pool_before.buffer);
+    assert_eq!(
+        pool_before.available - pool.available,
+        100 * USD - 1_500_000
+    );
+    assert_eq!(t.client.get_invoice(&1).credit_fee, 2_500_000);
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(shop.vouched_owed, 100 * USD);
+    assert_eq!(shop.voucher, Some(t.distributor.clone()));
+    let view = t.client.get_recourse(&t.distributor);
+    assert_eq!(
+        (view.deposit, view.vouched_out, view.required),
+        (20 * USD, 100 * USD, 20 * USD)
+    );
+    t.assert_pool_matches_balance();
+    // Repaying clears the vouched credit.
+    t.client.repay(&t.shop, &(100 * USD));
+    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 0);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 0);
+}
+
+#[test]
+fn without_enough_deposit_the_sale_goes_at_the_pool_fee() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(19 * USD); // $100 needs $20
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    assert_eq!(t.balance(&t.distributor), 985_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 0);
+    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 0);
+}
+
+#[test]
+fn other_distributors_invoices_are_not_vouched() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(50 * USD);
+    let other = Address::generate(&t.env);
+    t.client.approve_distributor(&other);
+    t.client.create_invoice(
+        &other,
+        &1,
+        &t.shop,
+        &t.driver,
+        &(100 * USD),
+        &(START + WEEK),
+    );
+    t.client.pay_with_credit(&t.shop, &1);
+    assert_eq!(t.balance(&other), 985_000_000);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 0);
+}
+
+#[test]
+fn repayments_clear_the_unvouched_part_first() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(50 * USD);
+    let other = Address::generate(&t.env);
+    t.client.approve_distributor(&other);
+    t.client
+        .create_invoice(&other, &1, &t.shop, &t.driver, &(50 * USD), &(START + WEEK));
+    t.client.pay_with_credit(&t.shop, &1);
+    t.invoice(2, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &2);
+    assert_eq!(t.client.get_shop(&t.shop).vouched_owed, 50 * USD);
+    t.client.repay(&t.shop, &(60 * USD));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!((shop.owed, shop.vouched_owed), (40 * USD, 40 * USD));
+    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 40 * USD);
+}
+
+#[test]
+fn recourse_pays_the_pool_after_seven_days_late() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(100 * USD);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    // 7 days late is not enough.
+    t.env.ledger().set_timestamp(due + 7 * DAY);
+    assert_eq!(
+        t.client.try_call_recourse(&t.shop),
+        Err(Ok(Error::NotInDefault))
+    );
+    // 8 days late: anyone can call it, and the deposit pays the lenders back in full.
+    t.env.ledger().set_timestamp(due + 8 * DAY);
+    let available_before = t.client.get_pool().available;
+    assert_eq!(t.client.call_recourse(&t.shop), 100 * USD);
+    let pool = t.client.get_pool();
+    assert_eq!(pool.available - available_before, 100 * USD);
+    assert_eq!((pool.lent, pool.recourse), (0, 0));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(
+        (shop.owed, shop.vouched_owed, shop.covered_by_distributor),
+        (0, 0, 100 * USD)
+    );
+    // It counts as a major late payment on the shop's record.
+    assert_eq!(
+        (shop.late_major, shop.limit, shop.good_cycles),
+        (1, 150 * USD, 0)
+    );
+    assert_eq!(t.client.get_recourse(&t.distributor).deposit, 0);
+    assert_eq!(
+        t.client.try_call_recourse(&t.shop),
+        Err(Ok(Error::NothingOwed))
+    );
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn a_default_takes_the_deposit_first_then_the_buffer() {
+    let t = setup();
+    t.with_credit();
+    t.client.fund_buffer(&t.lender, &(100 * USD));
+    t.vouched(40 * USD);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    let due = t.client.get_shop(&t.shop).due_at;
+    t.env.ledger().set_timestamp(due + 4 * WEEK + 1);
+    let buffer_before = t.client.get_pool().buffer;
+    t.client.cover_default(&t.shop);
+    let pool = t.client.get_pool();
+    assert_eq!(buffer_before - pool.buffer, 60 * USD);
+    assert_eq!((pool.lent, pool.recourse), (0, 0));
+    let shop = t.client.get_shop(&t.shop);
+    assert_eq!(
+        (
+            shop.written_off,
+            shop.covered_by_distributor,
+            shop.vouched_owed
+        ),
+        (60 * USD, 40 * USD, 0)
+    );
+    assert_eq!(t.client.get_recourse(&t.distributor).vouched_out, 0);
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn the_deposit_can_only_drop_to_twenty_percent() {
+    let t = setup();
+    t.with_credit();
+    t.vouched(30 * USD);
+    t.invoice(1, 100 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    assert_eq!(
+        t.client.try_withdraw_recourse(&t.distributor, &(11 * USD)),
+        Err(Ok(Error::NotEnoughDeposit))
+    );
+    t.client.withdraw_recourse(&t.distributor, &(10 * USD));
+    t.client.repay(&t.shop, &(100 * USD));
+    let before = t.balance(&t.distributor);
+    t.client.withdraw_recourse(&t.distributor, &(20 * USD));
+    assert_eq!(t.balance(&t.distributor) - before, 20 * USD);
+    assert_eq!(
+        t.client.try_withdraw_recourse(&t.distributor, &1),
+        Err(Ok(Error::InvalidAmount))
+    );
+    t.assert_pool_matches_balance();
+}
+
+#[test]
+fn vouching_rules() {
+    let t = setup();
+    // No credit terms yet.
+    assert_eq!(
+        t.client.try_vouch(&t.distributor, &t.shop, &true),
+        Err(Ok(Error::NoCreditTerms))
+    );
+    t.with_credit();
+    let stranger = Address::generate(&t.env);
+    assert_eq!(
+        t.client.try_vouch(&stranger, &t.shop, &true),
+        Err(Ok(Error::NotApproved))
+    );
+    assert_eq!(
+        t.client.try_deposit_recourse(&stranger, &USD),
+        Err(Ok(Error::NotApproved))
+    );
+    t.vouched(20 * USD);
+    // Another distributor can't switch it off.
+    let other = Address::generate(&t.env);
+    t.client.approve_distributor(&other);
+    assert_eq!(
+        t.client.try_vouch(&other, &t.shop, &false),
+        Err(Ok(Error::NotApproved))
+    );
+    // No changes while the shop owes.
+    t.invoice(1, 50 * USD);
+    t.client.pay_with_credit(&t.shop, &1);
+    assert_eq!(
+        t.client.try_vouch(&t.distributor, &t.shop, &false),
+        Err(Ok(Error::ShopOwes))
+    );
+    t.client.repay(&t.shop, &(50 * USD));
+    t.client.vouch(&t.distributor, &t.shop, &false);
+    assert_eq!(t.client.get_shop(&t.shop).voucher, None);
+}
+
+#[test]
+fn recourse_required_rounds_up() {
+    assert_eq!(recourse_required(0), 0);
+    assert_eq!(recourse_required(100 * USD), 20 * USD);
+    assert_eq!(recourse_required(1), 1);
 }

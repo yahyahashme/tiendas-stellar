@@ -625,6 +625,14 @@
                 "map": [
                   {
                     "key": {
+                      "symbol": "covered_by_distributor"
+                    },
+                    "val": {
+                      "i128": "0"
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "cycle_borrowed"
                     },
                     "val": {
@@ -653,6 +661,22 @@
                     },
                     "val": {
                       "u64": "1000000"
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "good_cycles"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "last_good_at"
+                    },
+                    "val": {
+                      "u64": "0"
                     }
                   },
                   {
@@ -734,6 +758,20 @@
                     "val": {
                       "i128": "0"
                     }
+                  },
+                  {
+                    "key": {
+                      "symbol": "vouched_owed"
+                    },
+                    "val": {
+                      "i128": "0"
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "voucher"
+                    },
+                    "val": "void"
                   },
                   {
                     "key": {
@@ -840,6 +878,14 @@
                           {
                             "key": {
                               "symbol": "lent"
+                            },
+                            "val": {
+                              "i128": "0"
+                            }
+                          },
+                          {
+                            "key": {
+                              "symbol": "recourse"
                             },
                             "val": {
                               "i128": "0"

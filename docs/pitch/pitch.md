@@ -181,6 +181,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 **Delivery notes**
 - "Rosa" is made up. Say "picture", so nobody takes her for a real interview, and drop her if #30 gives us a real story we may tell.
 - Keep "in a 2019 survey" and "says Conamype". The fact sheet's "say this, not that" table requires the year and the attribution.
+- If asked "do good shops pay less?": "Yes. After four weeks paid on time in a row, the fee drops to 1.25%, and after eight, to 1%. A distributor can also vouch for a shop it has known for years: it keeps a deposit with us and pays a quarter of a percent." (#185; the distributor pays the fee, never the shop.)
 - To answer "how do you make money" in 30 seconds, add: "And 10 cents per $100 on invoices paid now or in cash." That is the 0.1% usage fee (`USAGE_FEE_BPS = 10`). It is not in the script because it does not fit the 35 seconds.
 
 ## 3. Checked against the repo
