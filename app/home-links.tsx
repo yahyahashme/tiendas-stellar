@@ -8,7 +8,7 @@ import { Money } from "@/components/kit/money";
 import { Failure, Loading } from "@/components/kit/states";
 import { getDrivers, getInvoices, getShop } from "@/lib/api";
 import { plural } from "@/lib/format";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Shop } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
@@ -24,6 +24,11 @@ export function AccountLink() {
     void getCurrentUser().then(setUser, () => setUser(null));
   }, []);
   return user ? <NavLink href="/cuenta">{t("Mi cuenta", "My account")}</NavLink> : <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>;
+}
+
+/** Under "Paga tu ruta": the tagline stays in Spanish, so the English page says what it means. */
+export function TaglineMeaning() {
+  return useLang() === "en" ? <span className="mt-1 block text-lead font-semibold tracking-normal text-muted">(Pay your route)</span> : null;
 }
 
 /** Loads once. A load that fails says so and offers "Reintentar". */
