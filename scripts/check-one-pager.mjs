@@ -1,4 +1,4 @@
-// Checks docs/one-pager.md before the Thu 9 PM call and again before Jack submits the form (#31).
+// Checks docs/pitch/one-pager.md before the Thu 9 PM call and again before Jack submits the form (#31).
 //
 //   node scripts/check-one-pager.mjs [path-to-one-pager] [--online]
 //
@@ -21,7 +21,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 // Word targets from docs/one-pager.md. Question 4 says "about 20 words", so allow a few either way.
 export const TARGETS = { 4: [15, 25], 5: [120, 150], 6: [120, 150] };
 
-// Same method as the "Word counts" table in docs/one-pager.md: split on spaces,
+// Same method as the "Word counts" table in docs/pitch/one-pager.md: split on spaces,
 // "(Rohan to confirm)" markers excluded, [placeholders] counted as written.
 const MARKER = /\(\w+ to confirm[^)]*\)/g;
 export function countWords(text) {
@@ -44,7 +44,7 @@ const WARN = [
   [/\bopen(-source| Soroban| contract)/i, 'says "open": the licence is all rights reserved (#48). Say "public".'],
   [/\baudit(ed)?\b/i, "says audited: we did a safety review with tests, not an outside audit"],
   [/passkey/i, "passkeys are not on main"],
-  [/MoneyGram[^.]{0,60}only/i, "MoneyGram claim: our own locator check found cash-out points, not that cash-in is missing (docs/submit-one-pager.md)"],
+  [/MoneyGram[^.]{0,60}only/i, "MoneyGram claim: our own locator check found cash-out points, not that cash-in is missing (docs/pitch/submit-one-pager.md)"],
   [/fraction of a cent/i, '"fraction of a cent" has no entry in docs/facts.md: add a source or cut it'],
 ];
 
@@ -142,10 +142,10 @@ async function main() {
   const args = process.argv.slice(2);
   const online = args.includes("--online");
   const given = args.find((a) => !a.startsWith("--"));
-  const file = resolve(given ?? resolve(root, "docs/one-pager.md"));
+  const file = resolve(given ?? resolve(root, "docs/pitch/one-pager.md"));
   if (!existsSync(file)) {
     console.error(`No such file: ${file}`);
-    if (!given) console.error("docs/one-pager.md has been on main since PR #64. Run git fetch origin && git merge origin/main here, or pass the path to a copy of the one-pager.");
+    if (!given) console.error("docs/pitch/one-pager.md has been on main since PR #64. Run git fetch origin && git merge origin/main here, or pass the path to a copy of the one-pager.");
     process.exit(2);
   }
   const result = checkOnePager(readFileSync(file, "utf8"), loadConfig(root, { refresh: online }));

@@ -2,8 +2,8 @@
 //   code-slide.png    real lines from contracts/route_ledger/src/lib.rs (pay_with_credit)
 //   architecture.png  "How it works on Stellar"
 //
-// Run from anywhere:  node docs/slides/render.mjs
-// Print size:         SCALE=3 node docs/slides/render.mjs
+// Run from anywhere:  node docs/pitch/slides/render.mjs
+// Print size:         SCALE=3 node docs/pitch/slides/render.mjs
 //   SCALE (a whole number, 1 to 4, default 1) draws the same slide with more pixels, so it prints
 //   sharp: 3 gives 5760 x 3240 (240 pixels per inch at 24 in wide). The files are named
 //   code-slide@3x.png and architecture@3x.png; the 1x files are left alone. Git ignores the @Nx
@@ -23,7 +23,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, "../..");
+const root = resolve(here, "../../..");
 const outDir = join(root, "docs/img");
 const SCALE = Number(process.env.SCALE || 1);
 if (!Number.isInteger(SCALE) || SCALE < 1 || SCALE > 4) {
@@ -67,9 +67,9 @@ const MAX_LINES = 11;
 
 function takeBlock({ first, len }) {
   const i = lib.findIndex((l, n) => n > start && l.trim() === first);
-  if (i < 0) die(`the line "${first}" is no longer in pay_with_credit. Update docs/slides/render.mjs and the slide.`);
+  if (i < 0) die(`the line "${first}" is no longer in pay_with_credit. Update docs/pitch/slides/render.mjs and the slide.`);
   const lines = lib.slice(i, i + len);
-  if (lines[len - 1].trim() !== "}") die(`the block starting "${first}" changed shape. Update docs/slides/render.mjs.`);
+  if (lines[len - 1].trim() !== "}") die(`the block starting "${first}" changed shape. Update docs/pitch/slides/render.mjs.`);
   const indent = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
   const out = lines.map((l) => l.slice(indent));
   const wide = out.find((l) => l.length > MAX_CHARS);

@@ -25,7 +25,7 @@ Written Thu Nov 12 evening; updated late that evening for the product name (Rela
 - The live app is **https://relay-sv.vercel.app** (README). The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307), so do not print it.
 - The QR image `public/qr-demo.png` was regenerated for the new URL (PR #102, merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. **That checks the file, not the print: scan the printed QR once before Monday to check it opens `/demo`.**
 - The contract was redeployed on Thu Nov 12 (PR #90). The contract ID is `contracts.routeLedger` in `config/testnet.json`.
-- `docs/pitch.md` and the trifold files (`docs/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` became "Relay" in `docs/pitch.md` and `docs/trifold/trifold.html` in PR #107 (merged), so no name placeholder is left; the `[N]` ("what we heard") and phone screenshot placeholders are still open.
+- `docs/pitch/pitch.md` and the trifold files (`docs/pitch/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` became "Relay" in `docs/pitch/pitch.md` and `docs/pitch/trifold/trifold.html` in PR #107 (merged), so no name placeholder is left; the `[N]` ("what we heard") and phone screenshot placeholders are still open.
 
 ### Packing list
 
@@ -35,10 +35,10 @@ The first seven rows are the list in issue #43. The rest is our suggestion.
 |---|---|---|---|
 | [ ] | Laptop and charger | Battery full. Opens `/distribuidor` full screen and shows the grey banner "Demo en testnet · dinero de prueba · cash-in simulado". Sleep and screen lock off. | |
 | [ ] | Phones, charged, with the shop page open | At least two team phones, as a backup for a judge whose phone will not scan. Note: every visit to `/demo` makes a new invoice (the server allows 20 a minute), so do not open it again and again to "test". | |
-| [ ] | The trifold with the demo QR | Board built (`docs/trifold-assembly.md`), QR tested on 3 phones. | |
-| [ ] | The video, downloaded | The MP4 is on the laptop and on one phone, and plays with Wi-Fi off. The shot list is `docs/demo-video.md`. Whether the video is recorded yet: #35 (Yahya's) was still open on Thu Nov 12 evening, so treat it as not recorded until it closes. | |
+| [ ] | The trifold with the demo QR | Board built (`docs/pitch/trifold-assembly.md`), QR tested on 3 phones. | |
+| [ ] | The video, downloaded | The MP4 is on the laptop and on one phone, and plays with Wi-Fi off. The shot list is `docs/pitch/demo-video.md`. Whether the video is recorded yet: #35 (Yahya's) was still open on Thu Nov 12 evening, so treat it as not recorded until it closes. | |
 | [ ] | A phone hotspot | Hotspot on and tested with the laptop before leaving. Name and password written on paper. | |
-| [ ] | A printed QR code | At least two spare prints, at least 4 x 4 in with a white border (our size suggestion in `docs/trifold-assembly.md`). | |
+| [ ] | A printed QR code | At least two spare prints, at least 4 x 4 in with a white border (our size suggestion in `docs/pitch/trifold-assembly.md`). | |
 | [ ] | Note-taker's notebook and pen, or a shared note | Every judge question is written down (issue #43 "Done means"). | |
 | [ ] | Power strip or extension cord, a phone charger or power bank | Our suggestion. Venue power is not known yet. | |
 | [ ] | Painter's tape, scissors, spare tape | Our suggestion, for the board and the printed QR. | |
@@ -50,7 +50,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 
 | Done | Step | Who: ____ |
 |---|---|---|
-| [ ] | Check the contract still answers (`docs/security.md` section 5 says to do this before any demo; testnet can be reset, and contract data expires about 30 days after its last write). | |
+| [ ] | Check the contract still answers (`docs/product/security.md` section 5 says to do this before any demo; testnet can be reset, and contract data expires about 30 days after its last write). | |
 | [ ] | Check each shop still has test dollars (each starts with $500) and top up if low. Steps 1 and 2 of README "Before the showcase". | |
 | [ ] | Open `/tienda/cuenta/tienda-1`, `-2` and `-3` and tap "Pagar deuda" so every shop has credit available. | |
 | [ ] | Make a test payment on your own phone through the printed QR. Watch the dashboard. This uses one invoice and one shop's test dollars, and that is fine. | |
@@ -86,10 +86,10 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 | No Wi-Fi or slow Wi-Fi | Laptop on the phone hotspot. The judge uses their own data. If the page does not open in 10 seconds, play the video. |
 | The QR will not scan (glare, angle) | Use a spare printed QR, or hand over the URL on paper. |
 | "No pudimos crear su factura" with "Intentar de nuevo" | Wait a few seconds and tap it. Several judges at once can take about 30 seconds (comment in `app/demo/route.ts`). If it fails twice, play the video. |
-| A button spins for more than 10 seconds | Testnet is slow (`docs/demo-video.md`). Wait 10 seconds, then play the video. |
+| A button spins for more than 10 seconds | Testnet is slow (`docs/pitch/demo-video.md`). Wait 10 seconds, then play the video. |
 | "Pagar en 7 días" is greyed out | That shop owes money or the invoice is over its $200 limit. Tap "Pagar deuda" on `/tienda/cuenta/tienda-N`, or ask the judge to use "Pagar ahora". |
 | The dashboard does not move | Reload `/distribuidor`. Check the payment screen shows the green "Pago recibido". |
-| Nothing from the contract works at all | Play the video. Tell Yahya. Testnet may have been reset; the recovery steps are in `docs/security.md` and are Yahya's call, not something to run at the venue. |
+| Nothing from the contract works at all | Play the video. Tell Yahya. Testnet may have been reset; the recovery steps are in `docs/product/security.md` and are Yahya's call, not something to run at the venue. |
 | The laptop dies | Show the video on a phone. A second laptop with `/distribuidor` open is the real fix. |
 
 ### Showcase judges (by role; source: issue #43)
@@ -105,7 +105,7 @@ Use the laptop that ran `scripts/setup.sh`: it holds the test-dollar issuer. Yah
 
 - The deck draft from #41 (due Sun Nov 15, 11:59 PM), on the laptop and as a backup copy on a USB stick or in a shared folder (our suggestion).
 - A laptop and a **note-taker** (issue #44).
-- The video file, a charger, the pitch script `docs/pitch.md` (on `main` since PR #83; our suggestion), and the QR and the app on a phone (our suggestion).
+- The video file, a charger, the pitch script `docs/pitch/pitch.md` (on `main` since PR #83; our suggestion), and the QR and the app on a phone (our suggestion).
 
 **What happens:** a 3-minute pitch, then mentor feedback. **Write every comment down** (issue #44).
 
@@ -157,7 +157,7 @@ Run this on the file you are about to upload, not on the draft.
 
 - [ ] **Every number has a `docs/facts.md` entry.** Read each slide and write the entry number next to each number. A number with no entry: take it out, or add the entry in a PR first. Nothing from the "Never use" list at the top of `docs/facts.md`.
 - [ ] **"$35 per $100" says "2019 survey"** wherever it appears (facts entry 10).
-- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Fri Nov 13 evening the live ID is `CAGCZ3I7…` (the #139 redeploy; `config/testnet.json` and the README table). `docs/img/code-slide.png` on `main` shows it since #165 (merged Sat Nov 14; read by eye on Nov 14: the start `CAGCZ3I7CQHZDELPV5…` and the end `…HED7HV4ML` match). `docs/demo-video.md` and answer 6 of `docs/one-pager.md` still hold the previous one (`CDHDZX7V…`) on `main` until PR #163 merges: #163 sets both to `CAGCZ3I7…` and adds a note to the one-pager that a copy sent before #139 had `CDHDZX7V…`. Re-check those two after #163 merges, and again after any redeploy.
+- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Fri Nov 13 evening the live ID is `CAGCZ3I7…` (the #139 redeploy; `config/testnet.json` and the README table). `docs/img/code-slide.png` on `main` shows it since #165 (merged Sat Nov 14; read by eye on Nov 14: the start `CAGCZ3I7CQHZDELPV5…` and the end `…HED7HV4ML` match). `docs/pitch/demo-video.md` and answer 6 of `docs/pitch/one-pager.md` still hold the previous one (`CDHDZX7V…`) on `main` until PR #163 merges: #163 sets both to `CAGCZ3I7…` and adds a note to the one-pager that a copy sent before #139 had `CDHDZX7V…`. Re-check those two after #163 merges, and again after any redeploy.
 - [ ] **No advisor names** anywhere, including slide notes. Roles only ("our startup advisor", "our technical and finance advisor").
 - [ ] **Fee sponsorship is worded as built, and no more.** Say "our sponsor account pays the network fees" (#113). Not "gasless", not "users never need XLM" (the demo accounts hold test XLM), and no passkeys: they are not built.
 - [ ] **No placeholders left:** search the file for `[`, `]`, "TBD", "PENDING" and `[NAME]`.
@@ -167,7 +167,7 @@ Run this on the file you are about to upload, not on the draft.
 - [ ] Screenshots in the deck: the grey demo banner is readable, and there is no secret key (starts with S), no `.env` text and no phone number on screen.
 - [ ] The words "blockchain", "wallet" and "crypto" do not appear on any app screenshot (context §3.5).
 - [ ] The pitch still fits in 3:00 with this deck.
-- [ ] Questions put to Velocity before Wed, with answers written here: does the video play at the finals; is the template 16:9; may the deck hold backup slides after slide 8 for questions; do we present from our laptop or from the uploaded file. (From `docs/deck-outline.md`, "Open questions".) Answers: `____`
+- [ ] Questions put to Velocity before Wed, with answers written here: does the video play at the finals; is the template 16:9; may the deck hold backup slides after slide 8 for questions; do we present from our laptop or from the uploaded file. (From `docs/pitch/deck-outline.md`, "Open questions".) Answers: `____`
 
 ### Finals judges (by role and organisation; source: issue #45)
 
@@ -175,13 +175,13 @@ Questions get 3 minutes in total. Whether all four judges ask, or just some, is 
 
 | Judge role | What to expect | Where our answer is | Who answers: ____ |
 |---|---|---|---|
-| SDF Senior Developer Advocate | **Contract questions** (source: issue #45). | `docs/security.md`; `contracts/route_ledger/src/lib.rs`; context §8.2; `docs/facts.md` entries 29 to 35 | |
+| SDF Senior Developer Advocate | **Contract questions** (source: issue #45). | `docs/product/security.md`; `contracts/route_ledger/src/lib.rs`; context §8.2; `docs/facts.md` entries 29 to 35 | |
 | Stellar ecosystem, founder of Stellarlight.xyz | The issue gives no hint. Our guess: how we use Stellar (USDC, Soroban, anchors) and why Stellar. | context §14 "Why Stellar?"; `docs/facts.md` entries 36 to 38 | |
 | SDF Payment Partners | **Risk #1 questions**: how cash becomes digital dollars (source: issue #45). | README "Risk #1"; context §6; `docs/research.md` (partner outreach, merged in #89) | |
 | Stellar Ecosystem Impact | **Impact questions** (source: issue #45). | context §9; `docs/facts.md` sections 1 to 12; what we heard from real people: `docs/research.md` (the walkthroughs, #30, are not logged yet) | |
 
 ## Done means (copied from the issues)
 
-- [ ] #43: pitch delivered; judges' questions written down in `docs/pitch.md`. Evidence: `[commit or PR link]`
+- [ ] #43: pitch delivered; judges' questions written down in `docs/pitch/pitch.md`. Evidence: `[commit or PR link]`
 - [ ] #44: feedback written down; deck updated. Evidence: `[notes link, deck link]`
 - [ ] #45: deck uploaded by 10 AM; we pitched. Evidence: `[form confirmation screenshot]`

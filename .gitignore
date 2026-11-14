@@ -170,7 +170,7 @@ test_snapshots/
 .vercel
 next-env.d.ts
 
-# Print-size slide images (SCALE=3 node docs/slides/render.mjs): big, rebuilt on demand
+# Print-size slide images (SCALE=3 node docs/pitch/slides/render.mjs): big, rebuilt on demand
 docs/img/*@*x.png
 
 # Single screenshots behind the redesign's contact sheets (scripts/screens.mjs): rebuilt on demand

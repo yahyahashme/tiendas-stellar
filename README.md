@@ -11,6 +11,19 @@ Neighbourhood shops (tiendas) in El Salvador buy their stock from distributors. 
 
 **Live app:** [relay-sv.vercel.app](https://relay-sv.vercel.app) · **Contract on Stellar testnet:** [`CAGCZ3I7…V4ML` on stellar.expert](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) (every payment and fee split is public) · Built for the Velocity x Stellar challenge (Nov 2026) by Yahya, Jack, Rohan and Ruhaan. Plan and decisions: [docs/context.md](docs/context.md).
 
+## What's in this repo
+
+| Folder | What it holds |
+|---|---|
+| `contracts/route_ledger/` | The Soroban smart contract (Rust): invoices, payments, credit, fee splits |
+| `app/` | The web app (Next.js): every screen, one folder per page |
+| `components/`, `lib/` | Shared screen parts and app logic. `lib/api.ts` is the one place screens get data from |
+| `packages/route_ledger/` | The contract client, generated from the contract |
+| `db/` | Database schema for accounts and sign-up |
+| `config/testnet.json` | Contract and account addresses on testnet (public, no secrets) |
+| `scripts/` | Setup, deploy and check scripts |
+| `docs/` | Plan, facts, pitch material and test notes: start at [docs/README.md](docs/README.md) |
+
 ## How it works
 
 Three screens (a website that works like a phone app): the **shop** pays an invoice, the **driver** sees the day's route, the **distributor** sees what's paid and owed. One Soroban contract, `route_ledger`, holds the invoices and the rules.
@@ -95,7 +108,7 @@ Tests: `cargo test` (contract) and `npm test` (app). After a contract change, `.
 3. Tap **Ver detalles** on the receipt. In Stellar Expert, check that the transaction is on **Testnet** and succeeded. The [Route Ledger contract](https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML) is also listed in the contract table above.
 4. Return to the dashboard and find the same invoice number. After the dashboard refreshes, the invoice should be marked **Pagada**.
 
-See the [shop payment](docs/trifold/img/shop-pay.png), [shop credit](docs/trifold/img/shop-credit.png), and [driver cash](docs/trifold/img/driver-cash.png) screenshots, the [architecture diagram](docs/img/architecture.png), the [security review](docs/security.md), and the [research log](docs/research.md). Relay is also listed on [Devpost](https://devpost.com/software/tiendas).
+See the [shop payment](docs/pitch/trifold/img/shop-pay.png), [shop credit](docs/pitch/trifold/img/shop-credit.png), and [driver cash](docs/pitch/trifold/img/driver-cash.png) screenshots, the [architecture diagram](docs/img/architecture.png), the [security review](docs/product/security.md), and the [research log](docs/research.md). Relay is also listed on [Devpost](https://devpost.com/software/tiendas).
 
 ## Before the showcase
 
