@@ -6,7 +6,7 @@ Written Wed Nov 11 from `docs/pitch/deck-outline.md`, `docs/pitch/pitch.md` (PR 
 
 **Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Fee sponsorship is built** (#113): if you say it, say "our sponsor account pays the network fees" (the diagram says it), not "gasless" or "users never need XLM". Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
-**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
+**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Del efectivo al crédito* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 **Update Fri Nov 13 night:** PR #82 is merged and #139 (the sliding fee) is merged with the new contract ID, so `docs/img/code-slide.png` was re-rendered after #139 and slide 5 is ready (see slide 5). Slide 6 now says "up to 1.5%" (line 2 is now about 21 words, over the limit of 12: the .pptx draft sets the bracket sentence small, and it can be cut if the slide reads as too much). Slide 3's phone screenshots (PR #119) predate #125 and #126 and need a retake before the deck is final (steps in `docs/pitch/deck-outline.md`).
 
@@ -14,13 +14,13 @@ Written Wed Nov 11 from `docs/pitch/deck-outline.md`, `docs/pitch/pitch.md` (PR 
 
 ## 1. Name and one-line pitch (10 s)
 
-**Headline:** Relay (tagline under it: *Paga tu ruta*)
+**Headline:** Relay (tagline under it: *Del efectivo al crédito*)
 
 1. Pay the truck now, in cash, or in 7 days.
 2. No interest.
 
 **Small print:** none.
-**Visual:** "Relay", large, with "Paga tu ruta" under it. No logo yet.
+**Visual:** "Relay", large, with "Del efectivo al crédito" under it. No logo yet.
 **Waiting on:** nothing (name and tagline decided Nov 12, PR #100).
 
 ## 2. The problem (30 s)
@@ -46,7 +46,7 @@ Written Wed Nov 11 from `docs/pitch/deck-outline.md`, `docs/pitch/pitch.md` (PR 
 
 **Small print:** Live at https://relay-sv.vercel.app, on Stellar testnet with test dollars. Cash-in is simulated.
 **Visual:** the three phone screenshots on `main`, left to right as the three lines: `docs/pitch/trifold/img/shop-pay.png`, `shop-credit.png` and `driver-cash.png`, captured from the live app (PR #119). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
-**Waiting on:** a comparison with the live app. #125 and #126 merged after the captures (Fri Nov 13, 7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). If the images differ, recapture (steps in `docs/pitch/deck-outline.md`, "Capturing the three phone screenshots") and check the page header reads "Relay" with "Paga tu ruta" under it.
+**Waiting on:** a comparison with the live app. #125 and #126 merged after the captures (Fri Nov 13, 7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). If the images differ, recapture (steps in `docs/pitch/deck-outline.md`, "Capturing the three phone screenshots") and check the page header reads "Relay" with "Del efectivo al crédito" under it.
 
 ## 4. How it works on Stellar (20 s)
 

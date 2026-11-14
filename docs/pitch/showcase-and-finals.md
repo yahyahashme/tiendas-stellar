@@ -1,6 +1,6 @@
 # Showcase and finals plan (#43, #44, #45)
 
-Written Thu Nov 12 evening; updated late that evening for the product name (Relay, "Paga tu ruta") and the new live URL. These three issues are events, so this file is a plan to follow, not something to finish. Each "Done means" at the bottom needs evidence from the day itself. Fill in every `Who: ____` cell as a team. Nobody is assigned here.
+Written Thu Nov 12 evening; updated late that evening for the product name (Relay, "Del efectivo al crédito") and the new live URL. These three issues are events, so this file is a plan to follow, not something to finish. Each "Done means" at the bottom needs evidence from the day itself. Fill in every `Who: ____` cell as a team. Nobody is assigned here.
 
 **Marks used below.** "source: issue #43" means the fact is copied from that issue. "our suggestion" means we made it up to be useful and Velocity has not said it. "not known yet" means no issue, doc or page we have says it.
 
@@ -25,7 +25,7 @@ Written Thu Nov 12 evening; updated late that evening for the product name (Rela
 - The live app is **https://relay-sv.vercel.app** (README). The old https://tiendas-stellar.vercel.app only redirects there (HTTP 307), so do not print it.
 - The QR image `public/qr-demo.png` was regenerated for the new URL (PR #102, merged). Decoded Thu Nov 12 evening with macOS CoreImage, from the file on `main`: it opens `https://relay-sv.vercel.app/demo`. **That checks the file, not the print: scan the printed QR once before Monday to check it opens `/demo`.**
 - The contract was redeployed on Thu Nov 12 (PR #90). The contract ID is `contracts.routeLedger` in `config/testnet.json`.
-- `docs/pitch/pitch.md` and the trifold files (`docs/pitch/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Paga tu ruta"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` became "Relay" in `docs/pitch/pitch.md` and `docs/pitch/trifold/trifold.html` in PR #107 (merged), so no name placeholder is left; the `[N]` ("what we heard") and phone screenshot placeholders are still open.
+- `docs/pitch/pitch.md` and the trifold files (`docs/pitch/trifold/`) are on `main` (PR #83, merged). The product name is decided: **Relay**, tagline **"Del efectivo al crédito"** (PR #100, `lib/brand.ts`, context §1). `[NAME]` became "Relay" in `docs/pitch/pitch.md` and `docs/pitch/trifold/trifold.html` in PR #107 (merged), so no name placeholder is left; the `[N]` ("what we heard") and phone screenshot placeholders are still open.
 
 ### Packing list
 
@@ -161,7 +161,7 @@ Run this on the file you are about to upload, not on the draft.
 - [ ] **No advisor names** anywhere, including slide notes. Roles only ("our startup advisor", "our technical and finance advisor").
 - [ ] **Fee sponsorship is worded as built, and no more.** Say "our sponsor account pays the network fees" (#113). Not "gasless", not "users never need XLM" (the demo accounts hold test XLM), and no passkeys: they are not built.
 - [ ] **No placeholders left:** search the file for `[`, `]`, "TBD", "PENDING" and `[NAME]`.
-- [ ] **The name and the URL are the new ones:** "Relay" with "Paga tu ruta" under it, and https://relay-sv.vercel.app. Search for "Tiendas", "tiendas-stellar" and "Nombre pendiente": none may appear.
+- [ ] **The name and the URL are the new ones:** "Relay" with "Del efectivo al crédito" under it, and https://relay-sv.vercel.app. Search for "Tiendas", "tiendas-stellar" and "Nombre pendiente": none may appear.
 - [ ] **No animations and no transitions** on any slide. Format is PowerPoint (`.pptx`), made from the Velocity template.
 - [ ] **The file opens on a second laptop, in PowerPoint itself** (not only Google Slides): fonts, images and layout look the same.
 - [ ] Screenshots in the deck: the grey demo banner is readable, and there is no secret key (starts with S), no `.env` text and no phone number on screen.

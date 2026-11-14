@@ -5,7 +5,7 @@
   </picture>
 </h1>
 
-*Paga tu ruta*
+*Del efectivo al crédito*
 
 Neighbourhood shops (tiendas) in El Salvador buy their stock from distributors. In a four-country survey, 8 in 10 small businesses in El Salvador, Guatemala, Honduras and Mexico pay suppliers mainly in cash, and in El Salvador 6 in 10 informal small businesses have borrowed from loan sharks. This app lets a shop pay its supplier in digital dollars, or take the stock now and pay in 7 days with no interest, while a Stellar smart contract keeps the record and enforces the credit rules.
 

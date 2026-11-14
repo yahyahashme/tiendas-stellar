@@ -18,7 +18,7 @@ Form: "BlockChain Innovation Challenge: Project Showcase Submission" ([link](htt
 
 ## 2. Team Name
 
-**Relay** (tagline: "Paga tu ruta").
+**Relay** (tagline: "Del efectivo al crédito").
 
 ## 3. Team Members (picker)
 

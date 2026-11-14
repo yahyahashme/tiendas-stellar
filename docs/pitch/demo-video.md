@@ -3,7 +3,7 @@
 The script is the table in issue #35. This file turns it into exact clicks. Everything below was clicked
 through on testnet on Nov 10 (labels copied from the screens). **Re-click the table after the Thursday
 redeploy (#52)**: the contract ID changes and #80 adds history and "Ver más" to the dashboard; then update
-this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #100).
+this line. The product name is decided: **Relay**, tagline *Del efectivo al crédito* (PR #100).
 On Nov 14 the labels below were checked against the redesigned screens in the code, not clicked: re-click
 the table once on the final build.
 
@@ -63,7 +63,7 @@ would be $2.25 and the distributor would get $147.75). Say what the screen shows
 - Contract: `CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML`
   (https://stellar.expert/explorer/testnet/contract/CAGCZ3I7CQHZDELPV5OB2W4D4LHA7MPSOBP4NO2AV4JO2G6HED7HV4ML). Redeployed for #139 (sliding credit fee); the one before was `CDHDZX7V…`.
   If the contract is redeployed (#52), copy the new ID from `config/testnet.json`.
-- Product name: **Relay**, with *Paga tu ruta* under it (PR #100)
+- Product name: **Relay**, with *Del efectivo al crédito* under it (PR #100)
 
 ## If something goes wrong while recording
 
