@@ -10,7 +10,7 @@ import { Stamp } from "@/components/kit/stamp";
 import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { createDemoInvoice, getDistributorView, handInCash } from "@/lib/api";
-import { DEMO_PHONES } from "@/lib/demo-contacts";
+import { DEMO_PHONES, DEMO_WHATSAPP } from "@/lib/demo-contacts";
 import { formatAmount, formatDay, plural } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { invoiceStatus, leftToPay, methodLabel, type StatusTone } from "@/lib/labels";
@@ -41,8 +41,8 @@ function shopReminder(shop: Shop, now: number): string | null {
   if (!phone || shop.creditOwed <= 0) return null;
   const site = process.env.NEXT_PUBLIC_SITE_URL || (typeof window === "undefined" ? "" : window.location.origin);
   try {
-    // The demo's shops have made-up numbers that a real person may own, so the demo's link carries the message and
-    // no number: WhatsApp asks who to send it to.
+    // The demo's shops have made-up numbers that a real person may own, so the demo's reminder goes to the team's
+    // own number instead: a message sent from a demo reaches us and nobody else.
     return reminderLink({
       phone,
       shopName: shop.name,
@@ -50,7 +50,7 @@ function shopReminder(shop: Shop, now: number): string | null {
       dueAt: shop.creditDue ? Math.floor(Date.parse(shop.creditDue) / 1000) : 0,
       now: Math.floor(now / 1000),
       link: site ? `${site}/tienda/cuenta/${shop.id}` : undefined,
-    }).replace(/^https:\/\/wa\.me\/\d+\?/, "https://wa.me/?");
+    }).replace(/^https:\/\/wa\.me\/\d+\?/, `https://wa.me/${DEMO_WHATSAPP}?`);
   } catch {
     return null;
   }
