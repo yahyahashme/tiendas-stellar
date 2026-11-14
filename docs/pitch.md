@@ -207,7 +207,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | What the pitch or trifold says | Checked against | Result |
 |---|---|---|
 | The distributor gets $98.50 per $100 paid in 7 days | `lib.rs:19` ("$98.50 for every $100"), `:22` (`CREDIT_FEE_BPS` = 150), `:580` (payout = amount minus that fee); `lib/labels.ts` | Matches (facts entry 29). Issue #37 and PR #74 say $98.40, which is out of date. |
-| The 1.5% splits $0.75 buffer, $0.50 lenders, $0.25 us | `lib.rs:22-29`, with a compile-time check that the three add up | Matches |
+| The 1.5% splits $0.75 buffer, $0.50 lenders, $0.25 us | `fee_split` in `lib.rs` (#139): lenders always `LENDER_BPS` 50, the rest 3:1 buffer : us; at 150 bps that is 75 / 50 / 25 | Matches at full credit |
 | The shop pays no fee and no interest | `lib.rs:385-388` (the usage fee comes out of the distributor's side, so the shop pays the invoice amount); `:605` (the shop owes only `amount`) | Matches |
 | 0.1% on invoices paid now or in cash | `USAGE_FEE_BPS = 10` (`lib.rs:20`); context §5 | Matches. Credit sales pay no usage fee. |
 | Repaying on time builds a record | The limit grows by $25 up to $500 (`LIMIT_STEP`, `LIMIT_CAP`, `lib.rs:32-34`, `:678`), only after a $40+ cycle and once per credit period (context §16, Nov 10) | Matches. The script says "builds a record" and no more. |
@@ -244,7 +244,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays up to 1.5% to be paid at the door, less when the shop pays part up front. At most 25 cents of each $100 is ours; the rest goes to lenders and a loss buffer. Invoices paid now or in cash: 0.1%. Both fees are in a public contract anyone can check.
 
 65 words, 27.9 s (at the old answer's pace).
-- **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
+- **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150 (top) and `MIN_CREDIT_FEE_BPS` 100, split by `fee_split`: `LENDER_BPS` 50, the rest 3:1 buffer : us (75 / 25 at 150); `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
 - **Must include:** the distributor pays, the shop never does; both fee rates; the contract is public.
 - **Never:** MoneyGram's 5%, or "we charge shops".
 - **If they push, "how big could it get?" (20 s):** > As a scenario, not a forecast: if 10% of the $2 billion went through pay in 7 days, our 0.25% is about $500,000 a year, plus 0.1% on the rest, about $1.8 million. That is our guess; Rohan is checking it. (41 words; facts entry 30, context §5. Rohan's `docs/assumptions.md` (#12) replaces this when it lands.)
@@ -274,7 +274,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > Limits start small and top out at $500. No new credit while anything is overdue. A buffer, 75 cents of each $100 fee, absorbs losses first. Four periods late, it repays the lenders what it can and the shop's credit is cut off.
 
 43 words, 18.4 s.
-- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** Every shop starts at $200 (#134); matching it to one average delivery is a later step (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
+- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; the buffer's share from `fee_split` (75 bps at full credit); `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** Every shop starts at $200 (#134); matching it to one average delivery is a later step (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
 - **Must include:** small limits, nothing new while overdue, the buffer, the four-period rule.
 - **Never:** "no risk", or that the contract writes off a debt automatically.
 - **If they push, "what if losses beat the buffer?":** > Past about 0.75% of credit sales lost, the buffer is used up and the lenders take the loss. That's why limits start small and a licensed lender, not us, funds the pool. (32 words; context §5, "what could break it".)

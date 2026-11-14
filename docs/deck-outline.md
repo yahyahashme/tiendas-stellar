@@ -96,7 +96,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 - Nothing secret on screen: no key (starts with S), no `.env` text, no personal phone number.
 - Save the three files in `docs/screenshots/` and commit them in a small PR.
 
-**Side effects.** Shot 2 moves test dollars and uses up an invoice. Repaying (**Pagar deuda**) clears the debt, but a repayment after a loan of $40 or more raises that shop's limit by $25, once per credit period, so that shop's limit is then $225, not $200. Tell Yahya which shop and invoice you used, before he records the video. The video's own script wants Tienda Don Luis at $0 owed (`docs/demo-video.md`, #77).
+**Side effects.** Shot 2 moves test dollars and uses up an invoice. Repaying (**Pagar deuda**) clears the debt, but a repayment after a loan of $40 or more (or $10 with half paid up front) raises that shop's limit by $25, once per credit period, so that shop's limit is then $225, not $200. Tell Yahya which shop and invoice you used, before he records the video. The video's own script wants Tienda Don Luis at $0 owed (`docs/demo-video.md`, #77).
 
 ## Before we can build it (as of Thu Nov 12, evening)
 

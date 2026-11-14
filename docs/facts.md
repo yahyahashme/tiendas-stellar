@@ -425,18 +425,18 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 1. Money leaves our contract in exactly one function, and every function that changes state needs the right person's signature (34).
 2. Distributors pay us, shops never do: 0.1% of a cash or digital invoice, or one credit fee of at most 1.5% when the lender pool pays them at delivery, so they get at least $98.50 per $100 (29). The fee drops toward 1% when the shop pays part up front.
-3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more and once per credit period, so nobody can farm it with tiny loans (31). Say "once a week" only after Yahya confirms the deployed credit period is 7 days.
+3. A shop's credit limit starts at $200 and grows $25 for each on-time repayment, but only after a loan of $40 or more (or $10 when the shop paid half up front) and once per credit period, so nobody can farm it with tiny loans (31). Say "once a week" only after Yahya confirms the deployed credit period is 7 days.
 4. Our own safety review found and fixed three bugs, and we publish the 10 limits that are still open (35).
-5. If a shop never pays, the loss buffer, filled by 0.75% of every credit sale, repays the lenders first (32).
+5. If a shop never pays, the loss buffer, filled by up to 0.75% of every credit sale (less when the shop paid part up front), repays the lenders first (32).
 
 ## 29. What we charge: the fee constants
 - **Claim:** The distributor pays us 0.10% of an invoice paid by cash or digitally, or one 1.50% fee when the lender pool pays the invoice up front ("pay in 7 days"). The shop never pays a fee.
 - **Number:**
   - Usage fee 0.10% (10 basis points) on cash and digital invoices. Per $100: the distributor receives $99.90 and we get $0.10.
   - Credit fee 1.50% (150 basis points), only on credit sales. Per $100: the distributor receives $98.50 at delivery. The $1.50 splits into $0.75 for the loss buffer, $0.50 for the lenders and $0.25 for us.
-  - Update Nov 13 (#135, after the next redeploy): 1.50% is now the top rate, when the whole invoice goes on credit. It slides to 1.00% the more the shop paid up front: half paid first gives 1.22%, so $0.61 on the $50 left of a $100 invoice. "$98.50 per $100" stays true for a fully credited invoice. Lenders always get 0.50%.
+  - Update Nov 13 (#135, live since the #139 redeploy, `CAGCZ3I7…`): 1.50% is now the top rate, when the whole invoice goes on credit. It slides to 1.00% the more the shop paid up front: half paid first gives 1.22%, so $0.61 on the $50 left of a $100 invoice. "$98.50 per $100" stays true for a fully credited invoice. Lenders always get 0.50%.
   - No usage fee on top of the credit fee.
-- **Source:** `contracts/route_ledger/src/lib.rs` on `origin/main` at 044f987: lines 17 to 29 (`USAGE_FEE_BPS = 10` at line 20, `CREDIT_FEE_BPS = 150` at 22, `BUFFER_BPS = 75` at 24, `LENDER_BPS = 50` at 26, `OUR_BPS = 25` at 28, and the compile-time check that 75 + 50 + 25 = 150 at 29). The usage fee is taken in `pay` (line 385) and recorded for cash in `cash_confirm` (line 492). The credit fee split is in `pay_with_credit` (lines 578 to 584). The app uses the same credit-fee numbers (`lib/labels.ts:25`; `lib/mock.ts:18` to 20). Also `docs/security.md` section 1 and `docs/context.md` section 5.
+- **Source:** `contracts/route_ledger/src/lib.rs` on `origin/main` at 044f987: lines 17 to 29 (`USAGE_FEE_BPS = 10` at line 20, `CREDIT_FEE_BPS = 150` at 22, `BUFFER_BPS = 75` at 24, `LENDER_BPS = 50` at 26, `OUR_BPS = 25` at 28, and the compile-time check that 75 + 50 + 25 = 150 at 29). The usage fee is taken in `pay` (line 385) and recorded for cash in `cash_confirm` (line 492). The credit fee split is in `pay_with_credit` (lines 578 to 584). The app uses the same credit-fee numbers (`lib/labels.ts:25`; `lib/mock.ts:18` to 20). Also `docs/security.md` section 1 and `docs/context.md` section 5. Since #139 the split is computed by `fee_split` (lenders always `LENDER_BPS` 50; the rest 3:1 buffer : us); `BUFFER_BPS` and `OUR_BPS` no longer exist.
 - **Exact quote:** "Credit sales don't pay it: our cut there is inside the 1.50% credit fee, so the distributor sees one number ($98.50 for every $100)." (code comment, line breaks removed)
 - **Translation:** n/a (English source)
 - **Use in:** one-pager / pitch / trifold / deck ("how do you make money")
@@ -449,7 +449,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 
 ## 30. Revenue scenarios with the fees as built (our maths)
 - **Claim:** If every dollar of the $2 billion moved through us by cash or digital payment, we would earn $2 million a year. If 10% of it used "pay in 7 days" instead, we would earn $2.3 million, not $2.5 million.
-- **Update Nov 13 (#139):** the credit fee is now **up to** 1.50%; our share is at most 0.25% (0.125% at the 1.00% floor). The $500,000 credit line below is therefore the most we would earn on that volume, at full credit.
+- **Update Nov 13 (#139):** the credit fee is now **up to** 1.50%; our share is at most 0.25% (0.12% at the 1.00% floor: `fee_split(100)` gives 38 buffer / 12 us). The $500,000 credit line below is therefore the most we would earn on that volume, at full credit.
 - **Number:**
   - All cash or digital: 0.1% × $2,000,000,000 = **$2,000,000**.
   - 10% on credit: credit volume $200,000,000 × 0.25% (our share of the 1.50%) = **$500,000**, plus usage fee on the other $1,800,000,000 × 0.1% = **$1,800,000**. Total **$2,300,000**.
@@ -488,7 +488,7 @@ _Entries 29 to 35 come from this repo, not from a web page. Claude first read th
 - **Claim:** A shop four credit periods (28 days) past its due date can be written off. The loss buffer repays the lenders what it can, the shop's limit goes to $0, and the debt stays on its record.
 - **Number:**
   - 4 credit periods (`DEFAULT_AFTER_PERIODS`) = 28 days late for real if the credit period is 7 days; 8 minutes with the 2-minute demo period. The period is `credit_period_secs`, set at deploy, and we have not verified the deployed value (entry 31), so say "28 days" only after Yahya confirms it.
-  - The buffer grows by 0.75% of every credit sale. The demo seeds it with $50.
+  - The buffer grows by up to 0.75% of every credit sale (0.75% at full credit, 0.54% at half up front, 0.38% at the 1.00% floor; #139). The demo seeds it with $50.
   - Later payments on a written-off debt go back into the buffer.
 - **Source:** `contracts/route_ledger/src/lib.rs` on `origin/main` at 044f987: `DEFAULT_AFTER_PERIODS = 4` at line 43 (the block is lines 41 to 43); `cover_default` starts at line 698 and the 4-period test is lines 705 to 708; the buffer grows in `pay_with_credit` (lines 582 and 598); a written-off debt that is repaid refills the buffer in `repay` (lines 655 to 663). Also `scripts/deploy.sh` line 127 (the $50 buffer seed; unchanged since dfdc33c) and `docs/credit-model.md` sections 5 and 9.
 - **Exact quote:** "A shop this many credit periods past its due date can be written off: 4 x 7 days = 28 days late for real, 8 minutes with the 2-minute demo period." (code comment)

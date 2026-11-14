@@ -5,7 +5,7 @@
 How "pay in 7 days" decides who gets credit, how much, and what happens when someone pays late. Think of it as a level system: everyone starts small, levels up by paying on time, and drops levels for paying late.
 
 ## 1. Goals
-- Losses stay below the **0.75% default buffer** per 7-day cycle.
+- Losses stay below the **default buffer (0.75% at full credit; less when shops pay part up front, #139)** per 7-day cycle.
 - Rules are simple enough to put in the contract and explain to a shop owner in one sentence.
 - A fake or dishonest shop can only ever take a little.
 
@@ -32,8 +32,8 @@ All of these:
 | Paid 1 day late | Still on time: a grace day (**built**, #137) |
 | Paid 2–7 days late | Unfrozen, but the limit drops $25 (**built**, #137) |
 | Paid 8+ days late | The limit drops $50 and can't grow for 4 credit periods (**built**, #137) |
-| 4–14 days late | Limit resets to the start (pitch only) |
-| 15–28 days late | Credit off; every distributor sees it (pitch only) |
+| ~~4–14 days late: limit resets to the start~~ | Replaced by the built 2–7 and 8+ day rows above (#137) |
+| ~~15–28 days late: credit off, every distributor sees it~~ | Replaced: after 4 credit periods the admin can `cover_default` (built) |
 | 28+ days (4 credit periods) | Default: the admin calls `cover_default`. The buffer pays the lenders back what it can, credit goes to $0, and the debt stays on the shop's record. Any later payment goes back into the buffer (**built**) |
 
 ## 6. Fraud controls
@@ -55,7 +55,7 @@ All of these:
 - The lender seeds the buffer at launch so it isn't empty on day one (**built**: `fund_buffer`; the demo seeds $50).
 
 ## 9. Stress test
-1,000 shops × about $150 outstanding = **$150K** outstanding **(guess)**. Buffer in per week: 0.75% × $150K = **$1,125**. This assumes every shop repays and borrows again each week, because the buffer grows with each credit sale, not with the amount outstanding.
+1,000 shops × about $150 outstanding = **$150K** outstanding **(guess)**. Buffer in per week, at full credit: 0.75% × $150K = **$1,125** (less if shops pay part up front). This assumes every shop repays and borrows again each week, because the buffer grows with each credit sale, not with the amount outstanding.
 
 | Scenario | Loss | Weeks of buffer |
 |---|---|---|
@@ -67,11 +67,11 @@ All of these:
 Normal weeks are fine; a big shock needs **about $10–15K of seed money** at launch, which is why the caps in §7 exist.
 
 ## 10. What to track weekly
-On-time rate; roll rates (how many 1–7 days late slide to 8–30); loss rate vs. the 0.75% buffer; how much of a default is eventually recovered; how much of the pool is actually lent out.
+On-time rate; roll rates (how many 1–7 days late slide to 8–30); loss rate vs. the buffer (up to 0.75%); how much of a default is eventually recovered; how much of the pool is actually lent out.
 
 ## 11. Demo vs. real
 - **Built in the contract (#58, merged Nov 10):** $200 start; +$25 per on-time repayment, only after a $40+ cycle (or $10+ with half up front, #139) and once per credit period; $500 cap; frozen while overdue; a late repayment drops the limit $25 (2–7 days late) or $50 with no raises for 4 periods (8+ days late, #137); `cover_default` after 4 credit periods late (the buffer repays lenders, credit off, debt kept on record); `fund_buffer`; approved distributors only.
-- **Pitch only, not built:** eligibility checks, the 4–28 day steps of the ladder, exposure caps, the buffer dial, the stress test.
+- **Pitch only, not built:** eligibility checks, every distributor seeing a default, exposure caps, the buffer dial, the stress test.
 
 ## 12. Questions for interviews (#7)
 - How many shops on a route never pay their *fiado* today, and how much gets recovered?
