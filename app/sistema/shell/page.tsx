@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/kit/button";
 import { Shell } from "@/components/kit/layout";
 import { Logo } from "@/components/logo";
 import { useT } from "@/lib/i18n";
-import { ROWS, SampleFigures, SampleLedger } from "../samples";
+import { ROWS, SampleCash, SampleFigures, SampleFilters, SampleLedger } from "../samples";
 
 // The Shell layout with sample content: the distributor's sidebar (or top bar and bottom navigation) around a ledger.
 export default function ShellSample() {
@@ -26,12 +26,18 @@ export default function ShellSample() {
         { href: "/sistema/shell#tiendas", label: t("Tiendas", "Shops") },
         { href: "/sistema/shell#pasos", label: t("Primeros pasos", "First steps"), sidebarOnly: true },
       ]}
-      action={<ButtonLink href="/sistema/shell">{t("Nueva factura", "New invoice")}</ButtonLink>}
+      action={(place) => (
+        <ButtonLink href="/sistema/shell" size={place === "bar" ? "sm" : "md"}>
+          {t("Nueva factura", "New invoice")}
+        </ButtonLink>
+      )}
     >
       <div className="flex flex-col gap-4">
         <h1 className="text-title font-bold">Panel</h1>
         <SampleFigures />
+        <SampleFilters />
         <SampleLedger rows={rows} />
+        <SampleCash />
       </div>
     </Shell>
   );

@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useT } from "@/lib/i18n";
-import { Button } from "./button";
+import { Button, DetailLink } from "./button";
+import { MoneyText } from "./money";
 
 // The four states every screen has besides its content. Success is not here: success is the
 // receipt itself, with its stamp.
@@ -30,8 +31,8 @@ export function Empty({ children, action }: { children: ReactNode; action?: Reac
   );
 }
 
-/** Error: what we couldn't do, in words, and a way to try again. */
-export function Failure({ children, onRetry, busy = false }: { children?: ReactNode; onRetry?: () => void; busy?: boolean }) {
+/** Error: what we couldn't do, in words, and a way to try again (`size="lg"`: the driver's 60 px button). */
+export function Failure({ children, onRetry, busy = false, size = "md" }: { children?: ReactNode; onRetry?: () => void; busy?: boolean; size?: "md" | "lg" }) {
   const { t } = useT();
   return (
     <div role="alert" className="flex flex-col gap-3">
@@ -39,7 +40,7 @@ export function Failure({ children, onRetry, busy = false }: { children?: ReactN
         {children ?? t("No pudimos cargar esta pantalla. Revise su conexión.", "We couldn't load this screen. Check your connection.")}
       </p>
       {onRetry && (
-        <Button onClick={onRetry} busy={busy}>
+        <Button onClick={onRetry} busy={busy} size={size}>
           {t("Reintentar", "Try again")}
         </Button>
       )}
@@ -52,6 +53,27 @@ export function Notice({ tone = "ok", children }: { tone?: "ok" | "bad"; childre
   return (
     <p role="status" className={`font-semibold ${tone === "ok" ? "text-ok" : "text-bad"}`}>
       {children}
+    </p>
+  );
+}
+
+/**
+ * The answer to an action that isn't a payment on a slip (cash handed in, invoices imported): the server's
+ * words, with "Ver detalles" when there is a public record. Give it a place of its own that is always there
+ * (min-h-11, the height of "Ver detalles"), so the answer never moves the buttons around it.
+ */
+export function Answer({ receipt }: { receipt: { ok: boolean; message: string; explorerUrl?: string } }) {
+  const { t, msg } = useT();
+  return (
+    <p role="status" className={`flex min-h-11 flex-wrap items-center gap-x-3 font-semibold ${receipt.ok ? "text-ok" : "text-bad"}`}>
+      <span>
+        <MoneyText>{msg(receipt.message)}</MoneyText>
+      </span>
+      {receipt.explorerUrl && (
+        <DetailLink href={receipt.explorerUrl} external>
+          {t("Ver detalles", "See details")}
+        </DetailLink>
+      )}
     </p>
   );
 }

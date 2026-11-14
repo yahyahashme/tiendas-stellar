@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dueOn, formatAmount, formatDay, formatMoney, isPastDue, plural } from "./format";
+import { dueOn, formatAmount, formatDay, formatMoney, isPastDue, plural, pricedLine } from "./format";
 
 describe("formatMoney", () => {
   it("shows dollars with commas and cents", () => {
@@ -72,5 +72,17 @@ describe("isPastDue", () => {
 
   it("is false for a bad date", () => {
     expect(isPastDue("nope", Date.now())).toBe(false);
+  });
+});
+
+describe("pricedLine", () => {
+  it("reads a product with a price at the end", () => {
+    expect(pricedLine("Arroz 5 lb x 12  $54.00")).toEqual({ name: "Arroz 5 lb x 12", amount: 54 });
+    expect(pricedLine("Agua 600 ml x 24 $ 1,230.5")).toEqual({ name: "Agua 600 ml x 24", amount: 1230.5 });
+  });
+  it("leaves any other line as written", () => {
+    expect(pricedLine("Entregar antes de las 10")).toBeNull();
+    expect(pricedLine("$54.00")).toBeNull();
+    expect(pricedLine("Jugos $18.00 cada caja")).toBeNull();
   });
 });

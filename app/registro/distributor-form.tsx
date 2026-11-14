@@ -1,19 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { signUpDistributorAction } from "@/app/distributor-actions";
-import { FormError, PasswordField, TextField } from "@/components/form";
-import { Button } from "@/components/ui";
+import { TextButton } from "@/components/kit/button";
+import { Field, PasswordField } from "@/components/kit/field";
+import { Choice, Choices, Form, FormHead, FormSubmit } from "@/components/kit/form";
+import { type Blank, blankOf } from "@/lib/form-errors";
 import { useT } from "@/lib/i18n";
 import { SELLS, sellLabel } from "@/lib/sells";
 
+/** The step each blank is on. A message about a blank that isn't on screen goes above the button. */
+const STEP_OF: Partial<Record<Blank, 1 | 2>> = { businessName: 1, nit: 1, address: 1, sells: 1, approx: 1, name: 2, contact: 2, password: 2 };
 
 /**
- * Distributor sign-up (#130): "Su empresa" then "Su cuenta". Two steps on a
- * phone; on a laptop both sections sit side by side and it's one screen.
+ * Distributor sign-up (#130), one slip at every size: "Su empresa", then "Su cuenta".
+ * `intro` is one sentence under the first step's name.
  */
-export function DistributorForm() {
+export function DistributorForm({ intro }: { intro?: ReactNode }) {
   const { lang, t, msg } = useT();
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
@@ -28,6 +32,11 @@ export function DistributorForm() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Each step starts at its top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
 
   const toggle = (item: string) => setSells((list) => (list.includes(item) ? list.filter((s) => s !== item) : [...list, item]));
 
@@ -48,6 +57,7 @@ export function DistributorForm() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (step === 1) return next(); // the keyboard's Enter on the first step is "Siguiente"
     const problem = businessProblem();
     if (problem) {
       setError(problem);
@@ -70,91 +80,116 @@ export function DistributorForm() {
     setBusy(false);
   }
 
-  return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <fieldset className={`flex-col gap-4 ${step === 1 ? "flex" : "hidden lg:flex"}`}>
-          <legend className="mb-4 text-xl font-semibold">
-            <span className="lg:hidden">{t(`Paso ${1} de 2`, `Step ${1} of 2`)} · </span>
-            {t("Su empresa", "Your business")}
-          </legend>
-          <TextField label={t("Nombre de la empresa", "Business name")} autoComplete="organization" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} />
-          <TextField label={t("NIT", "Tax ID (NIT)")} hint={t("14 dígitos, con o sin guiones.", "14 digits, with or without dashes.")} inputMode="numeric" required value={nit} onChange={(e) => setNit(e.target.value)} />
-          <TextField label={t("Dirección", "Address")} autoComplete="street-address" required value={address} onChange={(e) => setAddress(e.target.value)} />
-          <div className="flex flex-col gap-1.5">
-            <p className="text-base font-semibold" id="sells">
-              {t("¿Qué vende?", "What do you sell?")}
-            </p>
-            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="sells">
-              {SELLS.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  aria-pressed={sells.includes(item)}
-                  onClick={() => toggle(item)}
-                  className={`min-h-12 rounded-full border-2 px-4 text-base font-medium ${
-                    sells.includes(item) ? "border-brand bg-brand text-white" : "border-line bg-card active:bg-brand-soft"
-                  }`}
-                >
-                  {sellLabel(item, lang)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <TextField label={t("Tiendas (aprox.)", "Shops (approx.)")} inputMode="numeric" value={shopsApprox} onChange={(e) => setShopsApprox(e.target.value)} />
-            <TextField label={t("Motoristas (aprox.)", "Drivers (approx.)")} inputMode="numeric" value={driversApprox} onChange={(e) => setDriversApprox(e.target.value)} />
-          </div>
-        </fieldset>
+  // A message about one blank goes under that blank; anything else goes above the button.
+  const blank = blankOf(error);
+  const onScreen = blank !== undefined && STEP_OF[blank] === step;
+  const under = (which: Blank) => (error && onScreen && blank === which ? msg(error) : undefined);
+  const aboveButton = error && !onScreen ? msg(error) : undefined;
 
-        <fieldset className={`flex-col gap-4 ${step === 2 ? "flex" : "hidden lg:flex"}`}>
-          <legend className="mb-4 text-xl font-semibold">
-            <span className="lg:hidden">{t(`Paso ${2} de 2`, `Step ${2} of 2`)} · </span>
-            {t("Su cuenta", "Your account")}
-          </legend>
-          <TextField label={t("Nombre de la persona de contacto", "Contact person's name")} autoComplete="name" required={step === 2} value={name} onChange={(e) => setName(e.target.value)} />
-          <TextField
+  return (
+    // The first step runs its own checks, in its own words ("El NIT debe tener 14 dígitos.").
+    <Form onSubmit={submit} noValidate={step === 1} error={error}>
+      <FormHead step={t(`Crear cuenta · Paso ${step} de 2`, `Create account · Step ${step} of 2`)} at={step} title={step === 1 ? t("Su empresa", "Your business") : t("Su cuenta", "Your account")}>
+        {step === 1 && intro}
+      </FormHead>
+
+      {step === 1 ? (
+        <div key="empresa" className="contents">
+          <Field
+            label={t("Nombre de la empresa", "Business name")}
+            autoComplete="organization"
+            autoCapitalize="words"
+            required
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            error={under("businessName")}
+          />
+          <Field
+            label={t("NIT", "Tax ID (NIT)")}
+            hint={t("14 dígitos, con o sin guiones.", "14 digits, with or without dashes.")}
+            inputMode="numeric"
+            autoComplete="off"
+            required
+            value={nit}
+            onChange={(e) => setNit(e.target.value)}
+            error={under("nit")}
+          />
+          <Field label={t("Dirección", "Address")} autoComplete="street-address" required value={address} onChange={(e) => setAddress(e.target.value)} error={under("address")} />
+          <Choices label={t("¿Qué vende?", "What do you sell?")} error={under("sells")}>
+            {SELLS.map((item) => (
+              <Choice key={item} chosen={sells.includes(item)} onClick={() => toggle(item)}>
+                {sellLabel(item, lang)}
+              </Choice>
+            ))}
+          </Choices>
+          <div className="flex flex-col gap-1.5">
+            <div className="grid grid-cols-2 items-end gap-3">
+              <Field label={t("Tiendas (aprox.)", "Shops (approx.)")} inputMode="numeric" autoComplete="off" value={shopsApprox} onChange={(e) => setShopsApprox(e.target.value)} />
+              <Field label={t("Motoristas (aprox.)", "Drivers (approx.)")} inputMode="numeric" autoComplete="off" value={driversApprox} onChange={(e) => setDriversApprox(e.target.value)} />
+            </div>
+            {under("approx") && (
+              <p role="alert" className="font-semibold text-bad">
+                {under("approx")}
+              </p>
+            )}
+          </div>
+          <FormSubmit error={aboveButton}>{t("Siguiente", "Next")}</FormSubmit>
+        </div>
+      ) : (
+        <div key="cuenta" className="contents">
+          <Field
+            label={t("Nombre de la persona de contacto", "Contact person's name")}
+            autoComplete="name"
+            autoCapitalize="words"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            error={under("name")}
+          />
+          <Field
             label={t("Teléfono o correo", "Phone or email")}
             hint={t("Teléfono de El Salvador (8 dígitos) o correo.", "A Salvadoran phone number (8 digits) or an email.")}
             autoComplete="username"
             inputMode="email"
-            required={step === 2}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            required
             value={contact}
             onChange={(e) => setContact(e.target.value)}
+            error={under("contact")}
           />
           <PasswordField
             label={t("Contraseña", "Password")}
             hint={t("Al menos 8 caracteres.", "At least 8 characters.")}
             autoComplete="new-password"
             minLength={8}
-            required={step === 2}
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            error={under("password")}
           />
-          <p className="rounded-xl bg-brand-soft px-3 py-2 text-brand">
+          <p className="text-muted text-pretty">
             {t("En el producto real, un socio con licencia verifica la empresa antes de aprobarla.", "In the real product, a licensed partner checks the business before approving it.")}
           </p>
-        </fieldset>
-      </div>
-
-      {error && <FormError>{msg(error)}</FormError>}
-
-      {step === 1 && (
-        <div className="lg:hidden">
-          <Button onClick={next}>{t("Siguiente", "Next")}</Button>
+          <FormSubmit
+            error={aboveButton}
+            note={busy ? t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.") : undefined}
+            busy={busy}
+          >
+            {t("Crear cuenta", "Create account")}
+          </FormSubmit>
+          <TextButton
+            onClick={() => {
+              setError(null); // a message about this step doesn't follow to the one before
+              setStep(1);
+            }}
+            disabled={busy}
+          >
+            {t("Atrás", "Back")}
+          </TextButton>
         </div>
       )}
-      <div className={`flex-col gap-3 ${step === 2 ? "flex" : "hidden lg:flex"}`}>
-        <Button type="submit" busy={busy}>
-          {t("Crear cuenta", "Create account")}
-        </Button>
-        {step === 2 && (
-          <button type="button" onClick={() => setStep(1)} disabled={busy} className="min-h-12 text-lg font-semibold text-brand lg:hidden">
-            {t("Atrás", "Back")}
-          </button>
-        )}
-        {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}</p>}
-      </div>
-    </form>
+    </Form>
   );
 }
