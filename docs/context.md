@@ -255,7 +255,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 - Mock data: 1 distributor, 2 drivers, 3 shops, 8 invoices.
 
 **R2. CSV import** (due Mon Nov 9)
-- On `/distribuidor`, an "Importar facturas (CSV)" button. Columns: `invoice_id, shop_id, driver_id, amount, due_date`.
+- On `/distribuidor/factura` (linked from `/distribuidor` as "Importar facturas (CSV)"), the CSV import. Columns: `invoice_id, shop_id, driver_id, amount, due_date`.
 - Check each row: nothing missing, amount above 0, date as YYYY-MM-DD, shop and driver exist, no duplicate IDs. Show a preview table with bad rows in red and the reason.
 - "Crear facturas" calls `createInvoices(rows)` in `lib/api.ts`.
 - Add `public/sample-invoices.csv` with 8 good rows and 2 bad ones.

@@ -7,7 +7,7 @@ import { Slip, TopNav } from "@/components/kit/layout";
 import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/components/kit/ledger";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@/components/tap-shield";
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
@@ -39,6 +39,7 @@ export default function AdminScreen() {
   const running = useRef(false);
   const [held, setHeld] = useState(false);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const secondTap = useSecondTap();
   const [error, setError] = useState<string | null>(null);
   const { noteTap, settle } = useTapShield();
   const { ref: pendingBlock, justMoved } = useMovedGuard<HTMLElement>();
@@ -72,10 +73,13 @@ export default function AdminScreen() {
     if (running.current || justMoved()) return;
     // Rejecting can't be taken back from here, so it asks for a second tap.
     if (status === "rechazado" && confirming !== id) {
+      secondTap.asked();
       setConfirming(id);
       setTimeout(() => setConfirming((c) => (c === id ? null : c)), 4000);
       return;
     }
+    // The second tap of a double tap is not a second thought: it has to come a beat after the first.
+    if (status === "rechazado" && secondTap.tooSoon()) return;
     running.current = true;
     setConfirming(null);
     setBusy({ id, status });

@@ -55,3 +55,14 @@ export function formatPhone(phone: string): string {
   const match = /^\+503(\d{4})(\d{4})$/.exec(phone);
   return match ? `${match[1]}-${match[2]}` : phone;
 }
+
+const PRICED = /^(.*\S)\s+\$\s?(\d[\d,]*(?:\.\d{1,2})?)$/;
+
+/**
+ * One line of an invoice's note. "Arroz 5 lb x 12  $54.00" is a product with a price, printed with a dotted
+ * leader; anything else prints as written (null). The shop's slip and the distributor's preview both use this.
+ */
+export function pricedLine(line: string): { name: string; amount: number } | null {
+  const found = PRICED.exec(line);
+  return found ? { name: found[1], amount: Number(found[2].replaceAll(",", "")) } : null;
+}

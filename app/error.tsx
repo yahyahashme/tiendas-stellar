@@ -24,7 +24,7 @@ export default function ErrorScreen({ error, reset }: { error: Error & { digest?
           setTimeout(() => setRetrying(false), 1500);
         }}
       >
-        {t("No pudimos mostrar esta pantalla. Su dinero y sus datos están como estaban.", "We couldn't show this screen. Your money and your data are as they were.")}
+        {t("No pudimos mostrar esta pantalla. Si estaba pagando, revise su cuenta antes de intentar de nuevo.", "We couldn't show this screen. If you were paying, check your account before you try again.")}
       </Failure>
     </Slip>
   );

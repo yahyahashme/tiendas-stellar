@@ -13,7 +13,7 @@ import { Stamp } from "@/components/kit/stamp";
 import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { HOLD_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { getDistributorView } from "@/lib/api";
-import { formatDay } from "@/lib/format";
+import { formatDay, pricedLine } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { parseAmount } from "@/lib/labels";
 import type { Invoice, Receipt as Outcome } from "@/lib/types";
@@ -116,7 +116,7 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
   const pickFirst = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
-    if (matches.length > 0) pick(matches[0]);
+    if (query.trim() !== "" && matches.length > 0) pick(matches[0]);
   };
   return (
     <div className="flex flex-col gap-1.5">
@@ -151,9 +151,6 @@ function ShopPicker({ shops, value, onChange }: { shops: Shop[]; value: Shop | n
     </div>
   );
 }
-
-/** "Arroz 5 lb x 12  $54.00" prints with a dotted leader, as on the shop's slip; anything else prints as written. */
-const PRICED = /^(.*\S)\s+\$\s?(\d[\d,]*(?:\.\d{1,2})?)$/;
 
 /** What the shop will see: the same slip as on its phone, filling in as the form is written. */
 function Preview({
@@ -198,12 +195,12 @@ function Preview({
       {lines.length > 0 && (
         <ul className="flex flex-col gap-1.5 font-mono text-base font-medium">
           {lines.map((line, i) => {
-            const priced = PRICED.exec(line);
+            const priced = pricedLine(line);
             return priced ? (
               <li key={i} className="flex items-end">
-                <span className="min-w-0">{priced[1]}</span>
+                <span className="min-w-0">{priced.name}</span>
                 <span aria-hidden className="leader" />
-                <Money value={Number(priced[2].replaceAll(",", ""))} className="shrink-0" />
+                <Money value={priced.amount} className="shrink-0" />
               </li>
             ) : (
               <li key={i} className="wrap-anywhere">
@@ -279,8 +276,10 @@ export default function NewInvoice() {
   const [slipOpen, setSlipOpen] = useState(false);
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
-  // The distributor's recent invoices, for "Repetir". Read once; the form never waits for them.
-  const recent = usePolling("factura-recent", () => getDistributorView(1), 0);
+  // The distributor's recent invoices, for "Repetir". Read once, and only after the form is on screen: in live mode
+  // server actions run one at a time, so a read started earlier would hold the form back behind the whole dashboard.
+  const formReady = form !== undefined && form !== null;
+  const recent = usePolling(formReady ? "factura-recent" : "factura-recent-waiting", () => (formReady ? getDistributorView(1) : Promise.resolve(undefined)), 0);
   // Picking a shop folds the list of shops away and the button comes up the page: it stays inert for a beat.
   const shopJustPicked = useQuietOnArrival(shop !== null);
   const anotherArriving = useQuietOnArrival(done?.ok === true && !held);
