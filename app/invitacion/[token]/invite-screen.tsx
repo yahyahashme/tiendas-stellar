@@ -3,8 +3,14 @@
 import { useParams, useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { acceptInviteAction, getInvite, type InvitePreview } from "@/app/driver-actions";
-import { FormError, PasswordField, TextField } from "@/components/form";
-import { BackLink, Button, ButtonLink, Card, Loading, Screen } from "@/components/ui";
+import { Brand, HomeNav, StatusSlip } from "@/components/auth";
+import { ButtonLink } from "@/components/kit/button";
+import { Field, PasswordField } from "@/components/kit/field";
+import { Form, FormHead, FormSubmit } from "@/components/kit/form";
+import { Slip } from "@/components/kit/layout";
+import { Receipt, ReceiptHeader, ReceiptRule } from "@/components/kit/paper";
+import { Loading } from "@/components/kit/states";
+import { blankOf } from "@/lib/form-errors";
 import { useT } from "@/lib/i18n";
 
 /** A driver opens the distributor's invite link (#131): name prefilled, sets a password, lands on their route. */
@@ -45,34 +51,41 @@ export default function InviteScreen() {
 
   if (invite === undefined) {
     return (
-      <Screen>
+      <Slip>
+        <Brand />
         <Loading />
-      </Screen>
+      </Slip>
     );
   }
 
   if (invite === null) {
     return (
-      <Screen>
-        <BackLink />
-        <h1 className="text-3xl font-bold">{t("Esta invitación ya no es válida", "This invite is no longer valid")}</h1>
-        <p className="text-lg">{t("Pida otra a su distribuidora, o entre si ya creó su cuenta.", "Ask your distributor for a new one, or sign in if you already created your account.")}</p>
+      <Slip>
+        <HomeNav />
+        <StatusSlip title={t("Esta invitación ya no es válida", "This invite is no longer valid")} stamp={t("No válida", "Not valid")} tone="bad">
+          {t("Pida otra a su distribuidora, o entre si ya creó su cuenta.", "Ask your distributor for a new one, or sign in if you already created your account.")}
+        </StatusSlip>
         <ButtonLink href="/entrar">{t("Entrar", "Sign in")}</ButtonLink>
-      </Screen>
+      </Slip>
     );
   }
 
+  // A message about one blank goes under that blank; anything else goes above the button.
+  const blank = blankOf(error);
+  const under = (which: "name" | "password") => (error && blank === which ? msg(error) : undefined);
+
   return (
-    <Screen>
-      <header className="flex flex-col gap-1 pt-2">
-        <h1 className="text-3xl font-bold text-balance">{t(`${invite.distributorName} lo invita como motorista`, `${invite.distributorName} invites you as a driver`)}</h1>
-        <p className="text-lg text-muted">{t("Cree su cuenta para ver su ruta y registrar el efectivo.", "Create your account to see your route and record cash.")}</p>
-      </header>
-      <Card>
-        <p className="text-base">{t(`Su usuario será su teléfono que termina en ${invite.phoneEnd}.`, `You'll sign in with your phone number ending in ${invite.phoneEnd}.`)}</p>
-      </Card>
-      <form onSubmit={submit} className="flex flex-col gap-4">
-        <TextField label={t("Su nombre", "Your name")} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
+    <Slip>
+      <Brand />
+      {/* The invite, printed like the distributor's own slips. */}
+      <Receipt>
+        <ReceiptHeader from={invite.distributorName} number={t("lo invita como motorista", "invites you as a driver")} />
+        <ReceiptRule />
+        <p className="text-pretty">{t(`Su usuario será su teléfono que termina en ${invite.phoneEnd}.`, `You'll sign in with your phone number ending in ${invite.phoneEnd}.`)}</p>
+      </Receipt>
+      <Form onSubmit={submit} error={error}>
+        <FormHead title={t("Su cuenta", "Your account")}>{t("Cree su cuenta para ver su ruta y registrar el efectivo.", "Create your account to see your route and record cash.")}</FormHead>
+        <Field label={t("Su nombre", "Your name")} autoComplete="name" autoCapitalize="words" required value={name} onChange={(e) => setName(e.target.value)} error={under("name")} />
         <PasswordField
           label={t("Contraseña", "Password")}
           hint={t("Al menos 8 caracteres.", "At least 8 characters.")}
@@ -81,13 +94,16 @@ export default function InviteScreen() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={under("password")}
         />
-        {error && <FormError>{msg(error)}</FormError>}
-        <Button type="submit" busy={busy}>
+        <FormSubmit
+          error={error && blank !== "name" && blank !== "password" ? msg(error) : undefined}
+          note={busy ? t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.") : undefined}
+          busy={busy}
+        >
           {t("Crear mi cuenta", "Create my account")}
-        </Button>
-        {busy && <p className="text-center text-muted">{t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}</p>}
-      </form>
-    </Screen>
+        </FormSubmit>
+      </Form>
+    </Slip>
   );
 }

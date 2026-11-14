@@ -172,3 +172,6 @@ next-env.d.ts
 
 # Print-size slide images (SCALE=3 node docs/slides/render.mjs): big, rebuilt on demand
 docs/img/*@*x.png
+
+# Single screenshots behind the redesign's contact sheets (scripts/screens.mjs): rebuilt on demand
+docs/screenshots/redesign/.shots/

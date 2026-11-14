@@ -255,7 +255,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 - Mock data: 1 distributor, 2 drivers, 3 shops, 8 invoices.
 
 **R2. CSV import** (due Mon Nov 9)
-- On `/distribuidor`, an "Importar facturas (CSV)" button. Columns: `invoice_id, shop_id, driver_id, amount, due_date`.
+- On `/distribuidor/factura` (linked from `/distribuidor` as "Importar facturas (CSV)"), the CSV import. Columns: `invoice_id, shop_id, driver_id, amount, due_date`.
 - Check each row: nothing missing, amount above 0, date as YYYY-MM-DD, shop and driver exist, no duplicate IDs. Show a preview table with bad rows in red and the reason.
 - "Crear facturas" calls `createInvoices(rows)` in `lib/api.ts`.
 - Add `public/sample-invoices.csv` with 8 good rows and 2 bad ones.
@@ -364,7 +364,7 @@ Learn only what your next task needs. Each item has a "done means" so you know w
 
 **The $100 example** (made-up numbers; Rohan pressure-tests them)
 A shop buys $100 of stock and picks "pay in 7 days".
-1. At delivery, the lender pool pays the distributor $98.50. The distributor pays one 1.5% fee to be paid now, with no risk. No usage fee on top, so there is one number to remember.
+1. At delivery, the lender pool pays the distributor $98.50 (the full-credit case). The distributor pays one fee of up to 1.5% to be paid now, with no risk. No usage fee on top, so there is one number to remember.
 2. Within 7 days, the shop pays the pool $100. No interest.
 3. The contract splits the $1.50: $0.75 to the default buffer, $0.50 to lenders, $0.25 to us.
 4. If a shop is about 4 weeks late (4 credit periods), the admin calls `cover_default`: the buffer pays the lenders back what it can, the shop's credit goes to $0, and the debt stays on its record. Anything the shop pays later refills the buffer.
@@ -380,7 +380,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - Option 2: if a shop is more than 7 days late, the distributor pays the pool and collects from the shop itself. The distributor keeps a small deposit in the pool that the contract can use for this.
 - Whoever carries the risk sets the shop's limit.
 - Typical use (plan): option 2 for long-time customers (cheap), option 1 for new shops.
-- **Built so far (Nov 13, #112): option 1 only.** The contract has one credit fee, 1.5% (`CREDIT_FEE_BPS = 150`), and every "pay in 7 days" sale is paid from the pool. Options 2 and 3 are ideas, not in the contract. PR #139 proposes a fee that slides from 1.00% to 1.50% depending on how much the shop pays up front.
+- **Built so far (Nov 13, #112): option 1 only.** The contract has one credit fee, up to 1.5% (`CREDIT_FEE_BPS = 150`), and every "pay in 7 days" sale is paid from the pool. Options 2 and 3 are ideas, not in the contract. Since #139 (merged and redeployed Nov 13, `CAGCZ3I7…`), that fee slides from 1.00% to 1.50% depending on how much the shop pays up front.
 
 **The usage fee in numbers (guess):** a route with 60 shops buying $150 a week each moves about $39,000 a month. At 0.05% that's about $20 a month for that route; at 0.1%, about $39. That's tiny per route, so we need many routes, and the credit fee share matters.
 
@@ -395,14 +395,14 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - A finance judge may annualize it, so have the number ready for Q&A (facts 56: Q&A only, never a headline): being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
 - The shop pays 0%. The distributor chooses to pay the fee, and it buys two things: cash at the door, and no default risk (the buffer).
 - For comparison: suppliers that offer "2/10 net 30" give up about 37% a year just to be paid sooner (facts 52). A bank loan under a year averages about 7.6% a year for those who qualify (51); most tiendas don't (§9).
-- A cheaper choice for shops the distributor knows is still an idea: option 2 (0.25%, about 13% to 14% a year, facts 56) isn't built; the contract has one 1.5% fee. PR #139's sliding fee (1.00% to 1.50%) would be the first cheaper path.
+- A cheaper choice for shops the distributor knows is still an idea: option 2 (0.25%, about 13% to 14% a year, facts 56) isn't built; #139's sliding fee (1.00% to 1.50%, built) is the first cheaper path: the shop pays part up front.
 - Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a fee the distributor pays to be paid early, not interest on the shop's debt, and a lawyer confirms it (§11).
 - Precedent: a Salvadoran fintech already turns small businesses' invoices into cash within 24 hours, on a US$50 million credit line from a US fund (53).
 
 **Costs (early thinking):** Stellar describes its network fees as under a cent per transaction (facts 36 and 37; they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
 
 **What could break it**
-- Defaults above about 0.75% of credit sales use up the buffer under option 1.
+- Defaults above about 0.75% of credit sales use up the buffer under option 1 at full credit (less when shops pay part up front, since the buffer's share slides too).
 - Our share per sale is tiny, so we need volume.
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
@@ -519,7 +519,7 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 
 **What the pilot measures** (from §9): the share of invoices paid digitally, driver cash gaps caught, on-time repayments, shops whose limit grew, and defaults as a share of credit sales.
 
-**Go or no-go after phase 1 (guess):** the distributor keeps using it without us pushing, and defaults stay under 0.75% of credit sales, the most option 1's buffer can absorb (§5).
+**Go or no-go after phase 1 (guess):** the distributor keeps using it without us pushing, and defaults stay under 0.75% of credit sales, the most option 1's buffer can absorb at full credit (§5).
 
 ---
 
@@ -536,7 +536,7 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 
 > Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
 
-> Nov 13 (#135, #137, one redeploy): the credit fee slides with the share of the invoice on credit, f clamped to 0.10..1.00: rate = 100 + 50 × (f − 0.10) / 0.90 bps, rounded down (all on credit 1.50%, half 1.22%, a tenth or less 1.00%). Lenders always get 0.50%; the rest splits 3:1 buffer : us, the odd bps to the buffer (75/25 at 1.50%, 38/12 at 1.00%). Each invoice stores its `credit_fee`. If every invoice credited in a cycle had half or more paid up front, the $40 minimum to grow is waived (once a week and the $500 cap stay). `repay` grades lateness in days past `due_at` (a day = credit period / 7): ≤1 on time (grace day), 2-7 `late_minor` and −$25, 8+ `late_major`, −$50 and no raise for 4 periods; `cover_default` unchanged. `ShopView` adds `late_minor`, `late_major`, `max_days_late`, `first_credit_at`.
+> Nov 13 (#135, #137, one redeploy): the credit fee slides with the share of the invoice on credit, f clamped to 0.10..1.00: rate = 100 + 50 × (f − 0.10) / 0.90 bps, rounded down (all on credit 1.50%, half 1.22%, a tenth or less 1.00%). Lenders always get 0.50%; the rest splits 3:1 buffer : us, the odd bps to the buffer (75/25 at 1.50%, 38/12 at 1.00%). Each invoice stores its `credit_fee`. If every invoice credited in a cycle had half or more paid up front, the $40 minimum to grow drops to $10 (`MIN_BORROW_WITH_HALF`, after Jack's review of #139; once a week and the $500 cap stay). `repay` grades lateness in days past `due_at` (a day = credit period / 7): ≤1 on time (grace day), 2-7 `late_minor` and −$25, 8+ `late_major`, −$50 and no raise for 4 periods; `cover_default` unchanged. `ShopView` adds `late_minor`, `late_major`, `max_days_late`, `first_credit_at`.
 
 > Nov 10 (review of #58): no usage fee on credit sales (payout $98.50 per $100). A limit only grows if the shop borrowed $40+ in that cycle, and at most once per credit period. A late repayment drops the limit $25. New functions: `approve_distributor(distributor)` and `is_distributor` (only approved distributors can create invoices, so pool money can't go to a fake one); `cover_default(shop)` (admin, once a shop is 4 credit periods late: the buffer repays the lenders what it can, the shop's limit goes to 0, the debt stays as `written_off`, and later repayments refill the buffer); `fund_buffer(from, amount)` (seeds the buffer; `deploy.sh` adds $50).
 

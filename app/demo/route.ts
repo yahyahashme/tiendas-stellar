@@ -13,24 +13,27 @@ const ERROR_PAGE = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>No se pudo crear la factura · Couldn't create the invoice</title>
 <style>
-  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #fff; color: #111; }
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #e6e1d4; color: #14202e; font-size: 1.0625rem; line-height: 1.5; }
   main { max-width: 28rem; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-  h1 { font-size: 1.5rem; margin: 0; }
-  .en { color: #555; border-top: 1px solid #ddd; padding-top: 16px; }
-  .en h2 { font-size: 1.125rem; margin: 0 0 8px; }
-  .en p { margin: 0; }
-  a { display: block; text-align: center; padding: 14px; border-radius: 12px; background: #0b4ea2; color: #fff;
-      font-size: 1.125rem; font-weight: 600; text-decoration: none; }
+  .paper { background: #fffdf8; border-radius: 2px; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+  h1 { font-size: 1.375rem; line-height: 1.25; margin: 0; }
+  p { margin: 0; }
+  .en { color: #4f5a68; border-top: 2px dotted #d9d3c4; padding-top: 12px; }
+  .en h2 { font-size: 1.0625rem; margin: 0 0 4px; }
+  a { display: flex; min-height: 52px; align-items: center; justify-content: center; padding: 8px 20px; border-radius: 10px; background: #0b4ea2; color: #fff;
+      font-size: 1.125rem; font-weight: 700; text-align: center; text-decoration: none; }
 </style>
 </head>
 <body><main>
-  <h1>No pudimos crear su factura</h1>
-  <p>Puede ser la conexión. Espere unos segundos e intente de nuevo.</p>
+  <div class="paper">
+    <h1>No pudimos crear su factura</h1>
+    <p>Puede ser la conexión. Espere unos segundos e intente de nuevo.</p>
+    <section class="en" lang="en">
+      <h2>We couldn't create your invoice</h2>
+      <p>It may be the connection. Wait a few seconds and try again.</p>
+    </section>
+  </div>
   <a href="/demo">Intentar de nuevo · Try again</a>
-  <section class="en" lang="en">
-    <h2>We couldn't create your invoice</h2>
-    <p>It may be the connection. Wait a few seconds and try again.</p>
-  </section>
 </main></body>
 </html>`;
 

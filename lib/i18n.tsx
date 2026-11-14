@@ -68,3 +68,11 @@ export function useT() {
   const msg = (text: string) => (lang === "en" ? translateMessage(text) : text);
   return { lang, t, msg };
 }
+
+/**
+ * `t()` for a page that renders on the server and so can't call a hook:
+ * `<T es="Pagar ahora" en="Pay now" />`. Only this small piece waits for the browser.
+ */
+export function T({ es, en }: { es: string; en: string }) {
+  return useT().t(es, en);
+}

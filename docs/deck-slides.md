@@ -6,7 +6,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Fee sponsorship is built** (#113): if you say it, say "our sponsor account pays the network fees" (the diagram says it), not "gasless" or "users never need XLM". Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
-**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The code-slide image needs PR #163 (new contract ID after #139), and the phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
+**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 **Update Fri Nov 13 night:** PR #82 is merged and #139 (the sliding fee) is merged with the new contract ID, so `docs/img/code-slide.png` was re-rendered after #139 and slide 5 is ready (see slide 5). Slide 6 now says "up to 1.5%" (line 2 is now about 21 words, over the limit of 12: the .pptx draft sets the bracket sentence small, and it can be cut if the slide reads as too much). Slide 3's phone screenshots (PR #119) predate #125 and #126 and need a retake before the deck is final (steps in `docs/deck-outline.md`).
 
@@ -76,7 +76,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 **Headline:** Distributors pay. Shops never do.
 
 1. Pay in 7 days: shop repays $100, distributor gets $98.50 now
-2. The distributor's fee, up to 1.5%: $0.75 loss buffer, $0.50 lenders, $0.25 us. (Less when the shop pays part up front.)
+2. The fee, up to 1.5%: $0.75 buffer, $0.50 lenders, $0.25 us
 3. Start with one distributor's routes, then Ecuador and Panama.
 
 **Small print:** Fees are the numbers in our testnet contract. Cash or digital invoices pay 0.1% (for cash it is recorded, but nothing collects it yet). Credit sales pay no usage fee. Ecuador and Panama also use the US dollar. A plan, not a deal: no distributor, bank or lender has agreed to anything. Entries 29, 25 and 26.

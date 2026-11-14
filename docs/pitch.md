@@ -223,10 +223,10 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 
 ### 1. How do you make money? (30 seconds)
 
-> Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays a 1.5% fee to be paid at the door: 25 cents of each $100 is ours, the rest goes to lenders and a loss buffer. On invoices paid now or in cash we take 0.1%. Both fees are written into a public contract anyone can check.
+> Distributors pay us; shops never do. On a pay-in-seven-days sale the distributor pays up to 1.5% to be paid at the door, less when the shop pays part up front. At most 25 cents of each $100 is ours; the rest goes to lenders and a loss buffer. Invoices paid now or in cash: 0.1%. Both fees are in a public contract anyone can check.
 
-59 words, 25.3 s.
-- **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150, split `BUFFER_BPS` 75, `LENDER_BPS` 50, `OUR_BPS` 25; `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
+65 words, 27.9 s (at the old answer's pace).
+- **Facts:** `docs/facts.md` entries 29 and 30, and the contract: `CREDIT_FEE_BPS` 150 (top) and `MIN_CREDIT_FEE_BPS` 100, split by `fee_split`: `LENDER_BPS` 50, the rest 3:1 buffer : us (75 / 25 at 150); `USAGE_FEE_BPS` 10. Credit sales pay no usage fee (context §16, Nov 10). For cash the 0.1% is recorded and billed later, not collected yet (`docs/security.md` limit 6).
 - **Must include:** the distributor pays, the shop never does; both fee rates; the contract is public.
 - **Never:** MoneyGram's 5%, or "we charge shops".
 - **If they push, "how big could it get?" (20 s):** > A scenario, not a forecast: if 10% of the $2 billion used pay in 7 days, our share (at most 0.25%) is up to $500,000 a year, plus 0.1% on the rest, about $1.8 million. It's our guess; the maths is in our assumptions doc. (45 words; facts entry 30, context §5, `docs/assumptions.md` (merged, #144). "At most" and "up to" because the credit fee slides below 1.5% when a shop pays part up front, #139.)

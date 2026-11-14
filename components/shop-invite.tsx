@@ -2,6 +2,8 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
+import { ActionLink, TextButton } from "@/components/kit/button";
+import { Paper } from "@/components/kit/paper";
 import { useT } from "@/lib/i18n";
 import { chatLink } from "@/lib/whatsapp";
 
@@ -15,8 +17,10 @@ const claimMessage = (distributor: string, code: string, url: string) =>
 /**
  * A shop's claim code (#132): the QR for the driver to show at the next
  * delivery, the code to read out loud, the link, and WhatsApp when there's a phone.
+ * The code and its QR are facts, so they sit on paper; sending and copying are actions under it.
+ * `size="lg"` is for the driver's screen (56 px targets).
  */
-export function ShopInvite({ code, distributorName, phone }: { code: string; distributorName: string; phone?: string | null }) {
+export function ShopInvite({ code, distributorName, phone, size = "md" }: { code: string; distributorName: string; phone?: string | null; size?: "md" | "lg" }) {
   const { t } = useT();
   const [copied, setCopied] = useState(false);
   const url = claimUrl(code);
@@ -38,34 +42,27 @@ export function ShopInvite({ code, distributorName, phone }: { code: string; dis
     }
   }
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl bg-brand-soft p-3">
-      <p className="text-center text-base">{t("La tienda escanea este código para crear su cuenta.", "The shop scans this code to make its account.")}</p>
-      <div className="rounded-xl bg-white p-2">
-        <QRCodeSVG value={url} size={220} level="M" title={t(`Código para unirse: ${code}`, `Code to join: ${code}`)} />
-      </div>
-      <p className="text-center">
-        <span className="text-sm text-muted">{t("O con el código", "Or with the code")}</span>
-        <span className="block font-mono text-2xl font-bold tracking-[0.2em]">{code}</span>
-      </p>
-      <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
-        {whatsapp && (
-          <a
-            href={whatsapp}
-            target="_blank"
-            rel="noreferrer"
-            className="flex min-h-12 items-center justify-center rounded-xl bg-brand px-4 text-base font-semibold text-white active:bg-brand-dark"
-          >
-            {t("Enviar por WhatsApp", "Send on WhatsApp")}
-          </a>
-        )}
-        <button
-          type="button"
-          onClick={copy}
-          className={`min-h-12 rounded-xl border-2 border-brand bg-card px-4 text-base font-semibold text-brand active:bg-brand-soft ${whatsapp ? "" : "sm:col-span-2"}`}
-        >
-          {copied ? t("Copiado", "Copied") : t("Copiar enlace", "Copy link")}
-        </button>
-      </div>
+    <div className="flex flex-col gap-2">
+      <Paper as="div" className="flex flex-col items-center gap-2 px-3 py-4 text-center text-ink">
+        <p className="text-balance">{t("La tienda escanea este código para crear su cuenta.", "The shop scans this code to make its account.")}</p>
+        <QRCodeSVG
+          value={url}
+          size={220}
+          level="M"
+          fgColor="currentColor"
+          bgColor="transparent"
+          title={t(`Código para unirse: ${code}`, `Code to join: ${code}`)}
+          className="h-auto w-[min(100%,13.75rem)]"
+        />
+        <p className="flex flex-col">
+          <span className="text-label text-muted">{t("O con el código", "Or with the code")}</span>
+          <span className="font-mono text-[1.5rem] font-semibold tracking-[0.2em]">{code}</span>
+        </p>
+      </Paper>
+      {whatsapp && <ActionLink href={whatsapp} external size={size} title={t("Enviar por WhatsApp", "Send on WhatsApp")} />}
+      <TextButton onClick={copy} size={size}>
+        {copied ? t("Copiado", "Copied") : t("Copiar enlace", "Copy link")}
+      </TextButton>
     </div>
   );
 }

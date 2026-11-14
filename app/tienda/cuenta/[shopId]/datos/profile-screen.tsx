@@ -2,11 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { BackLink, Button, LoadError, Loading, NotFound, ReceiptView, Screen } from "@/components/ui";
+import { ActionLink, Button } from "@/components/kit/button";
+import { Field } from "@/components/kit/field";
+import { Answer, Empty, Failure, Loading } from "@/components/kit/states";
 import { getProfile, saveProfile } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import type { Profile, Receipt } from "@/lib/types";
 import { usePolling } from "@/lib/use-polling";
+import { AccountPage } from "../account-page";
 
 const FIELDS: { key: keyof Profile; es: string; en: string; inputMode?: "tel" | "numeric"; autoComplete: string; hintEs?: string; hintEn?: string }[] = [
   { key: "owner", es: "Su nombre", en: "Your name", autoComplete: "name" },
@@ -20,31 +23,23 @@ const FIELDS: { key: keyof Profile; es: string; en: string; inputMode?: "tel" | 
 export default function ProfileScreen() {
   const { shopId } = useParams<{ shopId: string }>();
   const { t } = useT();
-  const { data, failed } = usePolling(`profile-${shopId}`, () => getProfile(shopId), 0);
+  const { data, failed, reload } = usePolling(`profile-${shopId}`, () => getProfile(shopId), 0);
   const [draft, setDraft] = useState<Profile | null>(null);
   const [busy, setBusy] = useState(false);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const back = <BackLink href={`/tienda/cuenta/${shopId}`} label={t("Mi cuenta", "My account")} />;
 
-  if (data === undefined) {
-    return (
-      <Screen>
-        {back}
-        {failed ? <LoadError /> : <Loading />}
-      </Screen>
-    );
-  }
+  if (data === undefined) return <AccountPage shopId={shopId}>{failed ? <Failure onRetry={reload} /> : <Loading torn={false} lines={5} />}</AccountPage>;
   if (data === null) {
     return (
-      <Screen>
-        {back}
-        <NotFound>{t("No encontramos esa tienda.", "We couldn't find that shop.")}</NotFound>
-      </Screen>
+      <AccountPage shopId={shopId}>
+        <Empty action={<ActionLink href="/" title={t("Volver al inicio", "Back to the start")} />}>{t("No encontramos esa tienda.", "We couldn't find that shop.")}</Empty>
+      </AccountPage>
     );
   }
 
   const form = draft ?? data;
   async function save() {
+    if (busy) return;
     setBusy(true);
     setReceipt(null);
     setReceipt(await saveProfile(shopId, form));
@@ -52,9 +47,8 @@ export default function ProfileScreen() {
   }
 
   return (
-    <Screen>
-      {back}
-      <h1 className="text-3xl font-bold text-balance">{t("Datos personales y de la tienda", "Personal and shop details")}</h1>
+    <AccountPage shopId={shopId}>
+      <h1 className="text-title font-bold text-balance">{t("Datos personales y de la tienda", "Personal and shop details")}</h1>
       <form
         className="flex flex-col gap-4"
         onSubmit={(e) => {
@@ -63,32 +57,33 @@ export default function ProfileScreen() {
         }}
       >
         {FIELDS.map((f) => (
-          <label key={f.key} className="flex flex-col gap-1 text-lg">
-            <span className="font-medium">{t(f.es, f.en)}</span>
-            {f.hintEs && <span className="text-base text-muted">{t(f.hintEs, f.hintEn ?? f.hintEs)}</span>}
-            <input
-              value={form[f.key]}
-              inputMode={f.inputMode}
-              autoComplete={f.autoComplete}
-              onChange={(e) => {
-                setDraft({ ...form, [f.key]: e.target.value });
-                setReceipt(null);
-              }}
-              className="min-h-14 rounded-xl border-2 border-line bg-card px-4 text-lg focus:border-brand focus:outline-none"
-            />
-          </label>
+          <Field
+            key={f.key}
+            label={t(f.es, f.en)}
+            hint={f.hintEs ? t(f.hintEs, f.hintEn ?? f.hintEs) : undefined}
+            value={form[f.key]}
+            inputMode={f.inputMode}
+            autoComplete={f.autoComplete}
+            onChange={(e) => {
+              setDraft({ ...form, [f.key]: e.target.value });
+              setReceipt(null);
+            }}
+          />
         ))}
-        <Button onClick={() => void save()} busy={busy}>
-          {t("Guardar", "Save")}
-        </Button>
+        {/* The answer has its own line above the button, always there: "Datos guardados." never moves the button. */}
+        <div className="flex flex-col gap-1">
+          <div className="min-h-11">{receipt && <Answer receipt={receipt} />}</div>
+          <Button type="submit" busy={busy}>
+            {t("Guardar", "Save")}
+          </Button>
+        </div>
       </form>
-      {receipt && <ReceiptView receipt={receipt} />}
-      <p className="text-muted text-pretty">
+      <p className="text-label text-muted text-pretty">
         {t(
           "Al abrir la cuenta, un socio autorizado revisa su DUI. Relay no comparte sus datos sin su permiso.",
           "When you open the account, a licensed partner checks your DUI. Relay doesn't share your details without your permission.",
         )}
       </p>
-    </Screen>
+    </AccountPage>
   );
 }

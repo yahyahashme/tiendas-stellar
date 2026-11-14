@@ -1,119 +1,354 @@
 @import "tailwindcss";
 
-/* One light look on purpose: shopkeepers use it outdoors, on bright screens. */
+/*
+ * Papel de confianza: paper holds facts, solid blue holds actions. The rules are in DESIGN.md.
+ * One light look on purpose: shopkeepers use it outdoors, on bright screens.
+ */
 @theme {
-  --color-paper: #f5f4ef;
-  --color-card: #ffffff;
+  /* Surfaces. Paper sits on the counter; that contrast is the only depth. */
+  --color-counter: #e6e1d4;
+  --color-paper: #fffdf8;
+  --color-paper-rule: #d9d3c4;
+  /* A hairline drawn on the counter itself (ink at 16%); paper-rule is too close to the counter to show there. */
+  --color-counter-rule: #c4c2ba;
+
+  /* Text */
   --color-ink: #14202e;
-  --color-muted: #5d6877;
-  --color-line: #e2dfd6;
+  --color-muted: #4f5a68;
+
+  /* Actions */
   --color-brand: #0b4ea2;
-  --color-brand-dark: #083b7a;
-  --color-brand-soft: #e6eefa;
+  --color-brand-press: #083b7a;
+
+  /* Stamps and status. The tints are stamp fills only, never large backgrounds. */
   --color-ok: #146c43;
-  --color-ok-soft: #e1f2e8;
+  --color-ok-tint: #e8efe6;
   --color-warn: #8f5200;
-  --color-warn-soft: #fcefd6;
+  --color-warn-tint: #f4ecdf;
   --color-bad: #b42318;
-  --color-bad-soft: #fde6e3;
+  --color-bad-tint: #f8e7e2;
   --color-credit: #5b3fa6;
-  --color-credit-soft: #efeafb;
-  /* a strong ease-out for presses, panels and the stamp */
+  --color-credit-tint: #efeaf0;
+  --color-brand-tint: #e7ecef;
+
+  /* Shape: near-square paper, rounder controls */
+  --radius-paper: 2px;
+  --radius-control: 10px;
+
+  /* Fluid type, 320 to 1440 px wide. Body never under 16 px, labels never under 14 px. */
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.3;
+  --text-body: clamp(1rem, 0.964rem + 0.18vw, 1.125rem);
+  --text-body--line-height: 1.5;
+  --text-lead: clamp(1.125rem, 1.054rem + 0.36vw, 1.375rem);
+  --text-lead--line-height: 1.35;
+  --text-title: clamp(1.5rem, 1.357rem + 0.71vw, 2rem);
+  --text-title--line-height: 1.15;
+  --text-display: clamp(2.125rem, 1.59rem + 2.68vw, 4rem);
+  --text-display--line-height: 1.02;
+  --text-figure: clamp(1.5rem, 1.286rem + 1.07vw, 2.25rem);
+  --text-figure--line-height: 1.1;
+  /* The invoice total: the largest thing in the product. */
+  --text-total: clamp(2.75rem, 10vw + 1rem, 4.5rem);
+  --text-total--line-height: 1;
+
+  /* A strong ease-out for presses, the stamp and the print-in */
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* A short screen (a 360x640 phone, any phone held sideways): the slip tightens and folds its lines, so the
+   total and every way to pay stay in view without scrolling. `tall:` is everything else. */
+@custom-variant short (@media (max-height: 45.99rem));
+@custom-variant tall (@media (min-height: 46rem));
+
+/* A phone held sideways or in a truck mount: a short screen with room for two things side by side.
+   The driver's stop puts the code beside its facts there, so the code and the button stay in view. */
+@custom-variant sideways {
+  @media (max-height: 45.99rem) {
+    @container split (min-width: 30rem) {
+      @slot;
+    }
+  }
+}
+
+/* The driver's screens (gloves, wet hands): a screen that carries data-gloves makes the shared
+   controls around it, such as the language switch, 56 px targets too. */
+@custom-variant gloves (:root:has([data-gloves]) &);
+
+/* Hover styles only where there is a real pointer; a thumb never leaves a button looking pressed. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
 }
 
 :root {
   color-scheme: light;
+  accent-color: var(--color-brand);
+  caret-color: var(--color-brand);
+  /* Side margin: 8 px on a 280 px fold, 16 px from 360 px, more on tablets and laptops */
+  --gutter: clamp(0.5rem, 10vw - 1.25rem, 1rem);
+  /* Height of the testnet band (two lines of text on phones), for things that stick under it */
+  --band-h: 2.75rem;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --gutter: 1.5rem;
+    --band-h: 2.25rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root {
+    --gutter: 2rem;
+  }
 }
 
 body {
-  background: var(--color-paper);
+  background: var(--color-counter);
   color: var(--color-ink);
-}
-
-/* ---------- motion and browser surfaces ---------- */
-
-:root {
-  accent-color: var(--color-brand);
-  caret-color: var(--color-brand);
+  font-size: var(--text-body);
+  line-height: 1.5;
 }
 
 @layer base {
   ::selection {
-    background: var(--color-brand-soft);
-    color: var(--color-brand-dark);
+    background: color-mix(in srgb, var(--color-brand) 22%, var(--color-paper));
+    color: var(--color-ink);
   }
 
   :focus-visible {
     outline: 3px solid var(--color-brand);
     outline-offset: 2px;
   }
-}
 
-/* ---------- the invoice as a paper slip ---------- */
-
-.ticket {
-  /* torn bottom edge */
-  mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
-}
-
-.ticket-shadow {
-  filter: drop-shadow(0 0 1px color-mix(in srgb, var(--color-ink) 25%, transparent))
-    drop-shadow(0 6px 10px color-mix(in srgb, var(--color-ink) 8%, transparent));
-}
-
-.stamp {
-  rotate: -7deg;
-}
-
-.stamp-fresh {
-  animation: stamp-land 280ms var(--ease-snap) backwards;
-}
-
-.unfold {
-  animation: panel-in 200ms var(--ease-snap) both;
-}
-
-/* A pay button that just came on screen. It can't be tapped until it has landed (useQuietOnArrival). */
-.arrive {
-  animation: arrive 500ms ease-out backwards;
-}
-
-@keyframes stamp-land {
-  from {
-    opacity: 0;
-    scale: 1.3;
+  /* Mono figures line up in columns */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    translate: 0 -6px;
-  }
-}
+@layer components {
+  /* ---------- paper ---------- */
 
-@keyframes arrive {
-  from {
-    opacity: 0;
-    translate: 0 6px;
+  /* The torn edge of a printed slip: teeth above and below, drawn in the paper's own colour. */
+  .torn {
+    --tooth: 10px;
+    position: relative;
+    margin-block: calc(var(--tooth) / 2);
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .stamp-fresh,
-  .unfold,
+  .torn::before,
+  .torn::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: calc(var(--tooth) / 2);
+    pointer-events: none;
+  }
+
+  .torn::before {
+    bottom: 100%;
+    background: conic-gradient(from -45deg at bottom, #0000, var(--color-paper) 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x;
+  }
+
+  .torn::after {
+    top: 100%;
+    background: conic-gradient(from 135deg at top, #0000, var(--color-paper) 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x;
+  }
+
+  /* On a 280 px fold the slip runs edge to edge. */
+  @media (max-width: 19.99rem) {
+    .bleed-narrow {
+      margin-inline: calc(-1 * var(--gutter));
+    }
+  }
+
+  /* Receipt lines: label, dotted leader, figure. */
+  .leader {
+    flex: 1 1 1.25rem;
+    min-width: 1.25rem;
+    align-self: flex-end;
+    margin: 0 0.4em 0.42em;
+    border-bottom: 2px dotted var(--color-leader, var(--color-paper-rule));
+  }
+
+  hr.rule-dotted {
+    border: 0;
+    border-top: 2px dotted var(--color-paper-rule);
+  }
+
+  /* The double rule above a total */
+  hr.rule-double {
+    border: 0;
+    height: 4px;
+    border-block: 1px solid var(--color-ink);
+  }
+
+  /* The amount: "$ 48.50", a thin gap after the sign, always two decimals. */
+  .money {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .money-sign {
+    margin-inline-end: 0.18em;
+  }
+
+  /* A figure that must never clip: it shrinks to its container once its text is too long for it. */
+  .fit-figure {
+    font-size: min(var(--fit-max), calc(100cqi / (var(--fit-chars) * 0.62)));
+  }
+
+  /* The arrow of a select, drawn like the other chevrons */
+  .select-chevron {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230b4ea2' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 7.5 10 13l5.5-5.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+  }
+
+  /* ---------- the stamp ---------- */
+
+  .stamp {
+    --stamp: var(--color-ink);
+    --stamp-tint: transparent;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.42em 0.72em 0.36em;
+    border: 0.17em solid currentColor;
+    border-radius: 0.22em 0.3em 0.2em 0.34em;
+    background: var(--stamp-tint);
+    color: var(--stamp);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    /* One line wherever it fits. At a large text size on a small phone a long one (EN CRÉDITO, VENCE PRONTO)
+       takes two lines instead of running off the paper. */
+    max-width: 100%;
+    text-align: center;
+    text-wrap: balance;
+    rotate: var(--stamp-tilt, -5deg);
+    mix-blend-mode: multiply;
+    /* worn rubber: ink that didn't take */
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80' preserveAspectRatio='none'%3E%3Cpath fill-rule='evenodd' d='M0 0H200V80H0ZM50.4 73.7L48.3 76.8L46.2 75.4L45.9 72.7L47.3 70.2L49.4 70.6ZM198.2 64.5L195.2 64.4L193 64.3L192.2 62L193.8 60.7L195.6 60.5L197.9 61.4ZM154.5 7.9L153.8 7.2L153.9 6.4L154.6 5.5L155.6 6.3L155.4 7.3ZM190.8 40.1L190.3 38.1L191.3 37.1L193.8 38.6L193.7 40.8ZM75.4 34.3L74.2 33.5L73.5 32.7L72.8 31.1L73.8 30.8L74.7 31.9L75 32.9ZM59.2 66.9L57.9 67.3L57.8 66L58.2 64.9L59.5 64.9L59.9 66.1ZM6.2 43.1L5 42.2L6.1 40L7.6 40.7L7.7 42.9ZM14.1 78.5L12.4 79.1L10.6 79.8L9.8 78.5L8.9 77.3L10.9 76.7L13 77.3ZM5.2 32L2.4 32.4L-0.6 30.2L-1.4 27.5L1.5 28L4.9 29.2ZM194.8 51.3L194.6 50.8L194.6 50.4L195.1 50L195.5 50.4L195.5 50.8L195.4 51.4ZM113.3 48.1L113 48.6L112.2 48.5L111.4 48.2L111.2 47.5L112.3 47.4L113.3 47.4ZM196.6 52.9L196.4 52.3L196.7 52.1L197.2 52L197.4 52.5L197.1 52.7ZM187.4 59.6L187.6 58.9L188.3 59.1L188.5 59.8L187.9 60ZM130.2 77.4L130.5 75.9L131.8 75.9L132.9 76.8L131.5 77.3ZM195.9 20.2L195.1 19.7L194.8 18.5L195.3 17.4L196.2 16.9L197.1 18.2L196.6 19.8ZM24.8 78.7L24.2 79.3L23.5 78.9L23 78.1L23.9 77.8L24.9 77.7ZM195.3 79.2L194.5 79.1L194.2 77.7L195 77.3L196.1 78.5ZM158.2 62.7L156.8 63.5L155.4 62.1L156.4 60.5L158.4 61.1ZM194.1 11.8L193.4 11.8L192.6 11.6L192.5 11L192.5 10.5L193.3 10.6L194.3 11.1ZM4.2 24.4L3.7 23.7L4.1 23.1L4.5 22.9L5.6 22.8L5.8 23.8L5 24.1ZM85.4 24.2L82.8 23.9L81.6 21.3L82.3 19L85.7 21.5ZM-0.5 77.9L0.1 77.1L0.9 77.2L1.2 78.3L0.3 78.6ZM98.2 46L97.4 46.1L96.7 45.5L96 44.9L96.2 44.2L97.2 44.6L97.8 45.2ZM179.3 78.9L178.1 78.6L177.6 77.4L178.8 76.9L179.7 77L180.1 77.9ZM144.3 15.6L141.7 15.6L139.6 13.4L139.2 10.5L142.2 10.2L143.8 13.1ZM150.1 77L149.5 77.4L148.7 76.6L148.6 76L149.1 75.3L150.3 76.3ZM2.4 79.1L2.4 77.7L3.4 76.5L4.3 76.1L4.9 76.4L5.3 77.6L3.7 79.2ZM145.8 38.9L145.7 38.2L146.1 37.9L146.7 38.3L146.7 39L146.3 39.2ZM182.7 75.3L182.8 74.6L183.4 73.8L184.1 73.6L183.9 74.4L183.5 75.1ZM12 10.9L10.5 11.9L9.2 10.9L9.5 9.8L11 9.6ZM165.1 7L164.1 7.3L163.3 7.3L163.1 6.6L163.6 6.1L164.7 6.1ZM185.8 0.4L185.7 -0.9L186.8 -1L187.6 0.6L186.7 1.5ZM149.6 2.5L149.1 3.7L147 3.1L147.2 1.8L147.9 1L149.3 1.7ZM108.2 3.8L107.8 4L107.2 4.2L107.1 3.6L107 3L107.7 3.1L108.3 3.3ZM198.5 45.2L197.9 45L197.5 44.4L197.4 43.4L198.2 43L198.9 43.9L198.8 44.6ZM179 79.5L178.8 78.9L178.8 78.4L179.4 78.5L179.9 78.9L179.9 79.3L179.8 79.8ZM195.9 81L194.5 79.6L193.6 78.3L195.3 77.5L197.4 77.6L196.8 79.3ZM41.5 1.7L40.9 1.9L40.3 1.1L41 0.6L41.6 1.2ZM191.7 3.2L190.9 4L189.8 4.1L189.9 2.5L190.9 1L191.7 2ZM189.5 80.5L189.5 79.8L189.7 79.4L190.2 79.6L190.5 80.1L190.3 80.5ZM164.6 79.8L164 79L164.4 78.4L165.1 78.5L165.9 78.7L166.3 79.6L165.4 79.7ZM186.2 53.8L185.5 53.9L184.8 53.4L185.1 52.7L185.8 52.8L186.4 53.1ZM100.2 3.7L95.8 4L94.3 -0.2L95.4 -2.5L98.7 -0.2ZM73.7 48L73.4 47.4L73.7 46.8L74.6 46.7L75.1 47.6L74.4 48.1ZM148.9 64L147.2 63.5L147 61.9L147.8 61L149.4 62.2ZM3.3 62.4L3.9 60.7L4.8 60.1L6.2 60.6L5.3 62.4Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  }
+
+  /* the thin inner line of a double-bordered rubber stamp */
+  .stamp::before {
+    content: "";
+    position: absolute;
+    inset: 0.13em;
+    border: 0.06em solid currentColor;
+    border-radius: 0.12em 0.16em 0.1em 0.18em;
+    pointer-events: none;
+  }
+
+  /* The small form for dense tables: upright, no wear, still text plus colour. */
+  .stamp-small {
+    max-width: none;
+    white-space: nowrap;
+    padding: 0.22em 0.5em 0.16em;
+    border-width: 1.5px;
+    border-radius: 2px;
+    letter-spacing: 0.06em;
+    rotate: none;
+    mask: none;
+    mix-blend-mode: normal;
+  }
+
+  .stamp-small::before {
+    content: none;
+  }
+
+  .stamp-ok {
+    --stamp: var(--color-ok);
+    --stamp-tint: var(--color-ok-tint);
+  }
+
+  .stamp-warn {
+    --stamp: var(--color-warn);
+    --stamp-tint: var(--color-warn-tint);
+  }
+
+  .stamp-bad {
+    --stamp: var(--color-bad);
+    --stamp-tint: var(--color-bad-tint);
+  }
+
+  .stamp-credit {
+    --stamp: var(--color-credit);
+    --stamp-tint: var(--color-credit-tint);
+  }
+
+  .stamp-confirm {
+    --stamp: var(--color-brand);
+    --stamp-tint: var(--color-brand-tint);
+  }
+
+  /* ---------- motion ---------- */
+
+  /* The one moment of delight: a payment completes and the stamp lands, once. */
+  .stamp-land {
+    animation: stamp-land 180ms var(--ease-snap) backwards;
+  }
+
+  @keyframes stamp-land {
+    from {
+      opacity: 0;
+      scale: 1.15;
+      rotate: calc(var(--stamp-tilt, -5deg) - 4deg);
+    }
+
+    40% {
+      opacity: 1;
+    }
+  }
+
+  /* An invoice prints in once, top to bottom, on its first load. */
+  .print-in {
+    animation: print-in 240ms var(--ease-snap) backwards;
+  }
+
+  @keyframes print-in {
+    from {
+      clip-path: inset(-8px 0 100% 0);
+    }
+
+    to {
+      clip-path: inset(-8px 0 -8px 0);
+    }
+  }
+
+  /* A pay button that just came on screen. It can't be tapped until it has landed (useQuietOnArrival). */
   .arrive {
-    animation: fade-in 200ms ease-out both;
+    animation: fade-in 400ms ease-out backwards;
   }
-}
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-land,
+    .print-in {
+      animation: fade-in 180ms ease-out backwards;
+    }
   }
 }
