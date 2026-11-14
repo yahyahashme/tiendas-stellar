@@ -1,6 +1,6 @@
 // Summarises the run-through logs for #39 and checks its two "Done means" lines.
 //
-//   node scripts/run-times.mjs                 reads docs/run-throughs/log.csv and qa-log.csv
+//   node scripts/run-times.mjs                 reads docs/testing/run-throughs/log.csv and qa-log.csv
 //   node scripts/run-times.mjs path/to/folder  reads log.csv and qa-log.csv from that folder
 //
 // No npm packages. Exits 1 only if a log file has a bad row (so a typo can't hide a result).
@@ -9,12 +9,12 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const dir = process.argv[2] ? resolve(process.argv[2]) : join(root, "docs/run-throughs");
+const dir = process.argv[2] ? resolve(process.argv[2]) : join(root, "docs/testing/run-throughs");
 
 const RUN_LIMIT = 180; // every run must be under 3:00
 const ANSWER_LIMIT = 20; // every answer must take 20 seconds or less
 const RUNS_NEEDED = 5;
-// Seconds per segment, from docs/run-throughs/README.md (they add up to 180).
+// Seconds per segment, from docs/testing/run-throughs/README.md (they add up to 180).
 const BUDGET = { problem: 25, built: 30, video: 60, pays: 35, risk: 20, close: 10 };
 
 const errors = [];
@@ -138,7 +138,7 @@ for (const q of qa) {
 }
 const unfixed = weak.filter((q) => !/^yes$/i.test(q.fixed_in_pitch_md));
 console.log(`Questions logged: ${qa.length}`);
-console.log(`  answers over ${ANSWER_LIMIT} s: ${long}; weak: ${weak.length}; weak and not yet fixed in docs/pitch.md: ${unfixed.length}`);
+console.log(`  answers over ${ANSWER_LIMIT} s: ${long}; weak: ${weak.length}; weak and not yet fixed in docs/pitch/pitch.md: ${unfixed.length}`);
 for (const q of unfixed) console.log(`  fix: ${q.question_id} (run ${q.run}) ${q.notes}`);
 
 // ---------- done means ----------
@@ -152,4 +152,4 @@ if (errors.length) {
 const box = (ok) => (ok ? "[x]" : "[ ]");
 console.log("Done means (#39):");
 console.log(`  ${box(under.length >= RUNS_NEEDED)} Five run-throughs under 3:00 (${under.length} so far)`);
-console.log(`  ${box(qa.length > 0 && unfixed.length === 0)} Weak answers rewritten in docs/pitch.md${qa.length === 0 ? " (no questions logged yet)" : ""}`);
+console.log(`  ${box(qa.length > 0 && unfixed.length === 0)} Weak answers rewritten in docs/pitch/pitch.md${qa.length === 0 ? " (no questions logged yet)" : ""}`);

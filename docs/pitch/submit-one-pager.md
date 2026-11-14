@@ -4,7 +4,7 @@ The form decides the Top 16. It closes **Fri Nov 13, 8:30 AM ET**. We read and f
 
 **Update Sat Nov 14 (contract ID):** #139 redeployed the contract after this page was written. The IDs below, `CAPQ6ZDD…` (the first deploy) and `CDHDZX7V…` (the #90 redeploy, current on Nov 12), stay as the record. The live ID is `contracts.routeLedger` in `config/testnet.json` (`CAGCZ3I7…`): wherever a step below says the ID in answer 6 must equal the config, compare with the config, not with `CDHDZX7V…`.
 
-**Checked on Thu Nov 12 (evening) against** `origin/main` at `67f265f`: `docs/one-pager.md` (merged in #64), `docs/facts.md`, `docs/research.md`, `config/testnet.json`, `README.md` and `contracts/route_ledger/src/lib.rs`. Merged since the first draft of this page: #64 (the one-pager), #72 (advisor calls log), #73 (worldwide number), #84 (fact sheet entries 29 to 40) and #90 (the redeploy). **Run the checker yourself and don't trust any count written here.** When last run on `67f265f` it gave 4 FAILs: the old contract ID in answer 6 (finding 1) and the three form fields (team number, team name, Devpost link). People fill the form fields, not a script. Every FAIL it prints must be fixed or consciously accepted (say why out loud on the call). If the one-pager changes again, run the script (section 6) again.
+**Checked on Thu Nov 12 (evening) against** `origin/main` at `67f265f`: `docs/pitch/one-pager.md` (merged in #64), `docs/facts.md`, `docs/research.md`, `config/testnet.json`, `README.md` and `contracts/route_ledger/src/lib.rs`. Merged since the first draft of this page: #64 (the one-pager), #72 (advisor calls log), #73 (worldwide number), #84 (fact sheet entries 29 to 40) and #90 (the redeploy). **Run the checker yourself and don't trust any count written here.** When last run on `67f265f` it gave 4 FAILs: the old contract ID in answer 6 (finding 1) and the three form fields (team number, team name, Devpost link). People fill the form fields, not a script. Every FAIL it prints must be fixed or consciously accepted (say why out loud on the call). If the one-pager changes again, run the script (section 6) again.
 
 ## 1. What has to be true before 9 PM
 
@@ -20,7 +20,7 @@ The form decides the Top 16. It closes **Fri Nov 13, 8:30 AM ET**. We read and f
 | Devpost project exists, or we know whether field 7 is required | Yahya | Thu 9 PM | Field 7 is still TODO (#36 is open). |
 | Team number | Jack | on the call | Field 1 is "pick our number from the form's list". |
 
-Already done, checked on `origin/main`: #64 (the one-pager is `docs/one-pager.md`), #73 (entry 22, the $5.7 trillion, is in `docs/facts.md`), #84 (entries 36 to 40 are in `docs/facts.md`) and #90 (the redeploy; issue #52 is closed).
+Already done, checked on `origin/main`: #64 (the one-pager is `docs/pitch/one-pager.md`), #73 (entry 22, the $5.7 trillion, is in `docs/facts.md`), #84 (entries 36 to 40 are in `docs/facts.md`) and #90 (the redeploy; issue #52 is closed).
 
 ## 2. Findings from the number check
 
@@ -56,7 +56,7 @@ On `67f265f` the checker gives answer 4 at **20** words, answer 5 at **149** and
 | "Shops pay trucks in cash, with no record of who collected what" | 5 (cut) | None for El Salvador (entry 11 is regional); the "no record" half is our assumption | n/a | **Done: cut in #64** (finding 4). Don't put it back as fact. |
 | two taps | 5 | Context §7.1; contract `cash_claim` and `cash_confirm` | Yes | OK |
 | 7 days | 4, 5 | Context §7.3; `deploy.sh` default | Yes | OK, **finding 8** |
-| limit up to $500 | 5 | `LIMIT_CAP` = $500 (`lib.rs:34`); `docs/credit-model.md` | Yes | OK |
+| limit up to $500 | 5 | `LIMIT_CAP` = $500 (`lib.rs:34`); `docs/product/credit-model.md` | Yes | OK |
 | 1.5% fee, 0.25% ours, 0.1% of other invoices | 5 | `CREDIT_FEE_BPS` 150, `OUR_BPS` 25, `USAGE_FEE_BPS` 10 (`lib.rs:20-28`); context §5; entry 29 | Yes | OK. No usage fee on credit sales. |
 | "Stellar says payments finalize in about five seconds, with fees under a cent" | 5 | developers.stellar.org ("Ledgers close in ~5 seconds, and their transactions are final when they do"); stellar.org/solutions/cross-border-payments ("network fees under a cent"); entries 36 and 37 | Yes (#84) | **Done in #64** (finding 3). Stellar's own claim, so it says "Stellar says". Links not yet opened by a teammate (checklist item 4). |
 | Delivery crews in El Salvador have been robbed and extorted | 5 | El Diario de Hoy, 23 Jul 2024 (one robbery of a delivery-truck employee, 2023); Brown, Montero, Schmidt-Padilla and Sviatschi, Review of Economic Studies (data 2012 to 2019); entry 40 | Yes (#84) | Not a number. **Finding 11**: sources not yet checked by a person. |
@@ -75,7 +75,7 @@ Jack shares the screen with the one-pager open and the script already run.
 
 | Time | What |
 |---|---|
-| 9:00 to 9:03 | Jack runs `git fetch origin && git merge origin/main`, then `node scripts/check-one-pager.mjs --online docs/one-pager.md`. Read out the FAILs: each gives its line. Compare the URL with the one Yahya posted. Open the form and check for new fields or limits. |
+| 9:00 to 9:03 | Jack runs `git fetch origin && git merge origin/main`, then `node scripts/check-one-pager.mjs --online docs/pitch/one-pager.md`. Read out the FAILs: each gives its line. Compare the URL with the one Yahya posted. Open the form and check for new fields or limits. |
 | 9:03 to 9:13 | **Read the three answers aloud**, one per person: Yahya answer 5, Rohan answer 6, Ruhaan answer 4. Whoever stumbles marks the line. |
 | 9:13 to 9:20 | **Number check.** Go down section 3. Each "to confirm" is cleared by its owner saying "confirmed", or the number is struck. **No source after 2 minutes means cut it.** Apply the open findings: 1 (the contract ID), 2 (the map check), 5, 7, 8 and 11. |
 | 9:20 to 9:25 | **Fill the form fields:** team number, team name, the four members, the Devpost link or "n/a". |
@@ -86,7 +86,7 @@ Jack shares the screen with the one-pager open and the script already run.
 ## 5. Checklist (Jack): before pressing Submit (Thursday night, or Friday morning if we slip)
 
 1. **Open the form fresh.** Check for new questions, new limits or a closing-time change.
-2. `git fetch origin && git merge origin/main`, then `node scripts/check-one-pager.mjs --online docs/one-pager.md`: **every FAIL fixed or consciously accepted** (the three form fields, team number, team name and Devpost link, are filled by people, not by the script). It checks for "(to confirm)" markers, `[brackets]`, TODO or TBD, word counts in range, contract ID equals `config/testnet.json` and that file equals `origin/main`'s, and every URL answers 2xx. Also check by eye that the URL is the one Yahya posted in the chat.
+2. `git fetch origin && git merge origin/main`, then `node scripts/check-one-pager.mjs --online docs/pitch/one-pager.md`: **every FAIL fixed or consciously accepted** (the three form fields, team number, team name and Devpost link, are filled by people, not by the script). It checks for "(to confirm)" markers, `[brackets]`, TODO or TBD, word counts in range, contract ID equals `config/testnet.json` and that file equals `origin/main`'s, and every URL answers 2xx. Also check by eye that the URL is the one Yahya posted in the chat.
 3. **Look at MoneyGram's coverage map for El Salvador, by eye** (moneygram.com/stellar, in a browser: it may return 403 to a script, and the FAQ answer may show collapsed). Confirm cash-in is NOT offered there. Answer 6 says "as far as we found, not cash-in", which comes from the page's data, not from a person. **If cash-in IS offered, that sentence must change before you submit** (section 7).
 4. **Confirm `docs/facts.md` entries 36 to 40 have had their links opened by a teammate**, each quote matching its page. They back the Stellar, MoneyGram and delivery-crew sentences in answers 5 and 6, and each still says "Checked: Pending". A link that doesn't match its quote means cutting or softening that sentence.
 5. **Contract ID (the redeploy landed in #90):** after `git fetch origin && git merge origin/main`, confirm the ID in answer 6 equals `contracts.routeLedger` in `config/testnet.json` and the ID in the README table (`CDHDZX7V…` at the time of writing). Read all three by eye as well as trusting the script. If answer 6 still says `CAPQ6ZDD…`, the separate one-pager PR (branch `31-one-pager-new-id`) hasn't merged: paste the full ID by hand and run the script again.
@@ -96,17 +96,17 @@ Jack shares the screen with the one-pager open and the script already run.
 9. **Pick the team number and the four members.** If a member isn't in the picker, use the "cannot find someone" box.
 10. **Submit once.** If the page errors, don't resubmit blindly: look for a confirmation email or message first. Still stuck: velocity.events@uwaterloo.ca, subject "Blockchain Innovation Challenge Powered by Stellar".
 11. **Screenshot the confirmation** and post it in the group chat (this is #31's "Done means").
-12. **Record what we sent:** a small PR "Record the submitted one-pager" that adds a section "Submitted on <date and time>" to `docs/one-pager.md` with the exact pasted text. Judges and the pitch then match what is on file.
+12. **Record what we sent:** a small PR "Record the submitted one-pager" that adds a section "Submitted on <date and time>" to `docs/pitch/one-pager.md` with the exact pasted text. Judges and the pitch then match what is on file.
 
 ## 6. The script
 
 ```
-node scripts/check-one-pager.mjs                     # docs/one-pager.md (on main since #64)
+node scripts/check-one-pager.mjs                     # docs/pitch/one-pager.md (on main since #64)
 node scripts/check-one-pager.mjs path/to/file.md     # any copy of the one-pager
 node scripts/check-one-pager.mjs --online            # also git fetch origin main, and opens each URL, expects 2xx
 ```
 
-The script is in PR #87. Run it from a checkout that has both the script and the one-pager: this branch after `git fetch origin && git merge origin/main`, or `main` once #87 is merged. If `docs/one-pager.md` is missing, you haven't merged `origin/main`.
+The script is in PR #87. Run it from a checkout that has both the script and the one-pager: this branch after `git fetch origin && git merge origin/main`, or `main` once #87 is merged. If `docs/pitch/one-pager.md` is missing, you haven't merged `origin/main`.
 
 - **FAIL** (exit code 1): word count outside the target (question 4 about 20, questions 5 and 6: 120 to 150), a "(Rohan to confirm)" marker, a `[placeholder]`, TODO or TBD (also in the team number, team name and Devpost fields), a file path like `docs/research.md`, anything on the "never use" list ($7B, 70,000 shops, Chivo, MoneyGram's 5%, $5B as our market, "85,265 neighbourhood shops" alone, "62% of small businesses"), a contract ID that isn't `contracts.routeLedger` in `config/testnet.json`, a `config/testnet.json` that differs from `origin/main`'s (a redeploy you haven't merged), the test USDC token ID instead of our contract, a string shaped like a secret key.
 - **WARN**: "open" contract, "audited", passkeys, the MoneyGram "only" claim, "fraction of a cent".

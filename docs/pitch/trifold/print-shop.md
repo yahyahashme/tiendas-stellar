@@ -1,23 +1,23 @@
 # Print shop: call script and email (#40)
 
-Drafted Wed Nov 11 for Jack. Use the call script (it can be Saturday) to pick a shop, and send the email and the files on Sunday, once the numbers are in and the layout is final. The checklist for mounting the board is in `docs/trifold-assembly.md`; this file is only about finding a shop and getting the file to it. Don't put your full name or phone number in this file: the repo is public.
+Drafted Wed Nov 11 for Jack. Use the call script (it can be Saturday) to pick a shop, and send the email and the files on Sunday, once the numbers are in and the layout is final. The checklist for mounting the board is in `docs/pitch/trifold-assembly.md`; this file is only about finding a shop and getting the file to it. Don't put your full name or phone number in this file: the repo is public.
 
 **The deadline chain (one plan: print on Sunday).** The calls to the shops can happen Saturday Nov 14, but nothing is ordered then, because the product numbers are not final. On **Sunday Nov 15** the team agrees the numbers, the final render passes, and the order goes in **before noon** for same-day pickup (Staples' page says "Order by noon for same-day pickup by store closing"). You pick it up **by 5 PM** (Staples closes at 5:00 PM, hours unverified), the board is built after that, and the photo is in the group chat by **6 PM** (#40). The showcase is **Monday Nov 16** (setup 4:00 PM, Innovation Arena, 280 Joseph St, Kitchener).
 
-**Sunday is tight, so do not promise the 6 PM photo.** A 5 PM pickup leaves about an hour, and assembly takes about 2 h (`docs/trifold-assembly.md` section 5). Also, Yahya's decision is that the numbers are agreed on Sunday afternoon, which is after the noon cutoff: the same-day order only works if the numbers are agreed before noon. Otherwise, ask a store by phone whether its print desk can print in the store that afternoon (not confirmed by anyone).
+**Sunday is tight, so do not promise the 6 PM photo.** A 5 PM pickup leaves about an hour, and assembly takes about 2 h (`docs/pitch/trifold-assembly.md` section 5). Also, Yahya's decision is that the numbers are agreed on Sunday afternoon, which is after the noon cutoff: the same-day order only works if the numbers are agreed before noon. Otherwise, ask a store by phone whether its print desk can print in the store that afternoon (not confirmed by anyone).
 
 ## 1. Decide these before you call (so each call takes five minutes)
 
-1. **The board** (measured Nov 14): 27 in tall, panels 9 + 19 + 9 in wide. Print on Sunday, only once the team has agreed the numbers and the final render passes: run `SCALE=2 node docs/slides/render.mjs` first (`docs/img/architecture@2x.png` is git-ignored, so a fresh checkout does not have it; without it the diagram prints at 149 pixels per inch), then `node docs/trifold/render.mjs --final`.
-2. **Panels or one sheet?** `node docs/trifold/render.mjs` writes both into `docs/trifold/out/`:
+1. **The board** (measured Nov 14): 27 in tall, panels 9 + 19 + 9 in wide. Print on Sunday, only once the team has agreed the numbers and the final render passes: run `SCALE=2 node docs/pitch/slides/render.mjs` first (`docs/img/architecture@2x.png` is git-ignored, so a fresh checkout does not have it; without it the diagram prints at 149 pixels per inch), then `node docs/pitch/trifold/render.mjs --final`.
+2. **Panels or one sheet?** `node docs/pitch/trifold/render.mjs` writes both into `docs/pitch/trifold/out/`:
 
 | You pick | Files to send | Size of each print |
 |---|---|---|
-| Three panel prints (easier to line up, and one can be reprinted alone, as `docs/trifold-assembly.md` says) | `trifold-9-19-9-left.pdf`, `-centre.pdf`, `-right.pdf` | 9 x 27, 19 x 27 and 9 x 27 in (each fits a 24 x 36 in poster print) |
+| Three panel prints (easier to line up, and one can be reprinted alone, as `docs/pitch/trifold-assembly.md` says) | `trifold-9-19-9-left.pdf`, `-centre.pdf`, `-right.pdf` | 9 x 27, 19 x 27 and 9 x 27 in (each fits a 24 x 36 in poster print) |
 | One big print | `trifold-9-19-9.pdf` | 37 x 27 in, one page |
 
 3. **Copies:** one of each. Ask for the price of a small proof too, and whether there is time for one on a same-day order.
-4. **The files are final only when** `node docs/trifold/render.mjs --final` passes: it refuses while a yellow placeholder is left or a picture is too blurry. Don't send a file that still has yellow on it.
+4. **The files are final only when** `node docs/pitch/trifold/render.mjs --final` passes: it refuses while a yellow placeholder is left or a picture is too blurry. Don't send a file that still has yellow on it.
 
 ## 2. Shop list
 
@@ -76,7 +76,7 @@ Red flags: "We can have it Monday" (too late); "we need the original design file
 
 ## 5. Record the answers
 
-Copy the winner into the print-shop table in `docs/trifold-assembly.md` (from PR #85; this file does not edit it).
+Copy the winner into the print-shop table in `docs/pitch/trifold-assembly.md` (from PR #85; this file does not edit it).
 
 | Shop | Open Sunday until (told by phone) | Latest file time Sunday | Ready by | Cost | Proof? | File they want | Chosen? |
 |---|---|---|---|---|---|---|---|
@@ -87,5 +87,5 @@ Copy the winner into the print-shop table in `docs/trifold-assembly.md` (from PR
 
 - Send the files, and ask for a reply in writing that says the pickup time.
 - Check the proof, or the PDF at 100%, for typos first. The names, numbers and the QR are on the board for the whole showcase.
-- The app's address is fixed: **relay-sv.vercel.app** (the old tiendas-stellar address only redirects). The QR in `public/qr-demo.png` was regenerated for it in PR #102 and opens `https://relay-sv.vercel.app/demo`; the board also prints the address under the QR. If the address ever changes again, regenerate the QR before the final render (`docs/trifold-assembly.md` section 3).
+- The app's address is fixed: **relay-sv.vercel.app** (the old tiendas-stellar address only redirects). The QR in `public/qr-demo.png` was regenerated for it in PR #102 and opens `https://relay-sv.vercel.app/demo`; the board also prints the address under the QR. If the address ever changes again, regenerate the QR before the final render (`docs/pitch/trifold-assembly.md` section 3).
 - Ask for a shop phone number you can call on Sunday if the print isn't ready when promised.

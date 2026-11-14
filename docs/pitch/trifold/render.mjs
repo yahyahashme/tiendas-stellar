@@ -1,12 +1,12 @@
-// Builds the trifold from docs/trifold/trifold.html, at the real board's size (9 + 19 + 9 in wide, 27 in tall):
+// Builds the trifold from docs/pitch/trifold/trifold.html, at the real board's size (9 + 19 + 9 in wide, 27 in tall):
 //   out/trifold-9-19-9.pdf     37 x 27 in, text stays text (out/ is git-ignored: share the PDF, don't commit it)
 //   out/trifold-9-19-9-left.pdf, -centre.pdf, -right.pdf   one panel per page, for a shop that prints panel by panel
 //   preview-9-19-9.jpg         a small picture with the fold marks drawn on, for the pull request
 //                              (a .png instead if sips, a macOS tool, isn't there)
 //
 // Run from anywhere:
-//   node docs/trifold/render.mjs
-//   node docs/trifold/render.mjs --final    also fail while any yellow placeholder is left on the board
+//   node docs/pitch/trifold/render.mjs
+//   node docs/pitch/trifold/render.mjs --final    also fail while any yellow placeholder is left on the board
 //
 // Needs Google Chrome or Chromium (set CHROME=/path/to/chrome if yours is somewhere unusual). No npm packages.
 // It prints these checks for each layout and exits with an error if one fails:

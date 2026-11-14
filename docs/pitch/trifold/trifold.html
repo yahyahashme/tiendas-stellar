@@ -6,7 +6,7 @@
 <!--
   The print layout for the trifold, at the real board's size (#40): 27 in tall, 9 + 19 + 9 in wide
   (about 37 x 27 in open). Measured by Yahya on Nov 14; the board is the one Velocity handed out.
-  Copy comes from docs/pitch.md section 1. Edit the text here, then run:  node docs/trifold/render.mjs
+  Copy comes from docs/pitch/pitch.md section 1. Edit the text here, then run:  node docs/pitch/trifold/render.mjs
 
   Anything still missing is a yellow box or yellow text (class "todo"). On Nov 14 every product number
   (fee, payout, days to pay, credit limit, outreach counts) is yellow on purpose: the team agrees the final
@@ -14,11 +14,11 @@
   There is no "what we heard" panel (Jack, #172): messages sent are not conversations, and the team rule
   (#61) is that a zero means the line is cut. Add the panel back only with a real count.
   The name is Relay, tagline "Paga tu ruta" (PR #100); the app is at relay-sv.vercel.app.
-  `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
+  `node docs/pitch/trifold/render.mjs --final` refuses to build while any yellow is left.
 
-  Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the
+  Screenshots expected in docs/pitch/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the
   testnet banner in frame; the driver one is scrolled so the QR and the button show):
-  shop-pay.png  shop-credit.png  driver-cash.png. Retaken Nov 14 from main in mock mode (docs/trifold-assembly.md).
+  shop-pay.png  shop-credit.png  driver-cash.png. Retaken Nov 14 from main in mock mode (docs/pitch/trifold-assembly.md).
 
   Type: body 24 pt (the bottom of Velocity's 24 to 32 pt, because the board is small), headings 28 to 30 pt,
   title 72 pt. The three big numbers (76 pt) and the two key points (36 pt) are display type.
@@ -107,7 +107,7 @@
   .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
   .lower { display: flex; gap: 0.4in; align-items: flex-start; }
-  /* The QR picture stays at least 4 in square (docs/trifold-assembly.md): 4.6 in card, 4.4 in picture. */
+  /* The QR picture stays at least 4 in square (docs/pitch/trifold-assembly.md): 4.6 in card, 4.4 in picture. */
   .qrbox { display: flex; flex-direction: column; gap: 0.15in; width: 4.6in; flex: none; }
   .qrbox .qr { width: 4.6in; height: 4.6in; padding: 0.1in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
   .qrtext p { font-size: 24pt; line-height: 1.18; }
@@ -202,7 +202,7 @@
 
     <div class="lower">
       <div class="qrbox">
-        <img class="qr" src="../../public/qr-demo.png" alt="QR code that opens the demo" onerror="missing(this, 'QR: public/qr-demo.png (PR #70)')">
+        <img class="qr" src="../../../public/qr-demo.png" alt="QR code that opens the demo" onerror="missing(this, 'QR: public/qr-demo.png (PR #70)')">
         <div class="qrtext">
           <p class="scan">Scan to try it</p>
           <p class="url">relay-sv.vercel.app</p>
@@ -211,7 +211,7 @@
       </div>
       <figure class="diagram">
         <!-- Prefers docs/img/architecture@2x.png (3840 x 2160) for print; falls back to the 1920 x 1080 file. -->
-        <img src="../img/architecture@2x.png" alt="How it works on Stellar" onerror="fallback(this, '../img/architecture.png', 'Diagram: docs/img/architecture.png')">
+        <img src="../../img/architecture@2x.png" alt="How it works on Stellar" onerror="fallback(this, '../../img/architecture.png', 'Diagram: docs/img/architecture.png')">
       </figure>
     </div>
   </section>

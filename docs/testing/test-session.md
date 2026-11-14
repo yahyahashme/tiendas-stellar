@@ -74,7 +74,7 @@ Steps
 Expected: <the text or result from the table>
 Got: <what you saw, with the exact message>
 Screenshot: <attach>
-Test step: <# from docs/test-session.md>
+Test step: <# from docs/testing/test-session.md>
 ```
 
 - A failure that comes from two people using the same invoice is not a bug. Say so in the chat and move on.
@@ -115,12 +115,12 @@ Rules from #26: not RUTA, our technical and finance advisor said to pick one, an
 
 ## 4. Pick the pitcher
 
-#26: the pitcher "rehearses the most and owns the script from v1" (#37). One person gives the 3-minute pitch, and the 1-minute video plays inside it. The script v1 is `docs/pitch.md` in PR #83 (branch `37-trifold-pitch`). It is not on `main` yet, so open it from that PR's "Files changed" tab, and have it open on everyone's laptop before 6:30.
+#26: the pitcher "rehearses the most and owns the script from v1" (#37). One person gives the 3-minute pitch, and the 1-minute video plays inside it. The script v1 is `docs/pitch/pitch.md` in PR #83 (branch `37-trifold-pitch`). It is not on `main` yet, so open it from that PR's "Files changed" tab, and have it open on everyone's laptop before 6:30.
 
 1. **Read-through, 5 minutes.** Each person reads two segments of the script aloud with a timer: 0:00 to 0:25 (62 words) and 2:30 to 2:50 (47 words). Others write down one thing that landed and one that didn't.
 2. **Check the dates.** The pitcher must be at the Mon Nov 16 4:00 PM showcase, the Tue Nov 17 prep session if we make the Top 8, and the Wed Nov 18 5 to 7:30 PM finals. All four of us must be there anyway (context §2). Say now if anyone has a class conflict.
 3. **Ask who will rehearse most.** The five timed run-throughs are Sun Nov 15 (#39). Whoever commits to doing the most extra ones between now and then is the pitcher, unless the read-through shows a clear problem.
-4. **Decide, then say it in the chat.** The pitcher edits `docs/pitch.md` from here on. Everyone else sends them changes as comments, not edits.
+4. **Decide, then say it in the chat.** The pitcher edits `docs/pitch/pitch.md` from here on. Everyone else sends them changes as comments, not edits.
 5. **Optional, 5 minutes:** who answers which questions in the 3 minutes of Q&A at the finals? A suggested split: the pitcher takes business and market, Yahya takes contract and Stellar, Jack takes security and the demo, Rohan takes the numbers. Velocity hasn't said how Q&A works, so treat this as a plan, not a rule.
 
 ## 5. After the session
