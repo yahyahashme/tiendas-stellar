@@ -116,6 +116,9 @@ for shop in "$T1" "$T2" "$T3"; do
 done
 
 # ---------- 5. Pool money ----------
+step "Approving the demo lender (only approved lenders can put money in the pool)"
+retry invoke admin approve_lender --lender "$LENDER"
+
 step "The lender puts \$5,000 in the pool"
 deposit_once() {
   invoke lender deposit --lender "$LENDER" --amount 50000000000 && return 0
@@ -124,10 +127,10 @@ deposit_once() {
 }
 retry deposit_once
 
-step "The lender seeds the loss buffer with \$50"
+step "The lender seeds the loss buffer with \$200 (one shop's starting limit)"
 buffer_once() {
-  invoke lender fund_buffer --from "$LENDER" --amount 500000000 && return 0
-  [ "$(view get_pool | field buffer)" = "500000000" ]
+  invoke lender fund_buffer --from "$LENDER" --amount 2000000000 && return 0
+  [ "$(view get_pool | field buffer)" = "2000000000" ]
 }
 retry buffer_once
 

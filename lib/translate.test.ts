@@ -10,7 +10,7 @@ const source = (path: string) => readFileSync(join(root, path), "utf8");
 const SPANISH = /\b(factura|facturas|tienda|motorista|monto|pago|pagar|pagada|deuda|efectivo|crédito|límite|listo|fila|falta|tiene|está|intente|inválid[oa]|encontramos|dólares|vencido|recibido)\b/i;
 
 // Accounts and the screens built on them (#129 on): their messages come back from the server too.
-const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
+const SERVER_FILES = ["app/auth-actions.ts", "lib/server/accounts.ts", "app/distributor-actions.ts", "lib/server/distributors.ts", "app/registro/distributor-form.tsx", "app/driver-actions.ts", "lib/server/drivers.ts", "app/shop-actions.ts", "lib/server/shops.ts", "app/invoice-actions.ts", "app/recourse-actions.ts", "lib/server/invoices.ts", "app/shop-signup-actions.ts", "components/shop-signup.tsx", "lib/server/authz.ts", "lib/server/rate-limit.ts"];
 
 describe("translateMessage", () => {
   // One example of every message the server, the mock, the contract and the CSV parser send.
@@ -56,6 +56,10 @@ describe("translateMessage", () => {
     ["Escriba un monto mayor que $0 y hasta $10,000.", "Enter an amount over $0 and up to $10,000."],
     ["La nota puede tener hasta 300 letras.", "The note can have up to 300 characters."],
     ["Hay dos tiendas con ese nombre: Tienda Marta", "Two shops have that name: Tienda Marta"],
+    ["Listo. Ahora respalda a Tienda Rosa.", "Done. You now back Tienda Rosa."],
+    ["Listo. Ya no respalda a Tienda Rosa.", "Done. You no longer back Tienda Rosa."],
+    ["Listo. Su depósito de respaldo es $40.00.", "Done. Your backing deposit is $40.00."],
+    ["Listo. Retiró $10.00. Su depósito de respaldo es $30.00.", "Done. You took out $10.00. Your backing deposit is $30.00."],
   ];
 
   it.each(examples)("%s", (spanish, english) => {

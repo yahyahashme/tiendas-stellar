@@ -7,8 +7,8 @@
 
 import { formatDay, formatMoney, plural } from "./format";
 import { buildHistory } from "./history";
-import { creditFeeBps } from "./labels";
-import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type Pool, type Receipt, type Shop, type Totals } from "./types";
+import { LENDER_BPS, poolFeeSplit, RECOURSE_FEE_BPS, RECOURSE_LENDER_BPS, recourseRequired } from "./labels";
+import { HISTORY_PAGE, type Driver, type Payment, type Profile, type ShopHistory, type Supplier, type Invoice, type InvoiceHistory, type InvoiceRow, type PayMethod, type LenderView, type Pool, type Receipt, type RecourseView, type Shop, type Totals } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CREDIT_DAYS = 7;
@@ -18,7 +18,6 @@ const LIMIT_CAP = 500_00; // ...up to $500,
 const MIN_BORROW_WITH_HALF = 10_00; // or $10 with half of every credited invoice paid up front
 const MIN_BORROW_TO_GROW = 40_00; // ...only if the cycle borrowed at least $40,
 const RAISE_EVERY_MS = CREDIT_DAYS * DAY_MS; // ...and at most once per credit period
-const LENDER_BPS = 50; // the credit fee slides 1.00%-1.50% (lib/labels.ts); lenders always get 0.50%
 const GRACE_DAYS = 1; // repaid up to 1 day late still counts as on time (#137)
 const MINOR_LATE_DAYS = 7; // 2-7 days late: limit -$25; 8+ days: -$50 and no raise for 4 periods
 const MAJOR_LATE_STEP = 50_00;
@@ -52,6 +51,10 @@ type ShopRecord = {
   maxDaysLate: number;
   firstCreditAt: number; // 0 if never
   noRaiseUntil: number;
+  goodCycles: number; // on time past the growth bar, once per period, in a row (#185)
+  lastGoodAt: number; // 0 if never
+  vouched: boolean; // the demo distributor vouches for it (recourse tier, #185)
+  vouchedOwed: number; // of owed, cents the deposit backs
   balance: number; // dollars digitales on hand, in cents
   profile: Profile;
 };
@@ -61,6 +64,7 @@ type Store = {
   shops: ShopRecord[];
   drivers: DriverRecord[];
   pool: { available: number; buffer: number }; // units
+  recourse: { deposit: number }; // the demo distributor's recourse deposit, cents (#185)
   payments: PaymentRecord[]; // every payment, oldest first, for the shop's history (#136)
 };
 type PaymentRecord = { shopId: string; invoiceId: number | null; method: Payment["method"]; amount: number; at: number; driverId?: string };
@@ -90,6 +94,7 @@ function seed(now: number): Store {
   const shop = (id: string, name: string, owner: string, address: string, phone: string, dui: string): ShopRecord => ({
     id, name, owner, limit: 200_00, owed: 0, dueAt: 0, onTime: 0, late: 0, cycleBorrowed: 0, lastRaiseAt: 0,
     halfUpFront: false, lateMinor: 0, lateMajor: 0, maxDaysLate: 0, firstCreditAt: 0, noRaiseUntil: 0,
+    goodCycles: 0, lastGoodAt: 0, vouched: false, vouchedOwed: 0,
     balance: 1_000_00, // setup.sh gives each testnet shop $1,000 of test dollars
     profile: { owner, shopName: name, address, phone, dui },
   });
@@ -106,8 +111,9 @@ function seed(now: number): Store {
       { id: "motorista-1", name: "Carlos", cashHeld: 0 },
       { id: "motorista-2", name: "Ana", cashHeld: 0 },
     ],
-    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 50_00 * UNITS_PER_CENT }, // deploy.sh seeds $50
+    pool: { available: 5_000_00 * UNITS_PER_CENT, buffer: 200_00 * UNITS_PER_CENT }, // deploy.sh seeds $200
     payments: [],
+    recourse: { deposit: 0 },
   };
 }
 
@@ -163,8 +169,11 @@ function toShop(s: ShopRecord): Shop {
     lateMinor: s.lateMinor,
     lateMajor: s.lateMajor,
     maxDaysLate: s.maxDaysLate,
+    goodCycles: s.goodCycles,
   };
   if (s.owed > 0) shop.creditDue = iso(s.dueAt);
+  if (s.vouched) shop.voucherId = MOCK_DISTRIBUTOR;
+  if (s.vouchedOwed > 0) shop.vouchedOwed = dollars(s.vouchedOwed);
   if (s.firstCreditAt > 0) shop.firstCredit = iso(s.firstCreditAt);
   return shop;
 }
@@ -232,7 +241,14 @@ export function getDrivers(): Driver[] {
 
 export function getPool(): Pool {
   const { available, buffer } = db().pool;
-  return { available: available / (100 * UNITS_PER_CENT), buffer: buffer / (100 * UNITS_PER_CENT) };
+  const lent = db().shops.reduce((sum, shop) => sum + shop.owed, 0); // cents
+  return { available: available / (100 * UNITS_PER_CENT), buffer: buffer / (100 * UNITS_PER_CENT), lent: lent / 100 };
+}
+
+/** The demo's one lender put in $5,000 (deploy.sh) and owns the whole pool. */
+export function getLender(): LenderView {
+  const pool = getPool();
+  return { approved: true, value: Math.round((pool.available + pool.lent) * 100) / 100, netDeposited: 5_000 };
 }
 
 export function createDemoInvoice(shopId?: string): Invoice {
@@ -339,11 +355,13 @@ export function payLater(invoiceId: number): Receipt {
 
   const units = amount * UNITS_PER_CENT;
   // No usage fee on credit: our cut is inside the credit fee, which slides from 1.50% (all on
-  // credit, $98.50 per $100) down to 1.00% the more the shop paid up front (#135).
-  const rate = creditFeeBps(amount, invoice.amount);
-  const rest = rate - LENDER_BPS; // splits 3:1 buffer : us, the odd part to the buffer
-  const ours = bps(units, Math.floor(rest / 4));
-  const toBuffer = bps(units, rest - Math.floor(rest / 4));
+  // credit, $98.50 per $100) down to 1.00% the more the shop paid up front (#135). A trusted
+  // shop pays less of the buffer's share; a vouched one 0.25% if the deposit covers it (#185).
+  const vouched = shop.vouched && db().recourse.deposit >= Math.round(recourseRequired(dollars(vouchedOut() + amount)) * 100);
+  const split = vouched ? { buffer: 0, ours: RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS } : poolFeeSplit(amount, invoice.amount, shop.goodCycles);
+  const rate = vouched ? RECOURSE_FEE_BPS : LENDER_BPS + split.buffer + split.ours;
+  const ours = bps(units, split.ours);
+  const toBuffer = bps(units, split.buffer);
   const payout = units - bps(units, rate);
   const fromPool = payout + ours + toBuffer;
   const { pool } = db();
@@ -360,6 +378,7 @@ export function payLater(invoiceId: number): Receipt {
   shop.halfUpFront &&= invoice.paid * 2 >= invoice.amount;
   shop.owed += amount;
   shop.cycleBorrowed += amount;
+  if (vouched) shop.vouchedOwed += amount;
   invoice.creditFee = units - payout;
   logPayment(shop.id, invoice.id, "credit", amount);
   invoice.paid = invoice.amount;
@@ -406,6 +425,8 @@ export function repay(shopId: string, amount: number): Receipt {
   if (pay === null || pay > shop.owed) return fail("Monto inválido.");
 
   db().pool.available += pay * UNITS_PER_CENT;
+  // The part the buffer insures is cleared first, then the vouched part (#185).
+  shop.vouchedOwed -= Math.min(shop.vouchedOwed, Math.max(0, pay - (shop.owed - shop.vouchedOwed)));
   shop.owed -= pay;
   logPayment(shop.id, null, "repay", pay);
   shop.balance = Math.max(0, shop.balance - pay);
@@ -420,6 +441,7 @@ export function repay(shopId: string, amount: number): Receipt {
   shop.maxDaysLate = Math.max(shop.maxDaysLate, daysLate);
   if (daysLate > GRACE_DAYS) {
     shop.late += 1;
+    shop.goodCycles = 0;
     if (daysLate <= MINOR_LATE_DAYS) {
       shop.lateMinor += 1;
       shop.limit = Math.max(shop.limit - LIMIT_STEP, 0);
@@ -431,6 +453,10 @@ export function repay(shopId: string, amount: number): Receipt {
     return ok(`Deuda pagada con atraso. Su límite bajó a ${money(shop.limit)}.`);
   }
   shop.onTime += 1;
+  if (bigEnough && (shop.lastGoodAt === 0 || now >= shop.lastGoodAt + RAISE_EVERY_MS)) {
+    shop.goodCycles += 1;
+    shop.lastGoodAt = now;
+  }
   const waited = shop.lastRaiseAt === 0 || now >= shop.lastRaiseAt + RAISE_EVERY_MS;
   if (shop.limit >= LIMIT_CAP || !bigEnough || !waited || now < shop.noRaiseUntil) {
     return ok("Deuda pagada a tiempo. Gracias.");
@@ -472,4 +498,43 @@ export function createInvoices(rows: InvoiceRow[]): Receipt {
   if (records.length === 0) return fail("No hay facturas para crear.");
   invoices.push(...records);
   return ok(records.length === 1 ? "Se creó 1 factura." : `Se crearon ${plural(records.length, "factura", "facturas")}.`);
+}
+
+// ---------- recourse tier (#185): the demo distributor vouches for shops ----------
+
+const MOCK_DISTRIBUTOR = "distributor";
+
+function vouchedOut(): number {
+  return db().shops.reduce((sum, shop) => sum + shop.vouchedOwed, 0);
+}
+
+export function getRecourse(): RecourseView {
+  const out = dollars(vouchedOut());
+  return { distributorId: MOCK_DISTRIBUTOR, deposit: dollars(db().recourse.deposit), vouchedOut: out, required: recourseRequired(out) };
+}
+
+export function vouchShop(shopId: string, on: boolean): Receipt {
+  const shop = findShop(shopId);
+  if (!shop) return fail("No encontramos esa tienda.");
+  if (shop.owed > 0) return fail("Solo puede cambiar el respaldo cuando la tienda no debe nada.");
+  shop.vouched = on;
+  return ok(on ? `Listo. Ahora respalda a ${shop.name}.` : `Listo. Ya no respalda a ${shop.name}.`);
+}
+
+export function depositRecourse(amount: number): Receipt {
+  const cents = toCents(amount);
+  if (cents === null) return fail("Monto inválido.");
+  db().recourse.deposit += cents;
+  return ok(`Listo. Su depósito de respaldo es ${money(db().recourse.deposit)}.`);
+}
+
+export function withdrawRecourse(amount: number): Receipt {
+  const cents = toCents(amount);
+  const { recourse } = db();
+  if (cents === null || cents > recourse.deposit) return fail("Monto inválido.");
+  if (recourse.deposit - cents < Math.round(recourseRequired(dollars(vouchedOut())) * 100)) {
+    return fail("Su depósito de respaldo debe cubrir al menos el 20% del crédito que respalda.");
+  }
+  recourse.deposit -= cents;
+  return ok(`Listo. Retiró ${money(cents)}. Su depósito de respaldo es ${money(recourse.deposit)}.`);
 }

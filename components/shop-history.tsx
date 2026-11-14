@@ -113,7 +113,8 @@ export function HistoryFrame({ back, backLabel, children }: { back?: string; bac
   );
 }
 
-export function ShopHistory({ shopId, backHref, backLabel }: { shopId: string; backHref: string; backLabel: string }) {
+/** `extra` sits under the figures: the distributor's fee panel for this shop (#185). */
+export function ShopHistory({ shopId, backHref, backLabel, extra }: { shopId: string; backHref: string; backLabel: string; extra?: ReactNode }) {
   const { lang, t } = useT();
   const { data, failed, reload } = usePolling(`history-${shopId}`, async () => {
     const [history, shop, drivers] = await Promise.all([getShopHistory(shopId), getShop(shopId), getDrivers()]);
@@ -201,6 +202,8 @@ export function ShopHistory({ shopId, backHref, backLabel }: { shopId: string; b
         />
         <LedgerFigure label={t("Pagado este mes", "Paid this month")} value={history.paidThisMonth} />
       </LedgerFigures>
+
+      {extra}
 
       {history.rows.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-2">

@@ -10,9 +10,10 @@ import * as live from "@/app/actions";
 import * as distributors from "@/app/distributor-actions";
 import * as shops from "@/app/shop-actions";
 import * as invoices from "@/app/invoice-actions";
+import * as recourse from "@/app/recourse-actions";
 import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
+import type { Driver, Invoice, LenderView, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, RecourseView, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -49,6 +50,8 @@ export const getShop = (shopId: string): Promise<Shop | null> =>
   read(() => mock.getShop(shopId), () => live.getShop(shopId));
 export const getDrivers = (): Promise<Driver[]> => read(mock.getDrivers, live.getDrivers);
 export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
+/** The demo lender's place in the pool: what it put in and what that is worth now. */
+export const getLender = (): Promise<LenderView> => read(mock.getLender, live.getLender);
 /** The whole history a page at a time: `pages` pages, newest first. */
 export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
@@ -63,6 +66,8 @@ export const getInvoiceSource = (id: number) =>
 /** Claim codes for the stops on a route, shown only to that driver or their distributor (#132). */
 export const getRouteInvites = (driverId: string, shopIds: string[]) =>
   read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
+/** The distributor's recourse deposit and the vouched credit it backs (#185). */
+export const getRecourse = (): Promise<RecourseView> => read(mock.getRecourse, recourse.getRecourse);
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
 /** Every payment the shop made, and what it still owes, newest first (#136). */
@@ -100,3 +105,10 @@ export const handInCash = (driverId: string, amount: number) =>
 /** CSV import (#32): checks every row, then creates them one by one. */
 export const createInvoices = (rows: InvoiceRow[]) =>
   write(() => mock.createInvoices(rows), () => live.createInvoices(rows));
+/** The distributor vouches for a shop (0.25% credit fee, its deposit covers late payers), or stops (#185). */
+export const vouchShop = (shopId: string, on: boolean) =>
+  write(() => mock.vouchShop(shopId, on), () => recourse.vouchShop(shopId, on));
+export const depositRecourse = (amount: number) =>
+  write(() => mock.depositRecourse(amount), () => recourse.depositRecourse(amount));
+export const withdrawRecourse = (amount: number) =>
+  write(() => mock.withdrawRecourse(amount), () => recourse.withdrawRecourse(amount));

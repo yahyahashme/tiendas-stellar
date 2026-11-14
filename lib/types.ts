@@ -11,9 +11,22 @@ export type Shop = {
   /** When it first used credit; absent if never. */
   firstCredit?: string;
   writtenOff?: number;
+  /** On-time cycles in a row past the growth bar (#185): from 4 its credit costs the distributor less. */
+  goodCycles?: number;
+  /** The distributor that vouches for it (recourse tier, #185), by id; absent if none. */
+  voucherId?: string;
+  /** Of `creditOwed`, what the voucher's deposit backs. */
+  vouchedOwed?: number;
+  /** What a voucher's deposit ever paid the pool for it (it owes that to the distributor directly). */
+  coveredByDistributor?: number;
 };
+/** A distributor's recourse deposit (#185), in dollars. `required` = 20% of `vouchedOut`. */
+export type RecourseView = { distributorId: string; deposit: number; vouchedOut: number; required: number };
 export type Driver = { id: string; name: string; cashHeld: number; distributorId?: string };
-export type Pool = { available: number; buffer: number };
+/** The credit pool, in dollars. `lent` is what shops still owe it; lenders own `available + lent`. */
+export type Pool = { available: number; buffer: number; lent: number };
+/** One approved lender's place in the pool, in dollars. Earned = value - netDeposited. */
+export type LenderView = { approved: boolean; value: number; netDeposited: number };
 /** Everything ever paid, by method (dollars), and how many invoices exist. */
 export type Totals = { invoices: number; digital: number; cash: number; credit: number };
 /** Newest first, `pages` pages of `HISTORY_PAGE`; `total` is how many exist. */

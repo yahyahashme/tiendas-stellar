@@ -17,6 +17,10 @@ const MESSAGES: Record<number, string> = {
   12: "Su tienda aún no tiene crédito.",
   13: "Su distribuidora todavía no está aprobada para crear facturas.",
   15: "El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.",
+  16: "Solo los prestamistas aprobados pueden poner dinero en el fondo.",
+  17: "No tiene tantas participaciones en el fondo.",
+  18: "Su depósito de respaldo debe cubrir al menos el 20% del crédito que respalda.",
+  19: "Solo puede cambiar el respaldo cuando la tienda no debe nada.",
 };
 
 export const FALLBACK_MESSAGE = "No se pudo completar. Intente de nuevo.";

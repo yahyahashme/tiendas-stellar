@@ -29,6 +29,27 @@ pub const MIN_CREDIT_FEE_BPS: i128 = 100;
 /// at 1.50% that is 0.75% buffer and 0.25% us, at 1.00% it is 0.38% and 0.12%.
 pub const LENDER_BPS: i128 = 50;
 
+/// Trusted shops (#185): a "good cycle" is an on-time repayment that met the
+/// limit-growth bar ($40 on credit, or $10 with half up front), counted at most
+/// once per credit period. Any late repayment, recourse call or default resets
+/// the count. With a proven record the buffer's share of the credit fee
+/// shrinks, because the risk it insures has: by a third from `TRUSTED_CYCLES`,
+/// by two thirds from `HIGHLY_TRUSTED_CYCLES`. Lenders keep `LENDER_BPS` and
+/// our share is unchanged, so at full credit the fee goes 1.50% -> 1.25% -> 1.00%.
+pub const TRUSTED_CYCLES: u32 = 4;
+pub const HIGHLY_TRUSTED_CYCLES: u32 = 8;
+
+/// Recourse tier (#185). A distributor can vouch for a shop it knows. On
+/// that distributor's invoices the buffer takes nothing, because the
+/// distributor's deposit pays the pool back if the shop is more than
+/// `MINOR_LATE_DAYS` days late. The fee is 0.25%: 0.15% lenders, 0.10% us.
+pub const RECOURSE_FEE_BPS: i128 = 25;
+pub const RECOURSE_LENDER_BPS: i128 = 15;
+/// The deposit must stay at least 20% of the credit the distributor has
+/// vouched for that shops still owe. If it doesn't, the sale still goes
+/// through, at the normal pool fee.
+pub const RECOURSE_COVER_BPS: i128 = 2_000;
+
 /// Each on-time repayment raises the shop's limit by $25...
 pub const LIMIT_STEP: i128 = 250_000_000;
 /// ...up to $500. This is our own credit record.
@@ -92,6 +113,14 @@ pub enum Error {
     NotInDefault = 14,
     /// The driver's cash claim isn't the amount the shop confirmed.
     ClaimChanged = 15,
+    /// Only approved lenders can put money in the pool.
+    NotLender = 16,
+    /// The lender asked for more shares than it holds.
+    NotEnoughShares = 17,
+    /// The distributor's recourse deposit would drop below 20% of its vouched credit.
+    NotEnoughDeposit = 18,
+    /// Who vouches for a shop can only change while it owes nothing.
+    ShopOwes = 19,
 }
 
 #[contracttype]
@@ -145,6 +174,32 @@ pub struct Config {
 pub struct Pool {
     pub available: i128,
     pub buffer: i128,
+    /// Credit the pool has out with shops right now (what they still owe it).
+    pub lent: i128,
+    /// Lender shares issued. Each share is worth (available + lent) / shares.
+    pub shares: i128,
+    /// Distributors' recourse deposits (#185). Not lenders' money: the
+    /// contract's token balance is `available + buffer + recourse`.
+    pub recourse: i128,
+}
+
+/// One lender's place in the pool.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Lender {
+    pub shares: i128,
+    /// Money put in minus money taken out, so earnings = value - net_deposited.
+    pub net_deposited: i128,
+}
+
+/// What a lender sees: its shares, what they are worth now, and what it put in.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct LenderView {
+    pub approved: bool,
+    pub shares: i128,
+    pub value: i128,
+    pub net_deposited: i128,
 }
 
 #[contracttype]
@@ -175,6 +230,17 @@ pub struct Shop {
     pub first_credit_at: u64,
     /// Unix seconds; no limit raise before this (after a major late payment).
     pub no_raise_until: u64,
+    /// Good cycles in a row (#185): on time, past the growth bar, once per period.
+    pub good_cycles: u32,
+    /// Unix seconds of the last good cycle counted; 0 if never.
+    pub last_good_at: u64,
+    /// The distributor that vouches for this shop (recourse tier), if any.
+    pub voucher: Option<Address>,
+    /// The part of `owed` from the voucher's invoices, which its deposit backs.
+    pub vouched_owed: i128,
+    /// What the voucher's deposit has paid the pool for this shop, ever.
+    /// The shop owes that to the distributor directly, off the contract.
+    pub covered_by_distributor: i128,
 }
 
 /// Everything ever paid, by method, so the dashboard's totals cover the
@@ -205,6 +271,22 @@ pub struct ShopView {
     pub late_major: u32,
     pub max_days_late: u32,
     pub first_credit_at: u64,
+    /// Good cycles in a row; from `TRUSTED_CYCLES` the shop's credit costs its distributor less (#185).
+    pub good_cycles: u32,
+    pub voucher: Option<Address>,
+    pub vouched_owed: i128,
+    pub covered_by_distributor: i128,
+}
+
+/// A distributor's recourse deposit and what it backs.
+#[contracttype]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct RecourseView {
+    pub deposit: i128,
+    /// Vouched credit that shops still owe the pool.
+    pub vouched_out: i128,
+    /// The least the deposit can be: 20% of `vouched_out`, rounded up.
+    pub required: i128,
 }
 
 #[contracttype]
@@ -222,6 +304,9 @@ pub enum DataKey {
     CashClaim(u64),
     UsageOwed(Address),
     Distributor(Address),
+    Lender(Address),
+    RecourseDeposit(Address),
+    VouchedOut(Address),
 }
 
 #[contractevent]
@@ -273,6 +358,21 @@ pub struct Deposited {
     #[topic]
     pub lender: Address,
     pub amount: i128,
+    pub shares: i128,
+}
+
+#[contractevent]
+pub struct Withdrawn {
+    #[topic]
+    pub lender: Address,
+    pub amount: i128,
+    pub shares: i128,
+}
+
+#[contractevent]
+pub struct LenderApproved {
+    #[topic]
+    pub lender: Address,
 }
 
 #[contractevent]
@@ -290,6 +390,41 @@ pub struct PaidWithCredit {
     pub amount: i128,
     pub payout: i128,
     pub due_at: u64,
+    /// True when the voucher's deposit backs it (the 0.25% recourse fee).
+    pub recourse: bool,
+}
+
+#[contractevent]
+pub struct Vouched {
+    #[topic]
+    pub shop: Address,
+    pub distributor: Address,
+    pub on: bool,
+}
+
+#[contractevent]
+pub struct RecourseDeposited {
+    #[topic]
+    pub distributor: Address,
+    pub amount: i128,
+}
+
+#[contractevent]
+pub struct RecourseWithdrawn {
+    #[topic]
+    pub distributor: Address,
+    pub amount: i128,
+}
+
+#[contractevent]
+pub struct RecourseCalled {
+    #[topic]
+    pub shop: Address,
+    pub distributor: Address,
+    /// What the deposit paid the pool.
+    pub paid: i128,
+    /// What the shop still owes the pool after that.
+    pub owed: i128,
 }
 
 #[contractevent]
@@ -334,10 +469,19 @@ impl RouteLedger {
         treasury: Address,
         credit_period_secs: u64,
     ) {
-        let config = Config { admin, token, treasury, credit_period_secs };
+        let config = Config {
+            admin,
+            token,
+            treasury,
+            credit_period_secs,
+        };
         env.storage().instance().set(&DataKey::Config, &config);
-        env.storage().instance().set(&DataKey::Pool, &Pool::default());
-        env.storage().instance().set(&DataKey::Totals, &Totals::default());
+        env.storage()
+            .instance()
+            .set(&DataKey::Pool, &Pool::default());
+        env.storage()
+            .instance()
+            .set(&DataKey::Totals, &Totals::default());
     }
 
     // ---------- v1: invoices and digital payments ----------
@@ -388,15 +532,25 @@ impl RouteLedger {
         put(&env, &DataKey::Invoice(id), &invoice);
         let mut totals = load_totals(&env);
         let chunk_key = DataKey::IdChunk(totals.invoices / IDS_PER_CHUNK);
-        let mut chunk: Vec<u64> =
-            env.storage().persistent().get(&chunk_key).unwrap_or_else(|| Vec::new(&env));
+        let mut chunk: Vec<u64> = env
+            .storage()
+            .persistent()
+            .get(&chunk_key)
+            .unwrap_or_else(|| Vec::new(&env));
         chunk.push_back(id);
         put(&env, &chunk_key, &chunk);
         totals.invoices += 1;
         // Totals are for display: they saturate rather than ever block a call.
         totals.invoiced = totals.invoiced.saturating_add(amount);
         save_totals(&env, &totals);
-        InvoiceCreated { id, distributor, shop, amount, due }.publish(&env);
+        InvoiceCreated {
+            id,
+            distributor,
+            shop,
+            amount,
+            due,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -424,7 +578,13 @@ impl RouteLedger {
 
         invoice.paid += amount;
         record_payment(&env, &mut invoice, PayMethod::Digital, amount);
-        InvoicePaid { id, shop, amount, usage_fee }.publish(&env);
+        InvoicePaid {
+            id,
+            shop,
+            amount,
+            usage_fee,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -509,7 +669,11 @@ impl RouteLedger {
             return Err(Error::NotYourInvoice);
         }
         let claim_key = DataKey::CashClaim(id);
-        let claim: i128 = env.storage().persistent().get(&claim_key).ok_or(Error::NoCashClaim)?;
+        let claim: i128 = env
+            .storage()
+            .persistent()
+            .get(&claim_key)
+            .ok_or(Error::NoCashClaim)?;
         if claim != amount {
             return Err(Error::ClaimChanged);
         }
@@ -524,9 +688,19 @@ impl RouteLedger {
         invoice.paid += claim;
         record_payment(&env, &mut invoice, PayMethod::Cash, claim);
         add(&env, DataKey::DriverCash(invoice.driver.clone()), claim);
-        add(&env, DataKey::UsageOwed(invoice.distributor.clone()), bps(claim, USAGE_FEE_BPS)?);
+        add(
+            &env,
+            DataKey::UsageOwed(invoice.distributor.clone()),
+            bps(claim, USAGE_FEE_BPS)?,
+        );
         env.storage().persistent().remove(&claim_key);
-        CashConfirmed { id, shop, driver: invoice.driver, amount: claim }.publish(&env);
+        CashConfirmed {
+            id,
+            shop,
+            driver: invoice.driver,
+            amount: claim,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -550,14 +724,47 @@ impl RouteLedger {
             return Err(Error::InvalidAmount);
         }
         put(&env, &key, &(held - amount));
-        CashHandedIn { driver, distributor, amount }.publish(&env);
+        CashHandedIn {
+            driver,
+            distributor,
+            amount,
+        }
+        .publish(&env);
         Ok(())
     }
 
-    /// A lender adds money to the pool that pays invoices on credit.
+    /// Admin only: let a licensed lender put money in the pool. Lenders can
+    /// be anywhere, as long as they hold the pool's dollars on Stellar.
+    pub fn approve_lender(env: Env, lender: Address) {
+        load_config(&env).admin.require_auth();
+        let entry = load_lender(&env, &lender).unwrap_or_default();
+        save_lender(&env, &lender, &entry);
+        LenderApproved { lender }.publish(&env);
+    }
+
+    pub fn is_lender(env: Env, lender: Address) -> bool {
+        load_lender(&env, &lender).is_some()
+    }
+
+    /// An approved lender adds money to the pool that pays invoices on credit,
+    /// and gets shares at today's value, so earlier lenders keep what they earned.
     pub fn deposit(env: Env, lender: Address, amount: i128) -> Result<(), Error> {
         lender.require_auth();
         if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        let mut pool = load_pool(&env);
+        let value = pool.available + pool.lent;
+        let shares = if pool.shares == 0 || value <= 0 {
+            amount
+        } else {
+            amount
+                .checked_mul(pool.shares)
+                .ok_or(Error::InvalidAmount)?
+                / value
+        };
+        if shares <= 0 {
             return Err(Error::InvalidAmount);
         }
         let config = load_config(&env);
@@ -566,11 +773,68 @@ impl RouteLedger {
             &env.current_contract_address(),
             &amount,
         );
-        let mut pool = load_pool(&env);
         pool.available += amount;
+        pool.shares += shares;
         save_pool(&env, &pool);
-        Deposited { lender, amount }.publish(&env);
+        entry.shares += shares;
+        entry.net_deposited += amount;
+        save_lender(&env, &lender, &entry);
+        Deposited {
+            lender,
+            amount,
+            shares,
+        }
+        .publish(&env);
         Ok(())
+    }
+
+    /// A lender takes money out by giving back shares. Only money that is not
+    /// lent out can leave; the rest comes back as shops repay.
+    pub fn withdraw(env: Env, lender: Address, shares: i128) -> Result<i128, Error> {
+        lender.require_auth();
+        if shares <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let mut entry = load_lender(&env, &lender).ok_or(Error::NotLender)?;
+        if shares > entry.shares {
+            return Err(Error::NotEnoughShares);
+        }
+        let mut pool = load_pool(&env);
+        let amount = share_value(&pool, shares)?;
+        if amount > pool.available {
+            return Err(Error::PoolTooLow);
+        }
+        pool.available -= amount;
+        pool.shares -= shares;
+        save_pool(&env, &pool);
+        entry.shares -= shares;
+        entry.net_deposited -= amount;
+        save_lender(&env, &lender, &entry);
+        let config = load_config(&env);
+        let token = token::Client::new(&env, &config.token);
+        send(&token, &env.current_contract_address(), &lender, amount);
+        Withdrawn {
+            lender,
+            amount,
+            shares,
+        }
+        .publish(&env);
+        Ok(amount)
+    }
+
+    pub fn get_lender(env: Env, lender: Address) -> LenderView {
+        match load_lender(&env, &lender) {
+            None => LenderView::default(),
+            Some(entry) => {
+                let pool = load_pool(&env);
+                LenderView {
+                    approved: true,
+                    shares: entry.shares,
+                    value: share_value(&pool, entry.shares).unwrap_or(0),
+                    net_deposited: entry.net_deposited,
+                }
+            }
+        }
     }
 
     /// Admin only: give a shop credit, or change its limit.
@@ -613,12 +877,21 @@ impl RouteLedger {
         // 3. Fees: the distributor gets the amount minus the credit fee, 1.00%
         //    to 1.50% depending on how much the shop paid up front (no usage
         //    fee on credit: our cut is inside the credit fee).
-        let rate = credit_fee_bps(amount, invoice.amount);
-        let (to_buffer_bps, our_bps) = fee_split(rate);
+        //    A shop its distributor vouches for pays 0.25% if the deposit
+        //    covers it; a trusted shop pays less of the buffer's share (#185).
+        let vouched = terms.voucher.as_ref() == Some(&invoice.distributor)
+            && recourse_covers(&env, &invoice.distributor, amount)?;
+        let (rate, to_buffer_bps, our_bps) = if vouched {
+            (RECOURSE_FEE_BPS, 0, RECOURSE_FEE_BPS - RECOURSE_LENDER_BPS)
+        } else {
+            let (buffer_bps, our_bps) = fee_split(credit_fee_bps(amount, invoice.amount));
+            let buffer_bps = trusted_buffer_bps(buffer_bps, terms.good_cycles);
+            (LENDER_BPS + buffer_bps + our_bps, buffer_bps, our_bps)
+        };
         let payout = amount - bps(amount, rate)?;
         let ours = bps(amount, our_bps)?;
         let to_buffer = bps(amount, to_buffer_bps)?;
-        // The lenders' 0.50% never leaves `available`, so the pool gives up the rest.
+        // The lenders' part never leaves `available`, so the pool gives up the rest.
         let from_pool = payout + ours + to_buffer;
         // 4. Only lend money the pool has, never the buffer.
         let mut pool = load_pool(&env);
@@ -634,6 +907,7 @@ impl RouteLedger {
 
         pool.available -= from_pool;
         pool.buffer += to_buffer;
+        pool.lent += amount;
         save_pool(&env, &pool);
 
         if terms.owed == 0 {
@@ -648,12 +922,28 @@ impl RouteLedger {
         terms.cycle_half_up_front &= invoice.paid.saturating_mul(2) >= invoice.amount;
         terms.owed += amount;
         terms.cycle_borrowed += amount;
+        if vouched {
+            terms.vouched_owed += amount;
+            add(
+                &env,
+                DataKey::VouchedOut(invoice.distributor.clone()),
+                amount,
+            );
+        }
         save_shop(&env, &shop, &terms);
 
         invoice.paid = invoice.amount;
         invoice.credit_fee = amount - payout;
         record_payment(&env, &mut invoice, PayMethod::Credit, amount);
-        PaidWithCredit { id, shop, amount, payout, due_at: terms.due_at }.publish(&env);
+        PaidWithCredit {
+            id,
+            shop,
+            amount,
+            payout,
+            due_at: terms.due_at,
+            recourse: vouched,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -662,15 +952,24 @@ impl RouteLedger {
     }
 
     pub fn get_driver_cash(env: Env, driver: Address) -> i128 {
-        env.storage().persistent().get(&DataKey::DriverCash(driver)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::DriverCash(driver))
+            .unwrap_or(0)
     }
 
     pub fn get_usage_owed(env: Env, distributor: Address) -> i128 {
-        env.storage().persistent().get(&DataKey::UsageOwed(distributor)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::UsageOwed(distributor))
+            .unwrap_or(0)
     }
 
     pub fn get_cash_claim(env: Env, id: u64) -> i128 {
-        env.storage().persistent().get(&DataKey::CashClaim(id)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::CashClaim(id))
+            .unwrap_or(0)
     }
 
     // ---------- v3: repayment and the shop's credit record ----------
@@ -683,7 +982,11 @@ impl RouteLedger {
             Some(terms) if terms.owed > 0 || terms.written_off > 0 => terms,
             _ => return Err(Error::NothingOwed),
         };
-        let owed_now = if terms.owed > 0 { terms.owed } else { terms.written_off };
+        let owed_now = if terms.owed > 0 {
+            terms.owed
+        } else {
+            terms.written_off
+        };
         if amount <= 0 || amount > owed_now {
             return Err(Error::InvalidAmount);
         }
@@ -703,80 +1006,209 @@ impl RouteLedger {
             save_pool(&env, &pool);
             terms.written_off -= amount;
             save_shop(&env, &shop, &terms);
-            Repaid { shop, amount, owed: terms.written_off }.publish(&env);
+            Repaid {
+                shop,
+                amount,
+                owed: terms.written_off,
+            }
+            .publish(&env);
             return Ok(());
         }
 
         pool.available += amount;
+        pool.lent -= amount;
         save_pool(&env, &pool);
+        // Repayments clear the part the buffer insures first, then the vouched part.
+        let unvouched = terms.owed - terms.vouched_owed;
+        reduce_vouched(&env, &mut terms, (amount - unvouched).max(0));
         terms.owed -= amount;
         if terms.owed == 0 {
             let now = env.ledger().timestamp();
-            let period = config.credit_period_secs;
-            let days = days_late(now, terms.due_at, period);
-            terms.max_days_late = terms.max_days_late.max(days_u32(days));
-            if days <= GRACE_DAYS {
-                terms.on_time += 1;
-                // +$25 for paying on time, never past $500, and only if the shop
-                // borrowed at least $40 this cycle (or $10, with half of every credited
-                // invoice paid up front), wasn't raised in the last credit period, and
-                // isn't serving a no-raise after a major late payment. A limit the
-                // admin set above $500 is left alone.
-                let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
-                    || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
-                let waited =
-                    terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
-                if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
-                    terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
-                    terms.last_raise_at = now;
-                }
-            } else if days <= MINOR_LATE_DAYS {
-                // 2-7 days late: the limit drops $25.
-                terms.late += 1;
-                terms.late_minor += 1;
-                terms.limit = (terms.limit - LIMIT_STEP).max(0);
-            } else {
-                // 8+ days late: the limit drops $50 and can't grow for 4 periods.
-                terms.late += 1;
-                terms.late_major += 1;
-                terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
-                terms.no_raise_until =
-                    now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
-            }
-            terms.due_at = 0;
-            terms.cycle_borrowed = 0;
-            terms.cycle_half_up_front = false;
+            close_cycle(&mut terms, now, config.credit_period_secs);
         }
         save_shop(&env, &shop, &terms);
-        Repaid { shop, amount, owed: terms.owed }.publish(&env);
+        Repaid {
+            shop,
+            amount,
+            owed: terms.owed,
+        }
+        .publish(&env);
         Ok(())
     }
 
-    /// Admin only: a shop is `DEFAULT_AFTER_PERIODS` credit periods late.
-    /// The buffer pays the lenders back what it can, the shop's credit is
-    /// turned off, and the debt stays on its record as `written_off`.
+    /// Anyone can call this once a shop the distributor vouches for is more
+    /// than `MINOR_LATE_DAYS` days late (#185). The distributor's deposit pays
+    /// the pool the vouched part, and the distributor collects from the shop
+    /// itself. It counts as a major late payment on the shop's record.
+    pub fn call_recourse(env: Env, shop: Address) -> Result<i128, Error> {
+        let config = load_config(&env);
+        let mut terms = load_shop(&env, &shop).ok_or(Error::NothingOwed)?;
+        if terms.vouched_owed == 0 {
+            return Err(Error::NothingOwed);
+        }
+        let now = env.ledger().timestamp();
+        let days = days_late(now, terms.due_at, config.credit_period_secs);
+        if days <= MINOR_LATE_DAYS {
+            return Err(Error::NotInDefault);
+        }
+        let mut pool = load_pool(&env);
+        let paid = take_recourse(&env, &shop, &mut terms, &mut pool);
+        save_pool(&env, &pool);
+        terms.good_cycles = 0;
+        terms.max_days_late = terms.max_days_late.max(days_u32(days));
+        if terms.owed == 0 {
+            close_cycle(&mut terms, now, config.credit_period_secs);
+        }
+        save_shop(&env, &shop, &terms);
+        Ok(paid)
+    }
+
+    /// A distributor vouches for a shop it knows, or stops (#185). Its
+    /// invoices to that shop then cost 0.25% on credit, backed by its deposit.
+    /// Only while the shop owes nothing, so no debt changes hands.
+    pub fn vouch(env: Env, distributor: Address, shop: Address, on: bool) -> Result<(), Error> {
+        distributor.require_auth();
+        if !is_approved(&env, &distributor) {
+            return Err(Error::NotApproved);
+        }
+        let mut terms = load_shop(&env, &shop).ok_or(Error::NoCreditTerms)?;
+        if terms.owed > 0 {
+            return Err(Error::ShopOwes);
+        }
+        if on {
+            terms.voucher = Some(distributor.clone());
+        } else if terms.voucher.as_ref() == Some(&distributor) {
+            terms.voucher = None;
+        } else {
+            return Err(Error::NotApproved);
+        }
+        save_shop(&env, &shop, &terms);
+        Vouched {
+            shop,
+            distributor,
+            on,
+        }
+        .publish(&env);
+        Ok(())
+    }
+
+    /// An approved distributor adds to its recourse deposit.
+    pub fn deposit_recourse(env: Env, distributor: Address, amount: i128) -> Result<(), Error> {
+        distributor.require_auth();
+        if !is_approved(&env, &distributor) {
+            return Err(Error::NotApproved);
+        }
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        let config = load_config(&env);
+        token::Client::new(&env, &config.token).transfer(
+            &distributor,
+            &env.current_contract_address(),
+            &amount,
+        );
+        add(&env, DataKey::RecourseDeposit(distributor.clone()), amount);
+        let mut pool = load_pool(&env);
+        pool.recourse += amount;
+        save_pool(&env, &pool);
+        RecourseDeposited {
+            distributor,
+            amount,
+        }
+        .publish(&env);
+        Ok(())
+    }
+
+    /// The distributor takes deposit back, as long as 20% of its vouched
+    /// credit still out stays covered.
+    pub fn withdraw_recourse(env: Env, distributor: Address, amount: i128) -> Result<(), Error> {
+        distributor.require_auth();
+        let view = recourse_view(&env, &distributor)?;
+        if amount <= 0 || amount > view.deposit {
+            return Err(Error::InvalidAmount);
+        }
+        if view.deposit - amount < view.required {
+            return Err(Error::NotEnoughDeposit);
+        }
+        put(
+            &env,
+            &DataKey::RecourseDeposit(distributor.clone()),
+            &(view.deposit - amount),
+        );
+        let mut pool = load_pool(&env);
+        pool.recourse -= amount;
+        save_pool(&env, &pool);
+        let config = load_config(&env);
+        let token = token::Client::new(&env, &config.token);
+        send(
+            &token,
+            &env.current_contract_address(),
+            &distributor,
+            amount,
+        );
+        RecourseWithdrawn {
+            distributor,
+            amount,
+        }
+        .publish(&env);
+        Ok(())
+    }
+
+    pub fn get_recourse(env: Env, distributor: Address) -> RecourseView {
+        recourse_view(&env, &distributor).unwrap_or_default()
+    }
+
+    /// Anyone can call this once a shop is `DEFAULT_AFTER_PERIODS` credit
+    /// periods late, so lenders are never stuck waiting on the admin. The
+    /// buffer pays the lenders back what it can, the shop's credit is turned
+    /// off, and the debt stays on its record as `written_off`.
     pub fn cover_default(env: Env, shop: Address) -> Result<(), Error> {
         let config = load_config(&env);
-        config.admin.require_auth();
         let mut terms = load_shop(&env, &shop).ok_or(Error::NothingOwed)?;
         if terms.owed == 0 {
             return Err(Error::NothingOwed);
         }
-        let late_by = config.credit_period_secs.saturating_mul(DEFAULT_AFTER_PERIODS);
+        let late_by = config
+            .credit_period_secs
+            .saturating_mul(DEFAULT_AFTER_PERIODS);
         if env.ledger().timestamp() <= terms.due_at.saturating_add(late_by) {
             return Err(Error::NotInDefault);
         }
 
-        let owed = terms.owed;
         let mut pool = load_pool(&env);
+        // A voucher's deposit pays its part first (if no one called recourse yet).
+        take_recourse(&env, &shop, &mut terms, &mut pool);
+        // Whatever vouched debt the deposit couldn't pay falls to the buffer.
+        let unpaid_vouched = terms.vouched_owed;
+        reduce_vouched(&env, &mut terms, unpaid_vouched);
+        let owed = terms.owed;
+        if owed == 0 {
+            save_pool(&env, &pool);
+            terms.good_cycles = 0;
+            close_cycle(
+                &mut terms,
+                env.ledger().timestamp(),
+                config.credit_period_secs,
+            );
+            save_shop(&env, &shop, &terms);
+            return Ok(());
+        }
         let covered = owed.min(pool.buffer);
         pool.buffer -= covered;
         pool.available += covered;
+        // The debt is no longer counted as lent: what the buffer could not
+        // cover is the lenders' loss, shared by every share.
+        pool.lent -= owed;
         save_pool(&env, &pool);
 
-        let days = days_late(env.ledger().timestamp(), terms.due_at, config.credit_period_secs);
+        let days = days_late(
+            env.ledger().timestamp(),
+            terms.due_at,
+            config.credit_period_secs,
+        );
         terms.max_days_late = terms.max_days_late.max(days_u32(days));
         terms.written_off += owed;
+        terms.good_cycles = 0;
         terms.owed = 0;
         terms.due_at = 0;
         terms.cycle_borrowed = 0;
@@ -784,7 +1216,12 @@ impl RouteLedger {
         terms.late += 1;
         terms.limit = 0;
         save_shop(&env, &shop, &terms);
-        DefaultCovered { shop, owed, covered }.publish(&env);
+        DefaultCovered {
+            shop,
+            owed,
+            covered,
+        }
+        .publish(&env);
         Ok(())
     }
 
@@ -823,6 +1260,10 @@ impl RouteLedger {
             late_major: terms.late_major,
             max_days_late: terms.max_days_late,
             first_credit_at: terms.first_credit_at,
+            good_cycles: terms.good_cycles,
+            voucher: terms.voucher,
+            vouched_owed: terms.vouched_owed,
+            covered_by_distributor: terms.covered_by_distributor,
         }
     }
 }
@@ -839,7 +1280,9 @@ pub fn credit_fee_bps(credited: i128, total: i128) -> i128 {
         return CREDIT_FEE_BPS;
     }
     // (f - 0.10) / 0.90 = (10 * credited - total) / (9 * total)
-    let tenfold = credited.saturating_mul(10).clamp(total, total.saturating_mul(10));
+    let tenfold = credited
+        .saturating_mul(10)
+        .clamp(total, total.saturating_mul(10));
     let span = CREDIT_FEE_BPS - MIN_CREDIT_FEE_BPS;
     match ((tenfold - total).checked_mul(span), total.checked_mul(9)) {
         (Some(top), Some(bottom)) => MIN_CREDIT_FEE_BPS + top / bottom,
@@ -853,6 +1296,136 @@ pub fn fee_split(rate: i128) -> (i128, i128) {
     let rest = rate - LENDER_BPS;
     let ours = rest / 4;
     (rest - ours, ours)
+}
+
+/// The buffer's share of the credit fee for a shop with `good_cycles` good
+/// cycles in a row (#185): all of it, two thirds from `TRUSTED_CYCLES`, one
+/// third from `HIGHLY_TRUSTED_CYCLES`, rounded down.
+pub fn trusted_buffer_bps(buffer_bps: i128, good_cycles: u32) -> i128 {
+    if good_cycles >= HIGHLY_TRUSTED_CYCLES {
+        buffer_bps / 3
+    } else if good_cycles >= TRUSTED_CYCLES {
+        buffer_bps * 2 / 3
+    } else {
+        buffer_bps
+    }
+}
+
+/// The least a recourse deposit can be for `vouched_out`: 20%, rounded up.
+pub fn recourse_required(vouched_out: i128) -> i128 {
+    let top = vouched_out.saturating_mul(RECOURSE_COVER_BPS);
+    top / 10_000 + i128::from(top % 10_000 != 0)
+}
+
+fn recourse_view(env: &Env, distributor: &Address) -> Result<RecourseView, Error> {
+    let store = env.storage().persistent();
+    let deposit: i128 = store
+        .get(&DataKey::RecourseDeposit(distributor.clone()))
+        .unwrap_or(0);
+    let vouched_out: i128 = store
+        .get(&DataKey::VouchedOut(distributor.clone()))
+        .unwrap_or(0);
+    Ok(RecourseView {
+        deposit,
+        vouched_out,
+        required: recourse_required(vouched_out),
+    })
+}
+
+/// Would the deposit still cover 20% with `amount` more vouched credit out?
+fn recourse_covers(env: &Env, distributor: &Address, amount: i128) -> Result<bool, Error> {
+    let view = recourse_view(env, distributor)?;
+    let after = view
+        .vouched_out
+        .checked_add(amount)
+        .ok_or(Error::InvalidAmount)?;
+    Ok(view.deposit >= recourse_required(after))
+}
+
+/// Take `amount` off the shop's vouched debt and its voucher's total.
+fn reduce_vouched(env: &Env, terms: &mut Shop, amount: i128) {
+    if amount <= 0 {
+        return;
+    }
+    let amount = amount.min(terms.vouched_owed);
+    terms.vouched_owed -= amount;
+    if let Some(voucher) = terms.voucher.clone() {
+        add(env, DataKey::VouchedOut(voucher), -amount);
+    }
+}
+
+/// The voucher's deposit pays the pool what it can of the shop's vouched
+/// debt. Returns how much it paid.
+fn take_recourse(env: &Env, shop: &Address, terms: &mut Shop, pool: &mut Pool) -> i128 {
+    let voucher = match terms.voucher.clone() {
+        Some(voucher) if terms.vouched_owed > 0 => voucher,
+        _ => return 0,
+    };
+    let key = DataKey::RecourseDeposit(voucher.clone());
+    let deposit: i128 = env.storage().persistent().get(&key).unwrap_or(0);
+    let paid = terms.vouched_owed.min(deposit);
+    if paid <= 0 {
+        return 0;
+    }
+    put(env, &key, &(deposit - paid));
+    pool.recourse -= paid;
+    pool.available += paid;
+    pool.lent -= paid;
+    reduce_vouched(env, terms, paid);
+    terms.owed -= paid;
+    terms.covered_by_distributor += paid;
+    RecourseCalled {
+        shop: shop.clone(),
+        distributor: voucher,
+        paid,
+        owed: terms.owed,
+    }
+    .publish(env);
+    paid
+}
+
+/// The shop's balance just reached 0: grade the cycle and update its record.
+fn close_cycle(terms: &mut Shop, now: u64, period: u64) {
+    let days = days_late(now, terms.due_at, period);
+    terms.max_days_late = terms.max_days_late.max(days_u32(days));
+    if days <= GRACE_DAYS {
+        terms.on_time += 1;
+        // +$25 for paying on time, never past $500, and only if the shop
+        // borrowed at least $40 this cycle (or $10, with half of every credited
+        // invoice paid up front), wasn't raised in the last credit period, and
+        // isn't serving a no-raise after a major late payment. A limit the
+        // admin set above $500 is left alone.
+        let big_enough = terms.cycle_borrowed >= MIN_BORROW_TO_GROW
+            || (terms.cycle_half_up_front && terms.cycle_borrowed >= MIN_BORROW_WITH_HALF);
+        let waited = terms.last_raise_at == 0 || now >= terms.last_raise_at + period;
+        if big_enough && waited && now >= terms.no_raise_until && terms.limit < LIMIT_CAP {
+            terms.limit = (terms.limit + LIMIT_STEP).min(LIMIT_CAP);
+            terms.last_raise_at = now;
+        }
+        // A good cycle for the trusted-shop fee (#185): same bar, once per period.
+        let good_waited = terms.last_good_at == 0 || now >= terms.last_good_at + period;
+        if big_enough && good_waited {
+            terms.good_cycles = terms.good_cycles.saturating_add(1);
+            terms.last_good_at = now;
+        }
+    } else if days <= MINOR_LATE_DAYS {
+        // 2-7 days late: the limit drops $25, and the trusted record starts over.
+        terms.late += 1;
+        terms.late_minor += 1;
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - LIMIT_STEP).max(0);
+    } else {
+        // 8+ days late (or the voucher paid for it): the limit drops $50 and
+        // can't grow for 4 periods.
+        terms.late += 1;
+        terms.late_major += 1;
+        terms.good_cycles = 0;
+        terms.limit = (terms.limit - MAJOR_LATE_STEP).max(0);
+        terms.no_raise_until = now.saturating_add(period.saturating_mul(NO_RAISE_PERIODS));
+    }
+    terms.due_at = 0;
+    terms.cycle_borrowed = 0;
+    terms.cycle_half_up_front = false;
 }
 
 /// How many "days" past `due_at` it is now, rounded up; 0 if not past it.
@@ -870,11 +1443,16 @@ fn days_u32(days: u64) -> u32 {
 }
 
 fn bps(amount: i128, bps: i128) -> Result<i128, Error> {
-    amount.checked_mul(bps).map(|x| x / 10_000).ok_or(Error::InvalidAmount)
+    amount
+        .checked_mul(bps)
+        .map(|x| x / 10_000)
+        .ok_or(Error::InvalidAmount)
 }
 
 fn is_approved(env: &Env, distributor: &Address) -> bool {
-    env.storage().persistent().has(&DataKey::Distributor(distributor.clone()))
+    env.storage()
+        .persistent()
+        .has(&DataKey::Distributor(distributor.clone()))
 }
 
 fn send(token: &token::Client, from: &Address, to: &Address, amount: i128) {
@@ -911,7 +1489,9 @@ fn put<V: IntoVal<Env, Val>>(env: &Env, key: &DataKey, value: &V) {
     let storage = env.storage().persistent();
     storage.set(key, value);
     storage.extend_ttl(key, TTL_THRESHOLD, TTL_EXTEND_TO);
-    env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+    env.storage()
+        .instance()
+        .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 fn add(env: &Env, key: DataKey, amount: i128) {
@@ -923,33 +1503,68 @@ fn load_config(env: &Env) -> Config {
     env.storage().instance().get(&DataKey::Config).unwrap()
 }
 
+fn load_lender(env: &Env, lender: &Address) -> Option<Lender> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Lender(lender.clone()))
+}
+
+fn save_lender(env: &Env, lender: &Address, entry: &Lender) {
+    put(env, &DataKey::Lender(lender.clone()), entry);
+}
+
+/// What `shares` are worth today: their part of the money in the pool plus
+/// the money shops still owe it. Rounds down, so the pool never pays out more.
+fn share_value(pool: &Pool, shares: i128) -> Result<i128, Error> {
+    if pool.shares == 0 {
+        return Ok(0);
+    }
+    Ok(shares
+        .checked_mul(pool.available + pool.lent)
+        .ok_or(Error::InvalidAmount)?
+        / pool.shares)
+}
+
 fn load_pool(env: &Env) -> Pool {
     env.storage().instance().get(&DataKey::Pool).unwrap()
 }
 
 fn save_pool(env: &Env, pool: &Pool) {
     env.storage().instance().set(&DataKey::Pool, pool);
-    env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+    env.storage()
+        .instance()
+        .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 fn load_totals(env: &Env) -> Totals {
-    env.storage().instance().get(&DataKey::Totals).unwrap_or_default()
+    env.storage()
+        .instance()
+        .get(&DataKey::Totals)
+        .unwrap_or_default()
 }
 
 fn save_totals(env: &Env, totals: &Totals) {
     env.storage().instance().set(&DataKey::Totals, totals);
-    env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+    env.storage()
+        .instance()
+        .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// The invoice created `position`-th (0 = oldest), if it's still stored.
 fn invoice_at(env: &Env, position: u32) -> Option<Invoice> {
-    let chunk: Vec<u64> = env.storage().persistent().get(&DataKey::IdChunk(position / IDS_PER_CHUNK))?;
+    let chunk: Vec<u64> = env
+        .storage()
+        .persistent()
+        .get(&DataKey::IdChunk(position / IDS_PER_CHUNK))?;
     let id = chunk.get(position % IDS_PER_CHUNK)?;
     env.storage().persistent().get(&DataKey::Invoice(id))
 }
 
 fn load_invoice(env: &Env, id: u64) -> Result<Invoice, Error> {
-    env.storage().persistent().get(&DataKey::Invoice(id)).ok_or(Error::NotFound)
+    env.storage()
+        .persistent()
+        .get(&DataKey::Invoice(id))
+        .ok_or(Error::NotFound)
 }
 
 fn load_shop(env: &Env, shop: &Address) -> Option<Shop> {

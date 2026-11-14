@@ -21,7 +21,7 @@ describe("seed data", () => {
   it("has three shops with a $200 limit and a $5,000 pool", () => {
     expect(mock.getShop("tienda-1")).toMatchObject({ name: "Tienda Rosa", creditLimit: 200, creditOwed: 0, overdue: false });
     expect(mock.getShop("nope")).toBeNull();
-    expect(mock.getPool()).toEqual({ available: 5000, buffer: 50 });
+    expect(mock.getPool()).toMatchObject({ available: 5000, buffer: 200 });
     expect(mock.getDrivers().map((d) => d.name)).toEqual(["Carlos", "Ana"]);
   });
 });
@@ -79,7 +79,7 @@ describe("pay in 7 days", () => {
     expect(mock.getInvoice(1001)).toMatchObject({ status: "paid", method: "credit" });
     expect(mock.getShop("tienda-1")).toMatchObject({ creditOwed: 150, overdue: false, creditDue: new Date(NOW + 7 * DAY).toISOString() });
     // $150 on credit: the pool gives up $149.25 and keeps $1.125 as a buffer.
-    expect(mock.getPool()).toEqual({ available: 4850.75, buffer: 51.125 });
+    expect(mock.getPool()).toMatchObject({ available: 4850.75, buffer: 201.125, lent: 150 });
   });
 
   it("charges a lower credit fee when the shop paid part up front", () => {
@@ -237,5 +237,45 @@ describe("Mi cuenta (#127)", () => {
     expect(mock.saveProfile("tienda-1", { ...profile, phone: "abc" }).message).toBe("Revise el teléfono.");
     expect(mock.saveProfile("tienda-1", { ...profile, shopName: "Tienda Rosa #2" }).message).toBe("Datos guardados.");
     expect(mock.getShop("tienda-1")?.name).toBe("Tienda Rosa #2");
+  });
+});
+
+describe("trusted shops and the recourse tier (#185)", () => {
+  /** A $50 invoice for Tienda Rosa on credit, repaid on time, one week later each time. */
+  const goodCycle = () => {
+    const invoice = mock.createDemoInvoice("tienda-1");
+    mock.payLater(invoice.id);
+    mock.repay("tienda-1", mock.getShop("tienda-1")!.creditOwed);
+    now += 7 * DAY;
+  };
+
+  it("counts good cycles and charges a trusted shop less", () => {
+    for (let i = 0; i < 4; i++) goodCycle();
+    expect(mock.getShop("tienda-1")?.goodCycles).toBe(4);
+    const invoice = mock.createDemoInvoice("tienda-1");
+    mock.payLater(invoice.id);
+    expect(mock.getInvoice(invoice.id)?.creditFee).toBeCloseTo(invoice.amount * 0.0125, 6);
+  });
+
+  it("charges 0.25% when the distributor vouches and the deposit covers it", () => {
+    expect(mock.vouchShop("tienda-1", true).ok).toBe(true);
+    const invoice = mock.createDemoInvoice("tienda-1");
+    // No deposit yet: the normal fee.
+    mock.payLater(invoice.id);
+    expect(mock.getInvoice(invoice.id)?.creditFee).toBeCloseTo(invoice.amount * 0.015, 6);
+    expect(mock.vouchShop("tienda-1", false).message).toBe("Solo puede cambiar el respaldo cuando la tienda no debe nada.");
+    mock.repay("tienda-1", mock.getShop("tienda-1")!.creditOwed);
+
+    expect(mock.depositRecourse(40).message).toBe("Listo. Su depósito de respaldo es $40.00.");
+    const next = mock.createDemoInvoice("tienda-1");
+    mock.payLater(next.id);
+    expect(mock.getInvoice(next.id)?.creditFee).toBeCloseTo(next.amount * 0.0025, 6);
+    expect(mock.getShop("tienda-1")).toMatchObject({ voucherId: "distributor", vouchedOwed: next.amount });
+    expect(mock.getRecourse()).toMatchObject({ deposit: 40, vouchedOut: next.amount });
+    // The deposit can't drop under 20% of what it backs.
+    expect(mock.withdrawRecourse(40).ok).toBe(false);
+    mock.repay("tienda-1", next.amount);
+    expect(mock.getRecourse().vouchedOut).toBe(0);
+    expect(mock.withdrawRecourse(40).ok).toBe(true);
   });
 });
