@@ -41,7 +41,7 @@ Nobody has measured our board. Most 36 x 48 in tri-fold boards are 36 in tall an
 | Diagram | 17 in wide: 113 pixels per inch at 1x | 14.5 in wide: 132 pixels per inch at 1x |
 | Text share of the board | 16.0% | 15.4% |
 
-**To measure:** open the board flat. With a tape measure, write down the height, then the distance from the left edge to the first crease, from the first crease to the second, and from the second to the right edge. If it reads about 12, 24, 12, use A. If it reads three equal panels, use B. If it is something else, the widths are two lines of CSS at the top of `trifold.html`; send me the numbers.
+**Measured (Nov 14):** the board Velocity handed out is 27 in tall, 9 + 19 + 9 in wide (about 37 x 27 in open). `trifold.html` is set to that size; layouts A and B are gone. Product numbers are yellow placeholders until the team agrees the final product.
 
 ```
 A: 12 + 24 + 12 in                                B: 16 + 16 + 16 in

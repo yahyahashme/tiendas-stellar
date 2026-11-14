@@ -4,37 +4,34 @@
 <meta charset="utf-8">
 <title>Trifold board (#37)</title>
 <!--
-  The print layout for the trifold, at the board's real size: 48 x 36 in open (#37).
+  The print layout for the trifold, at the real board's size (#40): 27 in tall, 9 + 19 + 9 in wide
+  (about 37 x 27 in open). Measured by Yahya on Nov 14; the board is the one Velocity handed out.
   Copy comes from docs/pitch.md section 1. Edit the text here, then run:  node docs/trifold/render.mjs
 
-  Two fold layouts, because nobody has measured our board yet:
-    ?layout=a   12 + 24 + 12 in   (the usual 36 x 48 in tri-fold: a wide centre, two narrow wings)
-    ?layout=b   16 + 16 + 16 in   (what the first #37 draft assumed)
-
-  Anything still missing is a yellow box or yellow text (class "todo"): the numbers from #30, the three
-  phone screenshots (docs/trifold/img/) and the QR if its file is missing (public/qr-demo.png, PR #70).
+  Anything still missing is a yellow box or yellow text (class "todo"). On Nov 14 every product number
+  (fee, payout, days to pay, credit limit, outreach counts) is yellow on purpose: the team agrees the final
+  product first (by Sunday afternoon), then the numbers go in. Market facts from docs/facts.md stay.
   The name is Relay, tagline "Paga tu ruta" (PR #100); the app is at relay-sv.vercel.app.
   `node docs/trifold/render.mjs --final` refuses to build while any yellow is left.
 
   Screenshots expected in docs/trifold/img/ (take them at 360 px wide, device pixel ratio 3, with the grey
   testnet banner in frame):  shop-pay.png  shop-credit.png  driver-cash.png
 
-  Type: body 32 pt (the top of Velocity's 24 to 32 pt), headings 38 to 40 pt, title 96 pt. The three big
-  numbers (104 pt) and the two key points (40 to 50 pt) are display type, on purpose larger than a heading.
+  Type: body 24 pt (the bottom of Velocity's 24 to 32 pt, because the board is small), headings 28 to 30 pt,
+  title 72 pt. The three big numbers (76 pt) and the two key points (36 pt) are display type.
 -->
 <script>
   const query = new URLSearchParams(location.search);
-  const layout = query.get("layout") === "b" ? "b" : "a";
-  document.documentElement.dataset.layout = layout;
+
   // ?panel=1, 2 or 3 shows just that panel on a page of its own size, for a shop that prints panel by panel.
   const panel = ["1", "2", "3"].includes(query.get("panel")) ? query.get("panel") : null;
   if (panel) {
     document.documentElement.dataset.panel = panel;
-    const widthIn = { a: [12, 24, 12], b: [16, 16, 16] }[layout][panel - 1];
-    // Added after the page is parsed, so it comes after the 48 x 36 in rule below and wins.
+    const widthIn = [9, 19, 9][panel - 1];
+    // Added after the page is parsed, so it comes after the 37 x 27 in rule below and wins.
     document.addEventListener("DOMContentLoaded", () => {
       const style = document.createElement("style");
-      style.textContent = `@page { size: ${widthIn}in 36in; margin: 0; } html[data-panel] body, html[data-panel] .board { width: ${widthIn}in; }`;
+      style.textContent = `@page { size: ${widthIn}in 27in; margin: 0; } html[data-panel] body, html[data-panel] .board { width: ${widthIn}in; }`;
       document.head.appendChild(style);
     });
   }
@@ -53,77 +50,73 @@
   }
 </script>
 <style>
-  @page { size: 48in 36in; margin: 0; }
+  @page { size: 37in 27in; margin: 0; }
   :root {
     --brand: #0b4ea2; --brand-dark: #083b7a; --brand-soft: #e6eefa;
     --ink: #14202e; --muted: #4a5565; --wing: #f6f8fb;
     --todo: #ffe066;
   }
-  html[data-layout="a"] { --w1: 12in; --w2: 24in; --w3: 12in; --phone: 6in; --key: 50pt; }
-  html[data-layout="b"] { --w1: 16in; --w2: 16in; --w3: 16in; --phone: 3.95in; --key: 40pt; }
+  :root { --w1: 9in; --w2: 19in; --w3: 9in; --phone: 4.6in; --key: 36pt; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    position: relative; width: 48in; height: 36in; overflow: hidden; background: #fff; color: var(--ink);
+    position: relative; width: 37in; height: 27in; overflow: hidden; background: #fff; color: var(--ink);
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .board { display: grid; grid-template-columns: var(--w1) var(--w2) var(--w3); width: 48in; height: 36in; }
+  .board { display: grid; grid-template-columns: var(--w1) var(--w2) var(--w3); width: 37in; height: 27in; }
   /* Blocks are spread from top to bottom, so no panel looks top-heavy. */
-  .panel { height: 36in; padding: 0.9in 0.75in 0.8in; display: flex; flex-direction: column; justify-content: space-between; gap: 0.3in; }
+  .panel { height: 27in; padding: 0.7in 0.55in 0.6in; display: flex; flex-direction: column; justify-content: space-between; gap: 0.22in; }
   .panel > * { flex: none; }
   .panel.side { background: var(--wing); }
-  .grp { display: flex; flex-direction: column; gap: 0.25in; }
+  .grp { display: flex; flex-direction: column; gap: 0.19in; }
 
-  h1 { margin: 0; font-size: 96pt; line-height: 1; font-weight: 800; letter-spacing: -0.01em; color: var(--brand-dark); }
-  .tagline { margin: 0.15in 0 0; font-size: 36pt; line-height: 1.15; font-weight: 600; }
-  .tagline.slogan { font-size: 48pt; font-weight: 800; color: var(--brand); }
+  h1 { margin: 0; font-size: 72pt; line-height: 1; font-weight: 800; letter-spacing: -0.01em; color: var(--brand-dark); }
+  .tagline { margin: 0.11in 0 0; font-size: 27pt; line-height: 1.15; font-weight: 600; }
+  .tagline.slogan { font-size: 36pt; font-weight: 800; color: var(--brand); }
   h2 {
-    margin: 0; padding-bottom: 0.1in; font-size: 40pt; line-height: 1.1; font-weight: 800; letter-spacing: 0.03em;
-    text-transform: uppercase; color: var(--brand); border-bottom: 0.08in solid var(--brand);
+    margin: 0; padding-bottom: 0.08in; font-size: 30pt; line-height: 1.1; font-weight: 800; letter-spacing: 0.03em;
+    text-transform: uppercase; color: var(--brand); border-bottom: 0.06in solid var(--brand);
   }
-  h3 { margin: 0 0 0.08in; font-size: 38pt; line-height: 1.1; font-weight: 800; color: var(--brand-dark); }
+  h3 { margin: 0 0 0.06in; font-size: 28pt; line-height: 1.1; font-weight: 800; color: var(--brand-dark); }
   p, li, .desc { text-wrap: pretty; } /* no lone last word on a line */
-  p { margin: 0; font-size: 32pt; line-height: 1.22; }
-  ul { margin: 0 0 0.15in; padding-left: 0.45in; }
-  li { margin-bottom: 0.1in; font-size: 32pt; line-height: 1.22; }
+  p { margin: 0; font-size: 24pt; line-height: 1.22; }
+  ul { margin: 0 0 0.11in; padding-left: 0.34in; }
+  li { margin-bottom: 0.07in; font-size: 24pt; line-height: 1.22; }
   strong { font-weight: 800; color: var(--brand-dark); }
-  .stats { display: flex; flex-direction: column; gap: 0.55in; }
-  .big { font-size: 104pt; line-height: 1; font-weight: 800; color: var(--brand-dark); }
-  .big .per { font-size: 48pt; font-weight: 700; }
-  .desc { margin-top: 0.1in; font-size: 32pt; line-height: 1.2; }
-  .small { font-size: 16pt; line-height: 1.25; color: var(--muted); }
-  .small p { font-size: 16pt; line-height: 1.25; margin: 0 0 0.05in; }
-  .caption { margin: 0.12in 0 0; font-size: 28pt; line-height: 1.18; font-weight: 600; text-align: center; }
-  .keys { display: flex; flex-direction: column; gap: 0.3in; }
+  .stats { display: flex; flex-direction: column; gap: 0.4in; }
+  .big { font-size: 76pt; line-height: 1; font-weight: 800; color: var(--brand-dark); }
+  .big .per { font-size: 36pt; font-weight: 700; }
+  .desc { margin-top: 0.07in; font-size: 24pt; line-height: 1.2; }
+  .small { font-size: 12pt; line-height: 1.25; color: var(--muted); }
+  .small p { font-size: 12pt; line-height: 1.25; margin: 0 0 0.04in; }
+  .caption { margin: 0.09in 0 0; font-size: 24pt; line-height: 1.18; font-weight: 600; text-align: center; }
+  .keys { display: flex; flex-direction: column; gap: 0.22in; }
   .keypoint {
-    margin: 0; padding: 0.25in 0.35in; background: var(--brand-soft); border-left: 0.16in solid var(--brand);
+    margin: 0; padding: 0.19in 0.26in; background: var(--brand-soft); border-left: 0.12in solid var(--brand);
     font-size: var(--key); line-height: 1.1; font-weight: 800; color: var(--brand-dark);
   }
 
-  .phones { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 0.25in; }
+  .phones { display: flex; justify-content: space-around; align-items: flex-start; margin-top: 0.19in; }
   .phone { margin: 0; width: var(--phone); }
-  .frame { aspect-ratio: 9 / 19; border: 0.09in solid var(--ink); border-radius: 0.42in; overflow: hidden; background: #fff; }
+  .frame { aspect-ratio: 9 / 19; border: 0.07in solid var(--ink); border-radius: 0.32in; overflow: hidden; background: #fff; }
   .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-  .lower { display: flex; gap: 0.5in; align-items: flex-start; }
-  html[data-layout="b"] .lower { flex-direction: column; gap: 0.35in; width: 100%; }
-  .qrbox { display: flex; flex-direction: column; gap: 0.2in; width: 5in; flex: none; }
-  html[data-layout="b"] .qrbox { flex-direction: row; align-items: center; gap: 0.4in; width: 100%; }
-  .qrbox .qr { width: 5in; height: 5in; padding: 0.3in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
-  html[data-layout="b"] .qrbox .qr { width: 4.6in; height: 4.6in; }
-  .qrtext p { font-size: 28pt; line-height: 1.18; }
-  .qrtext .url { font-size: 32pt; font-weight: 800; color: var(--brand-dark); line-height: 1.1; margin-bottom: 0.1in; overflow-wrap: normal; }
-  .qrtext .scan { font-size: 44pt; font-weight: 800; color: var(--brand-dark); line-height: 1.05; margin-bottom: 0.1in; }
+  .lower { display: flex; gap: 0.4in; align-items: flex-start; }
+  /* The QR stays at least 4 in square (docs/trifold-assembly.md). */
+  .qrbox { display: flex; flex-direction: column; gap: 0.15in; width: 4.2in; flex: none; }
+  .qrbox .qr { width: 4.2in; height: 4.2in; padding: 0.25in; background: #fff; border: 0.03in solid var(--ink); flex: none; }
+  .qrtext p { font-size: 24pt; line-height: 1.18; }
+  .qrtext .url { font-size: 26pt; font-weight: 800; color: var(--brand-dark); line-height: 1.1; margin-bottom: 0.1in; overflow-wrap: normal; }
+  .qrtext .scan { font-size: 34pt; font-weight: 800; color: var(--brand-dark); line-height: 1.05; margin-bottom: 0.1in; }
   .diagram { margin: 0; flex: 1; min-width: 0; width: 100%; }
   .diagram img { display: block; width: 100%; height: auto; border: 0.02in solid #cfd6e0; }
 
   .todo { background: var(--todo); color: #000; outline: 0.03in dashed #b38f00; }
-  .todo.fill { display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.2in; font-size: 24pt; font-weight: 400; width: 100%; height: 100%; }
-  .qrbox .qr.todo.fill { width: 5in; height: 5in; background: var(--todo); }
-  html[data-layout="b"] .qrbox .qr.todo.fill { width: 4.6in; height: 4.6in; }
-  .diagram .todo.fill { height: 8in; }
+  .todo.fill { display: flex; align-items: center; justify-content: center; text-align: center; padding: 0.15in; font-size: 24pt; font-weight: 400; width: 100%; height: 100%; }
+  .qrbox .qr.todo.fill { width: 4.2in; height: 4.2in; background: var(--todo); }
+  .diagram .todo.fill { height: 6in; }
 
   /* One panel on its own page (?panel=1|2|3). */
   html[data-panel] .board { display: block; }
@@ -134,7 +127,7 @@
 
   /* Fold marks: on screen and in the preview only, never in the PDF. */
   .fold-guides span { position: absolute; top: 0; bottom: 0; width: 0; border-left: 0.03in dashed #e0245e; z-index: 5; }
-  .fold-guides span::after { content: "fold"; position: absolute; top: 0.1in; left: 0.1in; font-size: 18pt; color: #e0245e; }
+  .fold-guides span::after { content: "fold"; position: absolute; top: 0.1in; left: 0.1in; font-size: 14pt; color: #e0245e; }
   @media print { .fold-guides { display: none; } }
 </style>
 </head>
@@ -178,7 +171,7 @@
     <div>
       <h1>Relay</h1>
       <p class="tagline slogan">Paga tu ruta</p>
-      <p class="tagline">Pay the truck now, in cash, or in 7 days. No interest.</p>
+      <p class="tagline">Pay the truck now, in cash, or in <span class="todo">[N]</span> days. No interest.</p>
     </div>
 
     <div class="keys">
@@ -195,7 +188,7 @@
         </figure>
         <figure class="phone">
           <div class="frame"><img src="img/shop-credit.png" alt="" onerror="missing(this, 'Shop screen: Debe, vence, screenshot')"></div>
-          <figcaption class="caption">Pay in 7 days: full price, no interest</figcaption>
+          <figcaption class="caption">Pay in <span class="todo">[N]</span> days: full price, no interest</figcaption>
         </figure>
         <figure class="phone">
           <div class="frame"><img src="img/driver-cash.png" alt="" onerror="missing(this, 'Driver screen: Recibí efectivo, screenshot')"></div>
@@ -225,11 +218,12 @@
     <div class="grp">
       <h2>The business</h2>
       <div>
-        <h3>One $100 delivery, paid in 7 days</h3>
+        <h3>One $100 delivery, paid in <span class="todo">[N]</span> days</h3>
         <ul>
-          <li>The lender pool pays the distributor now: <strong>$98.50</strong></li>
-          <li>The shop repays in 7 days: <strong>$100</strong>, no interest</li>
-          <li>The 1.5% fee: $0.75 buffer, $0.50 lenders, $0.25&nbsp;us</li>
+          <li>The lender pool pays the distributor now: <strong><span class="todo">[payout]</span></strong></li>
+          <li>The shop repays in <span class="todo">[N]</span> days: <strong>$100</strong>, no interest</li>
+          <li>The fee, up to <span class="todo">[X]</span>%: <span class="todo">[buffer]</span> buffer, <span class="todo">[lenders]</span> lenders, <span class="todo">[our cut]</span>&nbsp;us</li>
+          <li>Every shop starts at a <span class="todo">[$ limit]</span> credit limit</li>
         </ul>
         <p>The distributor pays because it is paid at the door and carries no risk of the shop not paying.</p>
       </div>
@@ -262,8 +256,8 @@
 <script>
   // Measures the layout so render.mjs can print the numbers. Reads only; changes nothing on the board.
   window.addEventListener("load", () => {
-    const PX = 96, board = PX * 48 * PX * 36;
-    const out = { layout: document.documentElement.dataset.layout, todos: document.querySelectorAll(".todo").length,
+    const PX = 96, board = PX * 37 * PX * 27;
+    const out = { todos: document.querySelectorAll(".todo").length,
       minBodyPt: 999, minBodyWhere: "", minSmallPt: 999, panels: [], overflowX: [], images: [] };
     // Pixels per inch each picture gets at its printed size (150 or more looks sharp on a board).
     for (const img of document.querySelectorAll("img")) {
