@@ -53,13 +53,55 @@ export function creditFeeBps(credited: number, total: number): number {
   return MIN_CREDIT_FEE_BPS + Math.floor(((tenfold - total) * (CREDIT_FEE_BPS - MIN_CREDIT_FEE_BPS)) / (total * 9));
 }
 
+// Trusted shops and the recourse tier (#185), the same rules as the contract.
+export const LENDER_BPS = 50;
+export const TRUSTED_CYCLES = 4;
+export const HIGHLY_TRUSTED_CYCLES = 8;
+export const RECOURSE_FEE_BPS = 25;
+export const RECOURSE_LENDER_BPS = 15;
+/** The deposit must stay at least 20% of the vouched credit shops still owe. */
+export const RECOURSE_COVER_BPS = 2_000;
+
+/** The buffer's share after `goodCycles` good cycles: all, two thirds from 4, one third from 8 (rounded down). */
+export function trustedBufferBps(bufferBps: number, goodCycles: number): number {
+  if (goodCycles >= HIGHLY_TRUSTED_CYCLES) return Math.floor(bufferBps / 3);
+  if (goodCycles >= TRUSTED_CYCLES) return Math.floor((bufferBps * 2) / 3);
+  return bufferBps;
+}
+
+/** (buffer, ours) in bps for a pool-tier sale: lenders 0.50%, the rest 3:1 buffer : us, then the trusted cut. */
+export function poolFeeSplit(credited: number, total: number, goodCycles = 0): { buffer: number; ours: number } {
+  const rest = creditFeeBps(credited, total) - LENDER_BPS;
+  const ours = Math.floor(rest / 4);
+  return { buffer: trustedBufferBps(rest - ours, goodCycles), ours };
+}
+
+/** The whole rate in bps: 0.25% if vouched (and covered), else the pool fee with the trusted cut. */
+export function shopCreditFeeBps(credited: number, total: number, goodCycles = 0, vouched = false): number {
+  if (vouched) return RECOURSE_FEE_BPS;
+  const { buffer, ours } = poolFeeSplit(credited, total, goodCycles);
+  return LENDER_BPS + buffer + ours;
+}
+
+/** 0 = normal fee, 1 = trusted (4+ good cycles), 2 = 8+. */
+export function trustLevel(goodCycles: number): 0 | 1 | 2 {
+  return goodCycles >= HIGHLY_TRUSTED_CYCLES ? 2 : goodCycles >= TRUSTED_CYCLES ? 1 : 0;
+}
+
+/** The least a deposit can be for `vouchedOut` dollars: 20%, rounded up to the cent. */
+export function recourseRequired(vouchedOut: number): number {
+  const cents = Math.round(vouchedOut * 100);
+  return cents <= 0 ? 0 : Math.ceil((cents * RECOURSE_COVER_BPS) / 10_000) / 100;
+}
+
 /**
  * The credit fee in dollars when `credited` dollars of an invoice of `total` go on credit,
  * rounded down in 7-decimal units like the contract ($100 of $100 -> $1.50, $50 of $100 -> $0.61).
+ * A trusted shop (`goodCycles`) or a vouched one pays less.
  */
-export function creditFee(credited: number, total: number): number {
+export function creditFee(credited: number, total: number, goodCycles = 0, vouched = false): number {
   const units = Math.round(credited * 100) * 100_000;
-  const rate = creditFeeBps(Math.round(credited * 100), Math.round(total * 100));
+  const rate = shopCreditFeeBps(Math.round(credited * 100), Math.round(total * 100), goodCycles, vouched);
   return Math.floor((units * rate) / 10_000) / 10_000_000;
 }
 

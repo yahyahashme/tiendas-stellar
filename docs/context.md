@@ -373,14 +373,15 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 | Option | Who covers a shop that doesn't pay | Fee per $100, paid by the distributor | Split |
 |---|---|---|---|
-| 1. Pool covers | The lender pool | $1.00 to $1.50 (less when the shop pays part up front, #135) | $0.50 lenders; the rest 3:1 buffer : us ($0.75 / $0.25 at $1.50) |
-| 2. Distributor covers ("with recourse") | The distributor | about $0.25 | $0.15 lenders (about 8% a year, close to the 7.6% average for loans under a year, facts 51), $0.10 us |
+| 1. Pool covers | The lender pool | $1.00 to $1.50 (less when the shop pays part up front, #135, and for trusted shops, #185) | $0.50 lenders; the rest 3:1 buffer : us ($0.75 / $0.25 at $1.50); a trusted shop's buffer share is cut by a third (4 good cycles) or two thirds (8) |
+| 2. Distributor covers ("with recourse", built #185) | The distributor | $0.25 | $0.15 lenders (about 8% a year, close to the 7.6% average for loans under a year, facts 51), $0.10 us |
 | 3. Distributor's own money | The distributor | $0 | No credit fee; we earn only the usage fee |
 
-- Option 2: if a shop is more than 7 days late, the distributor pays the pool and collects from the shop itself. The distributor keeps a small deposit in the pool that the contract can use for this.
+- Option 2: if a shop is more than 7 days late, the distributor pays the pool and collects from the shop itself. The distributor keeps a deposit in the pool of at least 20% of the vouched credit shops still owe, and the contract takes it from there (`call_recourse`, anyone can call it). The deposit is pooled across all the distributor's vouched shops, so it covers losses up to 20% of that credit, far above the 0.2% to 0.3% Rohan found for distributor credit in Peru (#185). If the deposit runs short, the sale goes at the option 1 fee instead.
 - Whoever carries the risk sets the shop's limit.
 - Typical use (plan): option 2 for long-time customers (cheap), option 1 for new shops.
-- **Built so far (Nov 13, #112): option 1 only.** The contract has one credit fee, up to 1.5% (`CREDIT_FEE_BPS = 150`), and every "pay in 7 days" sale is paid from the pool. Options 2 and 3 are ideas, not in the contract. Since #139 (merged and redeployed Nov 13, `CAGCZ3I7…`), that fee slides from 1.00% to 1.50% depending on how much the shop pays up front.
+- **Built (Nov 14, #185): options 1 and 2.** Option 1's fee slides from 1.00% to 1.50% with how much the shop pays up front (#139), and drops for trusted shops: a "good cycle" is an on-time repayment past the growth bar ($40, or $10 with half up front), counted once per period, and any late payment resets the count. At full credit the fee goes 1.50% → 1.25% (4 good cycles) → 1.00% (8). Lenders keep 0.50% and our share is unchanged; only the buffer's share shrinks, because the risk it insures has. Option 2: the distributor taps "Respaldar esta tienda" on the shop's page. Option 3 stays an idea.
+- Why the trusted discount goes to the distributor: it is the one paying the fee, so a good shop becomes cheaper to sell to on credit, and the distributor has a reason to push shops to pay on time.
 
 **The usage fee in numbers (guess):** a route with 60 shops buying $150 a week each moves about $39,000 a month. At 0.05% that's about $20 a month for that route; at 0.1%, about $39. That's tiny per route, so we need many routes, and the credit fee share matters.
 
@@ -395,14 +396,14 @@ A shop buys $100 of stock and picks "pay in 7 days".
 - A finance judge may annualize it, so have the number ready for Q&A (facts 56: Q&A only, never a headline): being paid 7 days early for 1.5% is about 79% a year simple, or about 120% compounded.
 - The shop pays 0%. The distributor chooses to pay the fee, and it buys two things: cash at the door, and no default risk (the buffer).
 - For comparison: suppliers that offer "2/10 net 30" give up about 37% a year just to be paid sooner (facts 52). A bank loan under a year averages about 7.6% a year for those who qualify (51); most tiendas don't (§9).
-- A cheaper choice for shops the distributor knows is still an idea: option 2 (0.25%, about 13% to 14% a year, facts 56) isn't built; #139's sliding fee (1.00% to 1.50%, built) is the first cheaper path: the shop pays part up front.
+- Cheaper paths, all built: the shop pays part up front (#139, down to 1.00%), the shop builds a record (#185, 1.25% after 4 good cycles, 1.00% after 8), or the distributor vouches for it (option 2, 0.25%, about 13% to 14% a year, facts 56).
 - Legal check: if the 1.5% were ever treated as interest, about 120% a year is above the highest legal maximum, 96.88% (facts 49). It has to stay a fee the distributor pays to be paid early, not interest on the shop's debt, and a lawyer confirms it (§11).
 - Precedent: a Salvadoran fintech already turns small businesses' invoices into cash within 24 hours, on a US$50 million credit line from a US fund (53).
 
 **Costs (early thinking):** Stellar describes its network fees as under a cent per transaction (facts 36 and 37; they exist to stop spam; they aren't revenue for the Stellar Development Foundation, which is a non-profit), and hosting is nearly free. The real costs are signing up distributors and training drivers, partner fees for cash-in and cash-out, the licensed lender's share, and support.
 
 **What could break it**
-- Defaults above about 0.75% of credit sales use up the buffer under option 1 at full credit (less when shops pay part up front, since the buffer's share slides too).
+- Defaults above about 0.75% of credit sales use up the buffer under option 1 at full credit (less when shops pay part up front or are trusted, since the buffer's share slides too). Trusted shops are the ones least likely to default, which is why their share is the one cut.
 - Our share per sale is tiny, so we need volume.
 - If turning cash into digital dollars costs shops much, nobody switches (Risk #1, §6).
 - Distributors may say 1.5% is too much. Ask them (§13).
@@ -535,6 +536,8 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 ### 8.2 Contract functions (spec for Jack)
 
 > Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
+
+> Nov 14 (#185, stacked on the lender pool, same redeploy): trusted shops and the recourse tier. `Shop` adds `good_cycles`, `last_good_at` (good cycle = on time past the growth bar, once per period; any late, recourse call or default resets it), `voucher`, `vouched_owed`, `covered_by_distributor`; `ShopView` shows them. Pool fee: `trusted_buffer_bps` keeps 2/3 of the buffer's bps from 4 good cycles, 1/3 from 8 (rounded down). Recourse: `vouch(distributor, shop, on)` (approved distributor, only while the shop owes 0; error 19 ShopOwes), `deposit_recourse` / `withdraw_recourse` (the deposit can't drop below 20% of `VouchedOut`, rounded up; error 18 NotEnoughDeposit), `get_recourse`. On the voucher's own invoices, if the deposit covers 20% of the vouched credit including this sale, the fee is 0.25% (`RECOURSE_FEE_BPS`; 0.15% lenders stay in `available`, 0.10% us, 0 buffer); otherwise the option 1 fee. Repayments clear the unvouched part first. `call_recourse(shop)` (anyone, once the shop is more than 7 days late): the deposit pays the vouched part to the pool; if that clears the debt it counts as an 8+ day late payment. `cover_default` takes the deposit first, then the buffer. `Pool.recourse` holds deposits, so the token balance is `available + buffer + recourse`. App: fee panel and "Respaldar esta tienda" on `/distribuidor/tienda/[shopId]`.
 
 > Nov 14 (lender pool, Yahya chose option B: approved lenders via Stellar): `approve_lender(lender)` (admin) and `is_lender`; `deposit` now needs an approved lender and gives shares at today's value (available + lent); `withdraw(lender, shares)` pays out only money that is not lent (error 9 otherwise; 16 NotLender, 17 NotEnoughShares); `get_lender` returns shares, value and net deposited. `Pool` gains `lent` (what shops owe the pool) and `shares`. A default the buffer can't cover is shared by all lenders. Lenders are licensed institutions anywhere that hold USDC on Stellar; each signs its own deposits and withdrawals. Needs a redeploy (deploy.sh approves the demo lender). App page: `/prestamista`. From Rohan's review (#189): anyone can call `cover_default` once a shop is 4 periods late, so lenders never wait on the admin; `deploy.sh` seeds the buffer with $200 (one shop's starting limit), not $50.
 
@@ -784,6 +787,7 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Date | Decision |
 |---|---|
 | Nov 3 | Space 1 (savings, credit, inflation resilience). Space 2 ruled out. |
+| Nov 14 | #185: build both cheaper credit paths (Yahya: "whatever makes more sense from a business perspective"). Trusted shops (record-based buffer cut) and Rohan's recourse tier (distributor deposit, 0.25%). |
 | Nov 5 | Payments between El Salvador's neighbourhood shops and their distributors (the team's own idea; it replaced the Mexico tanda). |
 | Nov 5 | Work in GitHub (repo, board, docs) with one AI chat per workstream. Skip Notion. No long generated reports. |
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |

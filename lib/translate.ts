@@ -95,6 +95,13 @@ const RULES: Rule[] = [
   exact("El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.", "The driver changed the amount. Check the new amount and confirm again."),
   exact("Solo los prestamistas aprobados pueden poner dinero en el fondo.", "Only approved lenders can put money in the pool."),
   exact("No tiene tantas participaciones en el fondo.", "You don't hold that many shares in the pool."),
+  // Recourse tier (#185)
+  exact("Su depósito de respaldo debe cubrir al menos el 20% del crédito que respalda.", "Your backing deposit must cover at least 20% of the credit you back."),
+  exact("Solo puede cambiar el respaldo cuando la tienda no debe nada.", "You can only change the backing while the shop owes nothing."),
+  pattern(String.raw`Listo\. Ahora respalda a (.+)\.`, "Done. You now back $1."),
+  pattern(String.raw`Listo\. Ya no respalda a (.+)\.`, "Done. You no longer back $1."),
+  pattern(String.raw`Listo\. Su depósito de respaldo es ${MONEY}\.`, "Done. Your backing deposit is $1."),
+  pattern(String.raw`Listo\. Retiró ${MONEY}\. Su depósito de respaldo es ${MONEY}\.`, "Done. You took out $1. Your backing deposit is $2."),
   exact("Este motorista no está en la ruta.", "This driver isn't on the route."),
   exact("No encontramos esa tienda.", "We couldn't find that shop."),
   exact("No encontramos a ese motorista.", "We couldn't find that driver."),

@@ -23,6 +23,8 @@ All of these:
 - **+$25 per on-time repayment, up to $500** (built in #58).
 - **Built in #58 (Nov 10), widened in #139:** a repayment only counts if the shop borrowed **$40 or more** in that cycle (or **$10 or more** when it paid half of every credited invoice up front), and the limit rises **at most once per credit period** (once a week for real). This stops a shop from borrowing $1 and repaying it over and over to reach $500 in minutes.
 - Later, only with real data: the cap rises to $750 after 6 months with no late payments **(guess)**.
+- **A good record also makes credit cheaper** (**built**, #185). Each on-time repayment past the same bar, once per period, is a "good cycle"; any late payment starts the count over. After 4 good cycles in a row the buffer's share of the fee drops by a third, after 8 by two thirds: 1.50% → 1.25% → 1.00% at full credit. The distributor pays less to sell on credit to that shop. Lenders still get 0.50%.
+- **Or the distributor vouches for the shop** (**built**, #185, option 2 in context §5): 0.25% per credit sale, backed by a deposit of at least 20% of the vouched credit still owed. More than 7 days late, the deposit pays the pool and the distributor collects from the shop.
 
 ## 5. Late-payment ladder
 

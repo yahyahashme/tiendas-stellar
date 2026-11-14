@@ -35,7 +35,7 @@ export function toInvoice(i: ChainInvoice, directory: Directory, cashClaim = 0n)
   return invoice;
 }
 
-export function toShop(party: Party, v: ShopView): Shop {
+export function toShop(party: Party, v: ShopView, directory?: Directory): Shop {
   const shop: Shop = {
     id: party.id,
     name: party.name,
@@ -48,9 +48,13 @@ export function toShop(party: Party, v: ShopView): Shop {
     lateMinor: v.late_minor,
     lateMajor: v.late_major,
     maxDaysLate: v.max_days_late,
+    goodCycles: v.good_cycles,
   };
   if (v.owed > 0n && v.due_at > 0n) shop.creditDue = iso(v.due_at);
   if (v.first_credit_at > 0n) shop.firstCredit = iso(v.first_credit_at);
   if (v.written_off > 0n) shop.writtenOff = toDollars(v.written_off);
+  if (v.voucher) shop.voucherId = directory ? directory.idOf(v.voucher) : v.voucher;
+  if (v.vouched_owed > 0n) shop.vouchedOwed = toDollars(v.vouched_owed);
+  if (v.covered_by_distributor > 0n) shop.coveredByDistributor = toDollars(v.covered_by_distributor);
   return shop;
 }

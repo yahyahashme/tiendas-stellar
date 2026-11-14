@@ -180,7 +180,7 @@ export async function getDistributorView(pages: number): Promise<DistributorView
     await Promise.all(
       [...shopIds].map(async (id) => {
         const party = directory.find(id, "shop");
-        return party ? toShop(party, await read(readClient().get_shop({ shop: party.address }))) : null;
+        return party ? toShop(party, await read(readClient().get_shop({ shop: party.address })), directory) : null;
       }),
     )
   ).filter((s): s is Shop => s !== null);
