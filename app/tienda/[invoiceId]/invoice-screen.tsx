@@ -11,7 +11,7 @@ import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
 import { ARRIVE_MS, HOLD_MS, QUIET_MS, TapShield, useQuietOnArrival, useSameSpotGuard, useTapShield } from "@/components/tap-shield";
 import { confirmCash, getDrivers, getInvoice, getInvoiceSource, getShop, payLater, payNow } from "@/lib/api";
-import { dueOn, formatDay, isPastDue } from "@/lib/format";
+import { dueOn, formatDay, isPastDue, pricedLine } from "@/lib/format";
 import { type Lang, useT } from "@/lib/i18n";
 import { leftToPay, methodLabel, parseAmount, partPayError } from "@/lib/labels";
 import type { Invoice, Receipt as Outcome, Shop } from "@/lib/types";
@@ -61,20 +61,17 @@ function creditBlocked(shop: Shop | null, invoice: Invoice, t: (es: string, en: 
   return null;
 }
 
-/** "Arroz 5 lb x 12  $54.00" prints with a dotted leader like any other line; anything else prints as written. */
-const PRICED = /^(.*\S)\s+\$\s?(\d[\d,]*(?:\.\d{1,2})?)$/;
-
 /** What the distributor wrote on the invoice (products or a note), one printed line each. */
 function NoteLines({ lines }: { lines: string[] }) {
   return (
     <ul className="flex flex-col gap-1.5 font-mono text-base font-medium">
       {lines.map((line, i) => {
-        const priced = PRICED.exec(line);
+        const priced = pricedLine(line);
         return priced ? (
           <li key={i} className="flex items-end">
-            <span className="min-w-0">{priced[1]}</span>
+            <span className="min-w-0">{priced.name}</span>
             <span aria-hidden className="leader" />
-            <Money value={Number(priced[2].replaceAll(",", ""))} className="shrink-0" />
+            <Money value={priced.amount} className="shrink-0" />
           </li>
         ) : (
           <li key={i} className="wrap-anywhere">

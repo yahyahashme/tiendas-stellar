@@ -14,7 +14,7 @@ Shop owners in El Salvador already run credit on paper: the cuaderno de fiado, t
 
 - Anything you read (amounts, dates, names, history, status) sits on paper: warm off-white, hairline rules, near-square corners, no shadow. Depth comes from paper lying on the darker counter.
 - Anything you tap is a filled blue control (the main action) or a clear outlined row (everything else). Nothing on paper responds to a tap except a "Ver detalles" text link and the "Ver productos" fold.
-- Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA. Uppercase, tilted 4° to 6°, double border, worn ink. In a dense table it is a small upright mark. Always words plus colour.
+- Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA (and, off the invoice, a few of the same kind: CREADA on a new invoice, APROBADA, HECHO). Uppercase, tilted 4° to 6°, double border, worn ink. In a dense table it is a small upright mark. Always words plus colour.
 - If it looks like paper, it isn't a button.
 
 ## Type

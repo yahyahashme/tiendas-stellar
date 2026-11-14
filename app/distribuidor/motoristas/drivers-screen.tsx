@@ -9,7 +9,7 @@ import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/c
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useMovedGuard, useSecondTap, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { chatLink } from "@/lib/whatsapp";
@@ -80,6 +80,7 @@ export default function DriversScreen() {
   // The invite on show: the one just made, or the one a row's "Ver enlace" asked for.
   const [shown, setShown] = useState<InviteView | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const secondTap = useSecondTap();
   const [removing, setRemoving] = useState<string | null>(null);
   const [held, setHeld] = useState(false);
   const [removeError, setRemoveError] = useState<string | null>(null);
@@ -139,10 +140,13 @@ export default function DriversScreen() {
   async function remove(driver: MyDriver) {
     if (running.current || justMoved()) return;
     if (confirming !== driver.id) {
+      secondTap.asked();
       setConfirming(driver.id);
       setTimeout(() => setConfirming((c) => (c === driver.id ? null : c)), 4000);
       return;
     }
+    // The second tap of a double tap is not a second thought: it has to come a beat after the first.
+    if (secondTap.tooSoon()) return;
     running.current = true;
     setConfirming(null);
     setRemoving(driver.id);

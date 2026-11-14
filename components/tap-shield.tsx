@@ -103,3 +103,17 @@ export function useMovedGuard<T extends HTMLElement>() {
   const justMoved = () => Date.now() - place.current.movedAt < ARRIVE_MS;
   return { ref, justMoved };
 }
+
+/**
+ * For an action that asks for a second tap ("Toque otra vez"): the second tap of a double tap is not a second
+ * thought, so it only counts a beat after the first. Call `asked()` on the first tap; drop a tap while `tooSoon()`.
+ */
+export function useSecondTap() {
+  const at = useRef(0);
+  return {
+    asked: () => {
+      at.current = Date.now();
+    },
+    tooSoon: () => Date.now() - at.current < ARRIVE_MS,
+  };
+}
