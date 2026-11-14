@@ -4,6 +4,8 @@ The script is the table in issue #35. This file turns it into exact clicks. Ever
 through on testnet on Nov 10 (labels copied from the screens). **Re-click the table after the Thursday
 redeploy (#52)**: the contract ID changes and #80 adds history and "Ver más" to the dashboard; then update
 this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #100).
+On Nov 14 the labels below were checked against the redesigned screens in the code, not clicked: re-click
+the table once on the final build.
 
 ## Before you record (10 min)
 
@@ -16,7 +18,7 @@ this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #1
 4. Ana should start at $0 cash (the cash shot is Mini Súper, on her route): on `/distribuidor`, tap
    **Marcar efectivo entregado** next to her if not.
 5. Close other tabs and notifications (Focus mode on). Zoom the browser so text reads well at 1080p.
-6. The grey line at the top of every screen, "Demo en testnet · dinero de prueba · cash-in simulado",
+6. The band at the top of every screen, "Demo en testnet · dinero de prueba · cash-in simulado",
    is the on-screen label the script asks for. Keep it in frame the whole time.
 
 ## Three windows side by side (Mac)
@@ -36,18 +38,24 @@ this line. The product name is decided: **Relay**, tagline *Paga tu ruta* (PR #1
 | Time | Window | Exact clicks | Wait for |
 |---|---|---|---|
 | 0:00 to 0:08 | Title card (slide) | Shown as text, not spoken (spoken it takes about 15 s); narration starts on the next shot. The approved opening line (#73), word for word: "Around the world, small businesses in developing countries can't get about $5.7 trillion in credit they need. In El Salvador alone, more than 50,000 neighbourhood shops buy about $2 billion a year from distributors." On screen under it: "Conamype estimate". | |
-| 0:08 to 0:20 | Driver, then shop | Driver: tap the Tienda Rosa row (the QR opens). Shop: the invoice page (as if scanned) → **Pagar ahora** | Shop: green ✓ "Pago recibido…". Driver's chip turns **Pagada** within 5 s |
-| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** → **Confirmo** | ✓ "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: **Crédito**, "recibió $59.10" (the distributor pays a 1.5% fee) |
+| 0:08 to 0:20 | Driver, then shop | Driver: tap the Tienda Rosa row (the QR opens). Shop: the invoice page (as if scanned) → **Pagar ahora** | Shop: the receipt says "Pago recibido…" and the green PAGADA stamp lands. Driver's stop gets the **Pagada** stamp and moves to "Completadas" within 5 s |
+| 0:20 to 0:35 | Shop, then dashboard | Open the Tienda Don Luis invoice → **Pagar en 7 días** → **Confirmo** | The receipt says "Listo. Tiene hasta el … para pagar $60.00, sin intereses." Dashboard row: stamp **En crédito**, with "comisión $0.90" under the amount in the "Pagado" column (the distributor pays a 1.5% fee) |
 | 0:20 to 0:35 (cont.) | Shop | Tap **Mi cuenta** | "Debe $60.00", the due date, the limit |
-| 0:35 to 0:45 | Driver, then shop | Driver: tap the Mini Súper row → **Recibí efectivo**. Shop: that invoice → **Confirmo** (the "Pagué en efectivo" panel opens by itself once the driver has registered the cash; tap **Pagué en efectivo** if it is closed) | Dashboard: Ana's cash under "Efectivo por motorista" goes up |
-| 0:45 to 0:55 | Shop | On the green receipt, tap **Ver detalles** (opens stellar.expert) | The transaction page; then the contract page (link below) |
+| 0:35 to 0:45 | Driver, then shop | Driver: tap the Mini Súper row, **wait about 3 seconds**, then tap **Recibí efectivo** (see the tap guard note below the table). Shop: that invoice → **Confirmo** (the "Pagué en efectivo" panel opens by itself once the driver has registered the cash; tap **Pagué en efectivo** if it is closed) | Dashboard: Ana's cash under "Efectivo con motoristas" (the figure at the top and her row in the table) goes up |
+| 0:45 to 0:55 | Shop | On the paid receipt (the one with the PAGADA stamp), tap **Ver detalles** (opens stellar.expert) | The transaction page; then the contract page (link below) |
 | 0:55 to 1:00 | End card | App URL and contract ID (below) | |
 
 Mini Súper La Esquina's $85.50 cash payment goes to Ana (motorista-2), so switch the left window to her
 route (`/ruta/motorista-2`) for that shot.
 
+Tap guard at 0:35 to 0:45: **Recibí efectivo** can come up right under the spot where you tapped the row.
+It ignores a tap that lands within about 2.5 s and 28 px of the tap that opened the stop, and any tap in its
+first 0.6 s, and it says nothing when it ignores one. Open the row, wait about 3 seconds (one or two is not
+enough), then tap. If a tap did nothing, stop tapping for a moment and tap once more.
+
 Line fix for 0:20 to 0:35: the issue says "$147.60 on a $150 invoice". The app's lender fee is 1.5%,
-so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what the screen shows.
+so the dashboard shows "comisión $0.90" on the $60.00 invoice (the distributor gets $59.10; on $150 the fee
+would be $2.25 and the distributor would get $147.75). Say what the screen shows.
 
 ## End card
 
@@ -59,7 +67,7 @@ so the screen shows $59.10 on $60.00 (and would show $147.75 on $150). Say what 
 
 ## If something goes wrong while recording
 
-- A button spins for more than 10 s: testnet is slow. Stop, make a fresh invoice, redo that shot only;
+- A button stays on "Procesando..." for more than 10 s: testnet is slow. Stop, make a fresh invoice, redo that shot only;
   cut the shots together afterwards.
 - "Pagar en 7 días" greyed out: the shop still owes or the invoice is over $200; see step 3 above.
 - Upload as Public on YouTube, open it in a private window, and keep the MP4 offline for Monday.
