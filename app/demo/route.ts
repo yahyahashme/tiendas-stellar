@@ -11,11 +11,14 @@ const ERROR_PAGE = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>No se pudo crear la factura</title>
+<title>No se pudo crear la factura · Couldn't create the invoice</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 0; padding: 24px 16px; background: #fff; color: #111; }
   main { max-width: 28rem; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
   h1 { font-size: 1.5rem; margin: 0; }
+  .en { color: #555; border-top: 1px solid #ddd; padding-top: 16px; }
+  .en h2 { font-size: 1.125rem; margin: 0 0 8px; }
+  .en p { margin: 0; }
   a { display: block; text-align: center; padding: 14px; border-radius: 12px; background: #0b4ea2; color: #fff;
       font-size: 1.125rem; font-weight: 600; text-decoration: none; }
 </style>
@@ -23,7 +26,11 @@ const ERROR_PAGE = `<!doctype html>
 <body><main>
   <h1>No pudimos crear su factura</h1>
   <p>Puede ser la conexión. Espere unos segundos e intente de nuevo.</p>
-  <a href="/demo">Intentar de nuevo</a>
+  <a href="/demo">Intentar de nuevo · Try again</a>
+  <section class="en" lang="en">
+    <h2>We couldn't create your invoice</h2>
+    <p>It may be the connection. Wait a few seconds and try again.</p>
+  </section>
 </main></body>
 </html>`;
 
@@ -44,7 +51,11 @@ function allowed(now = Date.now()): boolean {
 }
 
 function redirect(path: string, request: Request) {
-  const response = NextResponse.redirect(new URL(path, request.url), 303);
+  const target = new URL(path, request.url);
+  // Keep ?lang=en so a judge's English link opens the invoice in English.
+  const lang = new URL(request.url).searchParams.get("lang");
+  if (lang === "en" || lang === "es") target.searchParams.set("lang", lang);
+  const response = NextResponse.redirect(target, 303);
   response.headers.set("cache-control", "no-store"); // never replay a redirect to an earlier invoice
   return response;
 }

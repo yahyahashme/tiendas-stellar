@@ -7,8 +7,12 @@
 // Writes never throw: they return { ok: false, message } in Spanish.
 
 import * as live from "@/app/actions";
+import * as distributors from "@/app/distributor-actions";
+import * as shops from "@/app/shop-actions";
+import * as invoices from "@/app/invoice-actions";
+import type { DistributorView } from "@/app/distributor-actions";
 import * as mock from "./mock";
-import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Receipt, Shop, Totals } from "./types";
+import type { Driver, Invoice, InvoiceHistory, InvoiceRow, Pool, Profile, Receipt, Shop, ShopHistory, Supplier, Totals } from "./types";
 
 export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
 
@@ -48,10 +52,33 @@ export const getPool = (): Promise<Pool> => read(mock.getPool, live.getPool);
 /** The whole history a page at a time: `pages` pages, newest first. */
 export const getInvoiceHistory = (pages: number): Promise<InvoiceHistory> =>
   read(() => mock.getInvoiceHistory(pages), () => live.getInvoiceHistory(pages));
+/** The distributor dashboard for whoever is looking: their own business once approved (#130), else the demo. */
+export const getDistributorView = (pages: number): Promise<DistributorView> =>
+  read(() => mock.getDistributorView(pages), () => distributors.getDistributorView(pages));
+/** Notes / products on these invoices (#133); the demo's have none. */
+export const getInvoiceNotes = (ids: number[]) => read(() => ({}) as Record<number, string>, () => invoices.getInvoiceNotes(ids));
+/** Who sent an invoice, and its note (#133). The demo's come from Distribuidora El Sol. */
+export const getInvoiceSource = (id: number) =>
+  read(() => ({ distributorName: "Distribuidora El Sol", note: null as string | null }), () => invoices.getInvoiceSource(id));
+/** Claim codes for the stops on a route, shown only to that driver or their distributor (#132). */
+export const getRouteInvites = (driverId: string, shopIds: string[]) =>
+  read(() => ({ distributorName: "", codes: {} as Record<string, string> }), () => shops.getRouteInvites(driverId, shopIds));
 /** Everything ever paid, by method, for the dashboard's totals. */
 export const getTotals = (): Promise<Totals> => read(mock.getTotals, live.getTotals);
+/** Every payment the shop made, and what it still owes, newest first (#136). */
+export const getShopHistory = (shopId: string): Promise<ShopHistory | null> =>
+  read(() => mock.getShopHistory(shopId), () => live.getShopHistory(shopId));
+/** The shop's dollars digitales on hand. */
+export const getBalance = (shopId: string): Promise<number | null> =>
+  read(() => mock.getBalance(shopId), () => live.getBalance(shopId));
+export const getSuppliers = (shopId: string): Promise<Supplier[]> =>
+  read(() => mock.getSuppliers(shopId), () => live.getSuppliers(shopId));
+// The shop's details aren't on chain. Until accounts (#129) they stay with the demo data in both modes.
+export const getProfile = (shopId: string): Promise<Profile | null> => read(() => mock.getProfile(shopId), async () => mock.getProfile(shopId));
+export const saveProfile = (shopId: string, profile: Profile) =>
+  write(() => mock.saveProfile(shopId, profile), async () => mock.saveProfile(shopId, profile));
 export const createDemoInvoice = (shopId?: string): Promise<Invoice> =>
-  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice(shopId));
+  read(() => mock.createDemoInvoice(shopId), () => live.createDemoInvoice());
 
 // ---------- writes ----------
 

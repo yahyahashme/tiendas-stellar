@@ -274,7 +274,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 > Limits start small and top out at $500. No new credit while anything is overdue. A buffer, 75 cents of each $100 fee, absorbs losses first. Four periods late, it repays the lenders what it can and the shop's credit is cut off.
 
 43 words, 18.4 s.
-- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** The start limit is the lower of $200 and one average delivery (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
+- **Facts:** `docs/facts.md` entries 31 and 32, and the contract: `LIMIT_CAP` $500; the `Overdue` check in `pay_with_credit`; `BUFFER_BPS` 75; `cover_default` after `DEFAULT_AFTER_PERIODS` = 4 credit periods. **`cover_default` is called by the admin; it does not run by itself.** Every shop starts at $200 (#134); matching it to one average delivery is a later step (`docs/credit-model.md`). `docs/security.md` limit 11: credit risk is real.
 - **Must include:** small limits, nothing new while overdue, the buffer, the four-period rule.
 - **Never:** "no risk", or that the contract writes off a debt automatically.
 - **If they push, "what if losses beat the buffer?":** > Past about 0.75% of credit sales lost, the buffer is used up and the lenders take the loss. That's why limits start small and a licensed lender, not us, funds the pool. (32 words; context §5, "what could break it".)

@@ -17,7 +17,7 @@ All of these:
 - Optional: the distributor vouches and shares the loss (option 2 in context §5).
 
 ## 3. Starting limit
-**Limit = the lower of $200 and one average delivery.** A shop that usually buys $120 a week starts at $120, so no one gets more credit than they normally buy.
+**Every shop starts at $200** (built: #134 sets it when a shop signs up). Next step, not built: once a distributor shares a shop's delivery history, start at the lower of $200 and one average delivery, so a shop that usually buys $120 a week starts at $120.
 
 ## 4. Levelling up
 - **+$25 per on-time repayment, up to $500** (built in #58).

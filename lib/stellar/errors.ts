@@ -15,6 +15,7 @@ const MESSAGES: Record<number, string> = {
   10: "No tiene deuda pendiente.",
   11: "El motorista aún no registró el efectivo.",
   12: "Su tienda aún no tiene crédito.",
+  13: "Su distribuidora todavía no está aprobada para crear facturas.",
   15: "El motorista cambió el monto. Revise el nuevo monto y confirme de nuevo.",
 };
 

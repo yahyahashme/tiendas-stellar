@@ -680,6 +680,14 @@
                   },
                   {
                     "key": {
+                      "symbol": "credit_fee"
+                    },
+                    "val": {
+                      "i128": "15000000"
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "distributor"
                     },
                     "val": {
@@ -784,6 +792,14 @@
                     },
                     "val": {
                       "i128": "1000000000"
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "credit_fee"
+                    },
+                    "val": {
+                      "i128": "15000000"
                     }
                   },
                   {
@@ -896,6 +912,14 @@
                   },
                   {
                     "key": {
+                      "symbol": "credit_fee"
+                    },
+                    "val": {
+                      "i128": "15000000"
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "distributor"
                     },
                     "val": {
@@ -1004,10 +1028,26 @@
                   },
                   {
                     "key": {
+                      "symbol": "cycle_half_up_front"
+                    },
+                    "val": {
+                      "bool": false
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "due_at"
                     },
                     "val": {
                       "u64": "0"
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "first_credit_at"
+                    },
+                    "val": {
+                      "u64": "1000000"
                     }
                   },
                   {
@@ -1028,10 +1068,42 @@
                   },
                   {
                     "key": {
+                      "symbol": "late_major"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "late_minor"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "limit"
                     },
                     "val": {
                       "i128": "2500000000"
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "max_days_late"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "no_raise_until"
+                    },
+                    "val": {
+                      "u64": "0"
                     }
                   },
                   {

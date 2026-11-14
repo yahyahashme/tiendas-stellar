@@ -250,7 +250,7 @@ export type Driver = { id: string; name: string; cashHeld: number };
 **R1. App skeleton** (due Sun Nov 8)
 - Pages: `/` (pick a demo role: Distribuidor, Motorista, Tienda), `/distribuidor`, `/ruta/[driverId]`, `/tienda/[invoiceId]`, `/tienda/cuenta/[shopId]`.
 - `/tienda/[invoiceId]`: the invoice drawn as a paper receipt (shop name, amount, due date), one main button "Pagar ahora" at the bottom of the screen, and a list of the other ways to pay: "Pagar en 7 días" (greyed out with the reason when not allowed, e.g. "Tiene un pago vencido"; it opens one line of terms and a "Confirmo" button), "Pagar otro monto", "Pagué en efectivo" (opens by itself once the driver has registered cash). A paid invoice gets a "PAGADA" stamp. (Nov 13: was three big buttons.)
-- `/tienda/cuenta/[shopId]`: what the shop owes, the due date, a "Pagar deuda" button, the credit limit and how to grow it.
+- `/tienda/cuenta/[shopId]`: the account drawn as the same paper slip: what the shop owes and the due date, then the sum "Límite de crédito" minus the debt = "Disponible". "Pagar deuda" is the one main button at the bottom of the screen. Below the slip: the unpaid invoices (each opens its pay screen; one with driver cash waiting says "Efectivo por confirmar") and how the limit grows. A late debt shows "Disponible: En pausa" instead of a dollar figure. After paying, a grey "Deuda pagada" holds the button's place, so a repeat tap hits nothing. On both shop screens the main pay button ignores taps for about half a second after it appears, so a double tap on the screen before can't pay.
 - `lib/api.ts` mock functions: `getInvoices`, `getInvoice`, `payNow`, `payLater`, `claimCash`, `confirmCash`, `repay`, `getShop`, `getDrivers`. Each waits one second, like a real network call.
 - Mock data: 1 distributor, 2 drivers, 3 shops, 8 invoices.
 
@@ -373,7 +373,7 @@ A shop buys $100 of stock and picks "pay in 7 days".
 
 | Option | Who covers a shop that doesn't pay | Fee per $100, paid by the distributor | Split |
 |---|---|---|---|
-| 1. Pool covers | The lender pool | $1.50 | $0.75 buffer, $0.50 lenders, $0.25 us |
+| 1. Pool covers | The lender pool | $1.00 to $1.50 (less when the shop pays part up front, #135) | $0.50 lenders; the rest 3:1 buffer : us ($0.75 / $0.25 at $1.50) |
 | 2. Distributor covers ("with recourse") | The distributor | about $0.25 | $0.15 lenders (about 8% a year, close to the 7.6% average for loans under a year, facts 51), $0.10 us |
 | 3. Distributor's own money | The distributor | $0 | No credit fee; we earn only the usage fee |
 
@@ -535,6 +535,8 @@ The target is still a mid-size distributor with a few routes (§9). The big grou
 ### 8.2 Contract functions (spec for Jack)
 
 > Nov 9: Yahya now writes the contract and Jack reviews and tests it. The exact v1 to v3 spec (constructor, fee constants and math, error codes, tests) is in the contract issues and wins over this table. Changes: `init` became `__constructor(admin, token, treasury, credit_period_secs)`; fees are a 0.1% usage fee on every invoice plus 1.5% for credit (0.75 buffer, 0.50 lenders, 0.25 us); `set_terms(shop, limit)` has no option (options 2 and 3 are pitch-only); limits start at $200 and grow $25 per on-time repayment, up to $500.
+
+> Nov 13 (#135, #137, one redeploy): the credit fee slides with the share of the invoice on credit, f clamped to 0.10..1.00: rate = 100 + 50 × (f − 0.10) / 0.90 bps, rounded down (all on credit 1.50%, half 1.22%, a tenth or less 1.00%). Lenders always get 0.50%; the rest splits 3:1 buffer : us, the odd bps to the buffer (75/25 at 1.50%, 38/12 at 1.00%). Each invoice stores its `credit_fee`. If every invoice credited in a cycle had half or more paid up front, the $40 minimum to grow is waived (once a week and the $500 cap stay). `repay` grades lateness in days past `due_at` (a day = credit period / 7): ≤1 on time (grace day), 2-7 `late_minor` and −$25, 8+ `late_major`, −$50 and no raise for 4 periods; `cover_default` unchanged. `ShopView` adds `late_minor`, `late_major`, `max_days_late`, `first_credit_at`.
 
 > Nov 10 (review of #58): no usage fee on credit sales (payout $98.50 per $100). A limit only grows if the shop borrowed $40+ in that cycle, and at most once per credit period. A late repayment drops the limit $25. New functions: `approve_distributor(distributor)` and `is_distributor` (only approved distributors can create invoices, so pool money can't go to a fake one); `cover_default(shop)` (admin, once a shop is 4 credit periods late: the buffer repays the lenders what it can, the shop's limit goes to 0, the debt stays as `written_off`, and later repayments refill the buffer); `fund_buffer(from, amount)` (seeds the buffer; `deploy.sh` adds $50).
 
@@ -785,6 +787,8 @@ Every number and quote is in `docs/facts.md`. The two right-hand columns are our
 | Nov 6 | Domestic only, El Salvador first. No cross-border or diaspora money. Other countries only on a "future" slide. |
 | Nov 6 | "RUTA" was a placeholder name; we won't use it. |
 | Nov 12 | Name: **Relay**, tagline *Paga tu ruta* under it (Yahya). Repo renamed to `yahyahashme/relay`; URLs say "relay" only. |
+| Nov 13 | English version of every screen, with an ES / EN switch in the top banner (Yahya). Spanish stays the default; the choice is saved per phone, and `?lang=en` opens a link in English. Write new screen text as `t("español", "English")` (`lib/i18n.tsx`); server and contract messages stay Spanish and are translated on screen by `lib/translate.ts`, whose test fails if a message has no English. The WhatsApp reminder stays in Spanish, because it goes to the shop. |
+| Nov 13 | Mi cuenta (#127): money, credit, suppliers, details, security, notifications and help, with "how it will work" screens for sign-in backup, devices and trusted contacts. Payment history per shop (#136) from contract events (about a week back) plus invoices. Relay score (#137, `lib/credit.ts`): 0-100 from on-time record (50%), limit use (20%), length (20%) and suppliers (10%), shown with its top reasons; "Compartir mi historial" makes a read-only link (anyone with it can see it; signing it is a later step), nothing is shared without it. Past-due or written-off debt caps the score. Starting limit from a trade reference waits for distributor-added shops (#132/#134). |
 | Nov 6 | Design: invoices with due dates; pay now, cash recorded with two taps, or pay in 7 days; the contract tracks paid, part-paid and due, and blocks double payment. |
 | Nov 6 | Cash allowed at delivery only, always recorded, doesn't build credit. No discount for paying digitally. |
 | Nov 6 | Credit: full price, no interest, due by the next delivery (7 days at most), limits that grow, nothing new while overdue. |
