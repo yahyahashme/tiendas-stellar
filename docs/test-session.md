@@ -4,6 +4,8 @@ For Wed Nov 11, 5 to 7 PM ET, 1st floor IDEAs Clinic. Everyone does the same fou
 
 **Written against `main` (dfdc33c), checked on Nov 11.** "Pagar otro monto" (#75) and "Marcar efectivo entregado" (#76) were merged into the stacked branch `28-readme-v1`, not into `main`, so they are marked "only if present" below. The live app (checked on the old address; it is now https://relay-sv.vercel.app) returned 404 for `/demo` (a page that exists only in #70), which suggests production is not running that stack, but I could not see which branch it tracks. Step 0 asks Yahya.
 
+**Rows re-checked on Nov 14 against the redesign (the tip of the stack, PRs #160 to #171).** The Expect column now holds the words on the redesigned screens: paper receipts and stamps instead of chips, "Pagar ahora" under the receipt, and the new dashboard figures. The two-tap guard is on purpose: a pay button ignores a tap that lands within about 2.5 s and 28 px of an earlier tap on something else, so in step 13 wait a moment after opening the stop.
+
 | Time | What | Who |
 |---|---|---|
 | 5:00 to 5:10 | Setup: pick your role, open the app, note your phone | Everyone |
@@ -27,33 +29,33 @@ The Pitch Prep Workshop may have its own agenda from 6 PM. If it does, do sectio
 
 **Pass or fail:** copy the table into your notes. For every FAIL, take a screenshot and go to section 2.
 
-| # | Do this | Expect (the exact text on `main`) | Pass? |
+| # | Do this | Expect (the exact text on the redesigned screens) | Pass? |
 |---|---|---|---|
-| 0 | Open the URL. Ask Yahya which branch production tracks. | The grey banner "Demo en testnet · dinero de prueba · cash-in simulado" is on every screen. The app title still says "Nombre pendiente". | |
-| 1 | Home page `/` | Buttons: Distribuidora El Sol, each Motorista (Carlos, Ana), each Tienda with its open invoices. | |
-| 2 | Driver: open Carlos's route `/ruta/motorista-1` | "Ruta de Carlos", "N paradas hoy · M por cobrar", "Efectivo en mano $X". | |
+| 0 | Open the URL. Ask Yahya which branch production tracks. | The band at the top, "Demo en testnet · dinero de prueba · cash-in simulado" (shown in capitals), is on every screen. The app title is "Relay · Paga tu ruta". | |
+| 1 | Home page `/` | Under "Probar la demo": "La tienda" (each shop; tap one to see its "Factura N" links and "Mi cuenta"), "El motorista" (Carlos and Ana, each with "Ruta de hoy") and "La distribuidora" ("Distribuidora El Sol", "Panel y facturas"). | |
+| 2 | Driver: open Carlos's route `/ruta/motorista-1` | The "Hoja de ruta" with "Carlos" and today's date, the lines "Por cobrar (N de M)" and "Efectivo en mano $X", then the stops to collect; the first one is marked "Siguiente parada". | |
 | 3 | Driver: tap a stop | A QR code and "La tienda escanea este código para pagar." | |
-| 4 | Shop: open that invoice (scan the QR from a second phone, or use the link on the home page) | Shop name, amount, chip "Pendiente", "Vence el …", the list Pagar en 7 días, Pagar otro monto, Pagué en efectivo, and the Pagar ahora button at the bottom. | |
-| 5 | Shop: tap **Pagar ahora** | A spinner, then "Pago recibido: $X en dólares digitales." and a green "PAGADA" stamp replaces the chip. | |
+| 4 | Shop: open that invoice (scan the QR from a second phone, or use the link on the home page) | The receipt: "Cliente" with the shop name, "Motorista", "Total" with the amount and "Vence el …". Right under it the **Pagar ahora** button ("$X con dólares digitales"), then the list in this order: Pagar en 7 días ("Sin intereses"), Pagué en efectivo, Pagar otro monto. | |
+| 5 | Shop: tap **Pagar ahora** | The button reads "Procesando...", then the receipt says "Pago recibido: $X en dólares digitales." and a green "PAGADA" stamp lands on it. The button turns into a grey "Factura pagada" that does nothing when tapped. | |
 | 6 | Shop: tap "Ver detalles" on the receipt | Opens the transaction on stellar.expert (testnet). The page is not blank and not an error. | |
-| 7 | Driver: wait up to 5 seconds, no refresh | The same stop shows "Pagada". | |
+| 7 | Driver: wait up to 5 seconds, no refresh | The stop moves down to "Completadas" with the stamp "Pagada". | |
 | 8 | Shop: new invoice, tap **Pagar en 7 días**, then **Confirmo** | First "Hoy no paga nada. Paga $X en 7 días." Then "Listo. Tiene hasta el <date> para pagar $X, sin intereses." | |
-| 9 | Shop: tap **Mi cuenta** | "Debe $X", "Vence el <date>", then the sum: "Límite de crédito", "Menos lo que debe", "Disponible". The limit starts at $200. **Pagar deuda** stays at the bottom of the screen (it fades in and takes a tap after about half a second). | |
+| 9 | Shop: tap **Mi cuenta** | The slip: "Debe $X" with "Vence el <date>", then "Límite", "Disponible" (the limit minus the debt, one figure), "Puntaje Relay N de 100" (once the score has loaded) and "Saldo", with the stamp "EN CRÉDITO". The limit starts at $200. **Pagar deuda** sits right under the slip (it fades in and takes a tap after about half a second). | |
 | 10 | Shop: open an invoice that would take the debt over the $200 limit. Use seed invoice **1003** (Mini Súper La Esquina, $220.00: over the limit on purpose). If someone already paid it, use Mini Súper's demo invoices ($85.50 each): buy two on credit ($171.00), and the third is over the limit. | "Pagar en 7 días" is greyed out, with the hint "Supera su límite de crédito". | |
-| 11 | Shop: **Pagar deuda** on Mi cuenta | "Deuda pagada a tiempo. Su límite subió a $…" (the limit grows only after a $40+ cycle, or $10+ with half paid up front, once per credit period, so "Deuda pagada a tiempo. Gracias." is also correct). The slip shows the amount with a green "PAGADA" stamp and "Pagada hoy"; if the limit moved, "Subió $25.00" under the limit. The button turns into a grey "Deuda pagada" that does nothing when tapped. Leave the screen and come back and it reads "Debe $0.00" and "No tiene deudas pendientes." | |
+| 11 | Shop: **Pagar deuda** on Mi cuenta | "Deuda pagada a tiempo. Su límite subió a $…" (the limit grows only after a $40+ cycle, or $10+ with half paid up front, once per credit period, so "Deuda pagada a tiempo. Gracias." is also correct). The slip reads "Deuda" with the amount and "Pagada hoy", with a green "PAGADA" stamp; if the limit moved, "Su límite subió +$25.00" under "Límite". The button turns into a grey "Deuda pagada" that does nothing when tapped. Leave the screen and come back and it reads "Debe $0.00" and "No tiene deudas pendientes." | |
 | 12 | Cash, shop first: new invoice, **Pagué en efectivo** before the driver did anything | "El motorista aún no registró el efectivo." | |
-| 13 | Cash, driver: tap the stop, then **Recibí efectivo** | The button shows the amount. Then "Esperando que la tienda confirme $X." and the chip "Efectivo por confirmar". | |
+| 13 | Cash, driver: tap the stop, wait about 3 seconds, then tap **Recibí efectivo** (a tap within about 2.5 s and 28 px of the tap that opened the stop is ignored on purpose) | The button shows "$X en efectivo". After the tap it becomes a grey "Efectivo registrado" with "$X por confirmar", the slip says "La tienda escanea este código y toca «Confirmo».", and on the "Hoja de ruta" the stop carries the stamp "Por confirmar". | |
 | 14 | Cash, shop: **Confirmo** (the "Pagué en efectivo" panel opens by itself within 5 seconds of step 13; tap **Pagué en efectivo** if it is closed) | "Carlos registró $X en efectivo." then "Listo. Confirmó $X en efectivo." The driver's "Efectivo en mano" goes up by $X. | |
-| 15 | Dashboard `/distribuidor` after steps 5 to 14 | The tiles "Cobrado digital", "Efectivo por motorista", "En crédito", "Vencido" moved within 5 seconds ("Se actualiza cada 5 segundos."). | |
-| 16 | Dashboard: tap **Nueva factura de demo** | A new invoice appears on the list and on a shop's home page. | |
+| 15 | Dashboard `/distribuidor` after steps 5 to 14 | The four figures "Cobrado", "Por cobrar", "En crédito" and "Efectivo con motoristas" moved within 5 seconds ("Se actualiza cada 5 segundos."). Under "Cobrado" it says "$X sin efectivo"; under "En crédito", "$X vencido" if a shop is late, or "Al día". There is no "Vencido" tile. | |
+| 16 | Dashboard: tap **Nueva factura de demo** | A new invoice appears in the "Facturas" list and, on the home page under "La tienda", in that shop's list of invoices. | |
 | 17 | Pay twice: open one unpaid invoice on two phones, tap Pagar ahora on both (or double-tap fast) | Money moves **once**. The second attempt shows a plain Spanish message, not a raw error code. "Blocks paying twice" is a claim in our pitch. | |
 | 18 | Bad links: `/tienda/9999`, `/ruta/xyz`, `/tienda/cuenta/xyz` | "No encontramos la factura 9999.", "No encontramos a ese motorista.", "No encontramos esa tienda." | |
 | 19 | Phone checks: 360 px wide, no sideways scroll, every button easy to hit with a thumb | Nothing cut off, nothing overlaps. | |
 | 20 | Slow network: Chrome DevTools, Network, "Slow 3G" | A loading state, then data. If it fails, a retry message, not a blank screen. | |
-| 21 | Words check: read every main screen | No "blockchain", "wallet", "crypto" or "token". "USDC on Stellar" is allowed only behind "Ver detalles". Everything is in Spanish. | |
+| 21 | Words check: read every main screen | No "blockchain", "wallet", "crypto" or "token". "USDC on Stellar" is allowed only behind "Ver detalles". Everything is in Spanish (the ES / EN switch in the top band shows English). | |
 
 **Only if your build has them (not on `main` on Nov 11):**
-- "Pagar otro monto" on the shop's invoice (#75): pay part of an invoice, then see the lines "Pagado −$X" and "Falta $Y" and the chip "Parcial".
+- "Pagar otro monto" on the shop's invoice (#75): pay part of an invoice, then see the lines "Pagado $X de $Y" and "Falta" (with the amount left) on the receipt, and the stamp "Parcial" on the driver's route sheet and the distributor's list.
 - "Marcar efectivo entregado" on the dashboard next to a driver (#76): the driver's cash goes back to $0.
 - `/demo` and the big-screen dashboard (#70).
 
