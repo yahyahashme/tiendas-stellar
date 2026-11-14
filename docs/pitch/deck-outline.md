@@ -32,8 +32,8 @@ The words for each slide are in `docs/pitch/deck-slides.md`, under the same numb
 
 ### 1. Name and one-line pitch
 - **Message:** one idea the room can repeat.
-- **Source:** the name is **Relay** with the tagline *Paga tu ruta* under it (PR #100, merged Nov 12; `lib/brand.ts`, `docs/context.md` §1). The repo doesn't record who pitches.
-- **Visual:** "Relay" large with "Paga tu ruta" under it, no logo yet.
+- **Source:** the name is **Relay** with the tagline *Del efectivo al crédito* under it (PR #100, merged Nov 12; `lib/brand.ts`, `docs/context.md` §1). The repo doesn't record who pitches.
+- **Visual:** "Relay" large with "Del efectivo al crédito" under it, no logo yet.
 - **Needs:** nothing for the slide. The pitcher is still to be named (see "Before we can build it").
 
 ### 2. The problem
@@ -45,7 +45,7 @@ The words for each slide are in `docs/pitch/deck-slides.md`, under the same numb
 ### 3. The product
 - **Message:** one shop screen, three ways to pay.
 - **Visual:** 3 phone screenshots of the live app, captured at 360 px wide with the testnet banner in frame: the shop's pay screen, the shop's "Debe ... vence ..." screen after a credit payment, the driver's "Recibí efectivo" screen. Steps are in "Capturing the three phone screenshots" below. `docs/screenshots/mock-screens-nov10.png` is a mock, so don't use it.
-- **Needs:** a check, and probably a recapture. PR #119 (Fri Nov 13) put the three captures in `docs/pitch/trifold/img/` (`shop-pay.png`, `shop-credit.png`, `driver-cash.png`), taken from https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). #126 and #125 merged after that (7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). Compare the three images with the live app; if they differ, recapture with the steps below and check the page header reads "Relay" with "Paga tu ruta" under it. We have not compared them. The URL goes in the slide's small print.
+- **Needs:** a check, and probably a recapture. PR #119 (Fri Nov 13) put the three captures in `docs/pitch/trifold/img/` (`shop-pay.png`, `shop-credit.png`, `driver-cash.png`), taken from https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app answers 307 and redirects there, so the deck shows the new one). #126 and #125 merged after that (7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). Compare the three images with the live app; if they differ, recapture with the steps below and check the page header reads "Relay" with "Del efectivo al crédito" under it. We have not compared them. The URL goes in the slide's small print.
 
 ### 4. How it works on Stellar
 - **Message:** the rules live in a public contract, and names stay off it.
@@ -81,7 +81,7 @@ The words for each slide are in `docs/pitch/deck-slides.md`, under the same numb
 
 For slide 3 and the trifold's middle panel. They have to come from the live app at 360 px wide, with the banner "Demo en testnet · dinero de prueba · cash-in simulado" at the top of each. (It is the first line of every page, not a sticky bar, so capture with the page scrolled to the top.) They are taken by hand: it needs clicks, and shot 2 changes the shared demo.
 
-**When:** now that the redeploy has landed (#90, Thu Nov 12; #52 is closed), because the redeploy gave a new contract and new demo invoices. Best in the same sitting as Yahya's video (#35), so the demo is only changed once, and with the header reading "Relay" and "Paga tu ruta" (the name is set, #100). Shot 2 makes a real testnet payment with test dollars and changes what the video shows (see "Side effects").
+**When:** now that the redeploy has landed (#90, Thu Nov 12; #52 is closed), because the redeploy gave a new contract and new demo invoices. Best in the same sitting as Yahya's video (#35), so the demo is only changed once, and with the header reading "Relay" and "Del efectivo al crédito" (the name is set, #100). Shot 2 makes a real testnet payment with test dollars and changes what the video shows (see "Side effects").
 
 **Setup (Chrome on a Mac)**
 1. Open https://relay-sv.vercel.app. Check the testnet banner is at the top and the page isn't an old preview.
@@ -105,7 +105,7 @@ For slide 3 and the trifold's middle panel. They have to come from the live app 
 
 | Input | Where it comes from | Status |
 |---|---|---|
-| Name and tagline | PR #100 | decided: Relay, tagline *Paga tu ruta* |
+| Name and tagline | PR #100 | decided: Relay, tagline *Del efectivo al crédito* |
 | Pitcher | the team | not recorded in the repo; ask the group chat |
 | Pitch script v1 | #37, PR #83 | merged Nov 12 (`docs/pitch/pitch.md`; `[NAME]` became Relay in PR #107, the `[N]` placeholders are still open) |
 | Worldwide number and expansion path | #51, #73 | merged (entries 22 to 28 on `main`) |
