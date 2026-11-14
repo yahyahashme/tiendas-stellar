@@ -17,7 +17,7 @@ import { buildHistory } from "@/lib/history";
 import { rpc, scValToNative } from "@stellar/stellar-sdk";
 import type { Invoice as ChainInvoice } from "@/packages/route_ledger/src/index";
 import { toUnixSeconds } from "@/lib/dates";
-import { nextDemoId } from "@/lib/demo-ids";
+import { firstFreeId, nextDemoId } from "@/lib/demo-ids";
 import { getDb } from "@/lib/server/db";
 import { checkInvoice, choices, cleanAmount, dueAt, myApprovedDistributor } from "@/lib/server/invoices";
 import { HISTORY_PAGE, type Driver, type Invoice, type InvoiceHistory, type InvoiceRow, type Pool, type Receipt, type Payment, type Shop, type ShopHistory, type Supplier, type Totals } from "@/lib/types";
@@ -442,7 +442,10 @@ export async function createDemoInvoice(): Promise<Invoice> {
       await run(distributor.id, async (client) => {
         // Picked inside the distributor's queue so two taps never pick the same id.
         const list = await read(readClient().list_invoices());
-        id = nextDemoId(list.map((i) => i.id)) + skip;
+        // Step past numbers already used: the list only shows the newest 60 invoices (Jack's review of #164).
+        const free = await firstFreeId(nextDemoId(list.map((i) => i.id)) + skip, async (n) => (await chainInvoice(Number(n))) !== null);
+        if (free === null) throw new Error(FALLBACK_MESSAGE);
+        id = free;
         const shop = DEMO_SHOPS[Number(id % 3n)];
         // A few random seconds so two server instances never build the very same
         // transaction: identical ones share a hash, and both judges would get one invoice.
