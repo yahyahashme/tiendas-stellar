@@ -2,6 +2,8 @@
 
 The form decides the Top 16. It closes **Fri Nov 13, 8:30 AM ET**. We read and fix the one-pager on the **Thu Nov 12, 9:00 PM** call, and Jack submits by 9:30 PM so Friday morning is only a spare. **Nothing has been submitted.**
 
+**Update Sat Nov 14 (contract ID):** #139 redeployed the contract after this page was written. The IDs below, `CAPQ6ZDD…` (the first deploy) and `CDHDZX7V…` (the #90 redeploy, current on Nov 12), stay as the record. The live ID is `contracts.routeLedger` in `config/testnet.json` (`CAGCZ3I7…`): wherever a step below says the ID in answer 6 must equal the config, compare with the config, not with `CDHDZX7V…`.
+
 **Checked on Thu Nov 12 (evening) against** `origin/main` at `67f265f`: `docs/one-pager.md` (merged in #64), `docs/facts.md`, `docs/research.md`, `config/testnet.json`, `README.md` and `contracts/route_ledger/src/lib.rs`. Merged since the first draft of this page: #64 (the one-pager), #72 (advisor calls log), #73 (worldwide number), #84 (fact sheet entries 29 to 40) and #90 (the redeploy). **Run the checker yourself and don't trust any count written here.** When last run on `67f265f` it gave 4 FAILs: the old contract ID in answer 6 (finding 1) and the three form fields (team number, team name, Devpost link). People fill the form fields, not a script. Every FAIL it prints must be fixed or consciously accepted (say why out loud on the call). If the one-pager changes again, run the script (section 6) again.
 
 ## 1. What has to be true before 9 PM
