@@ -1016,3 +1016,35 @@ _Entry 62 comes from `docs/research.md` on `main` (merged in #152), not from a w
   - "Uncollectable" (lost) and "late" (morosidad) are different measures. Don't add them.
   - The San Fernando figure is paraphrased (one quote per entry).
 - **Checked:** Pending: a teammate must open the links and confirm. (Claude matched the quote in the search engine's copy of the page on 13 Nov 2026; both pages refused Claude's direct fetch on 14 Nov.)
+
+---
+
+## Stellar partners already in El Salvador, added under #61 (14 Nov 2026)
+
+_Entries 64 and 65 came out of Rohan's finance review on Nov 14 ("isn't Stellar already working on cash-in?"). They make the Risk #1 answer stronger: the rails for receiving and cashing out digital dollars exist in El Salvador, and the missing piece is a counter where a shop turns **cash into** digital dollars. Neither entry is in the Pitch highlights list yet._
+
+## 64. Movantis plans to settle US-to-El Salvador transfers in USDC on Stellar
+- **Claim:** Movantis, a cross-border payments network, announced at Stellar's Meridian conference that it will use USDC on Stellar to settle transfers, starting with the US-to-El Salvador corridor.
+- **Number:** Movantis says its network moves more than $60 billion a year (all of its business, not volume on Stellar). Announced Oct 28, 2026.
+- **Source:** PR Newswire, "Movantis Integrates with the Stellar Network to Expand Its Cross-Border Payments Infrastructure", 28 Oct 2026, https://www.prnewswire.com/news-releases/movantis-integrates-with-the-stellar-network-to-expand-its-cross-border-payments-infrastructure-302922300.html
+- **Exact quote:** "starting with the U.S.-to-El Salvador corridor" (Jose Fernandez da Ponte, Stellar Development Foundation)
+- **Translation:** n/a (English source)
+- **Use in:** Q&A ("is anyone else using Stellar in El Salvador?"), Risk #1 slide as supporting context
+- **Caveat:**
+  - It's **planned**, not live. The release gives no launch date, pricing or named payout partner in El Salvador.
+  - It's remittances (US to El Salvador), not shops paying distributors. It shows that big payment companies are choosing Stellar for this country, not that a shop can turn cash into digital dollars.
+  - The $60 billion is Movantis's whole network. Never say "$60 billion on Stellar".
+- **Checked:** Claude, 14 Nov 2026 (opened the release; the quote and date match). Pending a teammate's check.
+
+## 65. MoneyGram's app lets people in El Salvador receive, hold and cash out digital dollars on Stellar
+- **Claim:** Since April 2026, the MoneyGram app's digital-dollar balance (USDC on Stellar, with Crossmint and Circle) works in El Salvador, after launching in Colombia. Customers can receive money into a US-dollar balance, hold it, and cash out at MoneyGram locations.
+- **Number:** Live in 2 countries (Colombia, then El Salvador), announced 22 to 23 Apr 2026, alongside a multi-year extension of the MoneyGram and Stellar Development Foundation partnership.
+- **Source:** The Paypers, "MoneyGram, Stellar extend partnership to scale stablecoin utility in LatAm", 23 Apr 2026, https://thepaypers.com/crypto-web3-and-cbdc/news/moneygram-stellar-extend-partnership-to-scale-stablecoin-utility-in-latam (reporting MoneyGram's press release of 22 Apr 2026, Mexico City).
+- **Exact quote:** "the MoneyGram app's stablecoin balance feature now live in El Salvador"
+- **Translation:** n/a (English source)
+- **Use in:** Q&A on Risk #1; pitch line: "Stellar's partners already let people in El Salvador receive and cash out digital dollars. The cash-in counter for shops is the piece we still need."
+- **Caveat:**
+  - The article does **not** say you can add cash to the balance. "Receive funds" most likely means remittances from abroad. This agrees with entry 38, where MoneyGram's coverage data lists El Salvador as cash-out only. So never say "MoneyGram solves cash-in in El Salvador".
+  - The source is a trade publication summarising MoneyGram's release, not the release itself. Open MoneyGram's own release (PR Newswire, 22 Apr 2026) before quoting it on a slide.
+  - Idea, not a fact: a shop owner whose family already receives remittances in the MoneyGram app could pay the truck from that balance, skipping cash-in. Nobody has checked whether the app can send to an outside Stellar address.
+- **Checked:** Claude, 14 Nov 2026 (opened the article; the quote and date match). Pending a teammate's check.
