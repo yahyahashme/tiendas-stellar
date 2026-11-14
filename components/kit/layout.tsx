@@ -15,9 +15,9 @@ const FOOT = "pb-[max(1.5rem,env(safe-area-inset-bottom))]";
  * Slip: one paper column, at most 28 rem wide, with real counter margins on wide screens.
  * For the shop's phone screens, sign-in, sign-up and anything else that is a single slip.
  */
-export function Slip({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function Slip({ children, wide = false, className = "" }: { children: ReactNode; /** As wide as a Split (56 rem): for a page that holds a ledger. */ wide?: boolean; className?: string }) {
   return (
-    <main className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-1 flex-col gap-4 pt-1 ${SIDE} ${FOOT} ${className}`}>{children}</main>
+    <main className={`mx-auto flex w-full ${wide ? "max-w-[calc(56rem+2*var(--gutter))]" : "max-w-[calc(28rem+2*var(--gutter))]"} flex-1 flex-col gap-4 pt-1 ${SIDE} ${FOOT} ${className}`}>{children}</main>
   );
 }
 
@@ -26,14 +26,37 @@ export function Slip({ children, className = "" }: { children: ReactNode; classN
  * Below 40 rem of room it becomes one column, facts first. On a phone held sideways the facts scroll
  * and the actions stay in view. Anything inside can ask which form it is in: `@min-[40rem]/split:`.
  */
-export function Split({ nav, facts, actions, className = "" }: { nav?: ReactNode; facts: ReactNode; actions: ReactNode; className?: string }) {
+export function Split({
+  nav,
+  facts,
+  actions,
+  pin = "actions",
+  className = "",
+}: {
+  nav?: ReactNode;
+  facts: ReactNode;
+  actions: ReactNode;
+  /**
+   * Which side stays in view when the two sit side by side. "actions" (a short list of buttons beside a long slip)
+   * is the usual one. "facts" is for a short slip beside a long list (Mi cuenta): the list scrolls with the page
+   * and the slip stays, on a screen tall enough to hold it.
+   */
+  pin?: "actions" | "facts";
+  className?: string;
+}) {
   return (
     <main className={`@container/split w-full flex-1 ${className}`}>
       <div className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-col pt-1 @min-[40rem]/split:max-w-[calc(56rem+2*var(--gutter))] ${SIDE} ${FOOT}`}>
         {nav}
         <div className="flex flex-col gap-4 @min-[40rem]/split:grid @min-[40rem]/split:grid-cols-[minmax(0,28rem)_minmax(0,24rem)] @min-[40rem]/split:items-start @min-[40rem]/split:justify-between @min-[40rem]/split:gap-x-[clamp(1.25rem,5cqi,4rem)]">
-          <div className="flex min-w-0 flex-col gap-4">{facts}</div>
-          <div className="flex min-w-0 flex-col gap-3 @min-[40rem]/split:sticky @min-[40rem]/split:top-[calc(var(--band-h)+0.75rem)] @min-[40rem]/split:max-h-[calc(100dvh-var(--band-h)-1.5rem)] @min-[40rem]/split:overflow-y-auto @min-[40rem]/split:p-1">
+          <div className={`flex min-w-0 flex-col gap-4 ${pin === "facts" ? "@min-[40rem]/split:tall:sticky @min-[40rem]/split:tall:top-[calc(var(--band-h)+0.75rem)]" : ""}`}>{facts}</div>
+          <div
+            className={`flex min-w-0 flex-col gap-3 ${
+              pin === "facts"
+                ? ""
+                : "@min-[40rem]/split:sticky @min-[40rem]/split:top-[calc(var(--band-h)+0.75rem)] @min-[40rem]/split:max-h-[calc(100dvh-var(--band-h)-1.5rem)] @min-[40rem]/split:overflow-y-auto @min-[40rem]/split:p-1"
+            }`}
+          >
             {actions}
           </div>
         </div>
@@ -148,7 +171,7 @@ export function Shell({
 
       <nav
         aria-label={t("Secciones", "Sections")}
-        className="fixed inset-x-0 bottom-0 z-4 flex justify-between border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-4 flex justify-between overflow-hidden border-t border-counter-rule bg-counter px-[max(0.25rem,env(safe-area-inset-left))] pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {/* Four places must fit a phone at any text size: a label stops growing where the row is full, and is never under 14 px. */}
         {nav

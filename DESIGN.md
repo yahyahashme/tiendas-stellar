@@ -14,7 +14,7 @@ Shop owners in El Salvador already run credit on paper: the cuaderno de fiado, t
 
 - Anything you read (amounts, dates, names, history, status) sits on paper: warm off-white, hairline rules, near-square corners, no shadow. Depth comes from paper lying on the darker counter.
 - Anything you tap is a filled blue control (the main action) or a clear outlined row (everything else). Nothing on paper responds to a tap except a "Ver detalles" text link and the "Ver productos" fold.
-- Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA. Uppercase, tilted 4° to 6°, double border, worn ink. In a dense table it is a small upright mark. Always words plus colour.
+- Status is a rubber stamp, never a pill: PAGADA, CONFIRMADO, EN CRÉDITO, VENCE PRONTO, VENCIDA (and, off the invoice, a few of the same kind: CREADA on a new invoice, APROBADA, HECHO). Uppercase, tilted 4° to 6°, double border, worn ink. In a dense table it is a small upright mark. Always words plus colour.
 - If it looks like paper, it isn't a button.
 
 ## Type
@@ -71,6 +71,14 @@ An invoice that is simply waiting (unpaid, and not yet near its due date) carrie
 
 One tint is allowed outside a stamp: on the dashboard, an invoice that is new or has just changed (a shop paid) is lit for four seconds, then goes back to paper.
 
+Mi cuenta is a short slip beside a long list, so its `Split` takes `pin="facts"`: the list scrolls with the page and the slip stays in view on a screen tall enough to hold it. `Slip wide` (56 rem) is a ledger page outside the Shell, and `LedgerFigures pair` keeps two figures across. On the account slip Debe is the large figure with its due date beside the label; Límite, Disponible, Puntaje Relay and Saldo are its lines; the foot carries EN CRÉDITO, VENCE PRONTO, VENCIDA or PAGADA. No debt means no stamp.
+
+A score is a number, its word as a stamp, and its reasons in a ruled list marked "A favor" or "En contra" in words, with no tick or warning glyphs. A late payment keeps its PAGADA stamp, in amber, with "N días de atraso" beside it. A switch is a blue-ruled row with its state in words ("Sí" / "No") beside the track. A record shown to strangers (`/compartido`) carries the logo, full dates with the year, and a closing line under a double rule.
+
+A form's news (hint, busy, error) has one place that is always there: above its button on a phone, beside it with room. It never moves the button. A page inside the Shell that needs two panes builds them against its own container (`@container/panes`; Nueva factura splits at 44 rem); `Split` is for pages without the Shell. A choice between two forms is a pair of tabs in the navigation's language: the current one is paper, the other is blue. A small stamp does not wrap, so its word stays short (INVITADO).
+
+Any write that removes a row or changes what is under the thumb (create an invoice, approve, remove, link) gets a re-entry guard, the tap shield and `settle(HOLD_MS)`. Destructive actions live in the row's menu and take a second tap.
+
 ## Motion
 
 In a payment flow, motion never delays or blurs what happened.
@@ -97,4 +105,4 @@ Every string goes through `t("español", "English")`, in usted. Screens say "dó
 
 `node scripts/screens.mjs <group>` opens each screen at 30 device sizes, from a 280 px fold to 1920 px, portrait and sideways, fails on sideways scroll, a page wider than the screen (a phone would zoom out), clipped text or a touch target under 44 px, and writes a contact sheet to `docs/screenshots/redesign/`. Add `--lang en`, `--zoom 2` (200% zoom), `--text 1.5` (large system text), `--size 1280x800` (one size) or, last, `--full` (the whole page, not the first screenful). Two frames are fixed: at 360x640 the shop sees all three pay options without scrolling (the slip tightens and folds its lines on a short screen: the `short:` and `tall:` variants), and at 1280x800 the distributor sees the header strip and ten invoice rows.
 
-`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, the driver's "Recibí efectivo", a stop's row at the spot where that button will be (no cash may be recorded), and the distributor's cash hand-in with two drivers holding cash, twice quickly, then every second, then every two seconds. It fails unless each run makes one payment (or one hand-in) and no later tap reaches a button or a link.
+`node scripts/pay-taps.mjs` taps every pay button on the shop's invoice, the driver's "Recibí efectivo", "Pagar deuda" on Mi cuenta, a stop's row at the spot where that button will be (no cash may be recorded), the distributor's cash hand-in with two drivers holding cash, "Crear factura" and the admin's "Aprobar", twice quickly, then every second, then every two seconds. Screens that need a session (the `admin` group, and those last two) are checked by swapping their server-action answers in Playwright. It fails unless each run makes one payment (or one hand-in, or one write) and no later tap reaches a button or a link.

@@ -26,7 +26,7 @@ function errorLines(errors: CsvError[], translate: (text: string) => string): [n
   return [...byLine.entries()].sort(([a], [b]) => a - b).map(([line, messages]) => [line, messages.join(" · ")]);
 }
 
-/** "Importar facturas (CSV)" on the distributor dashboard (#32): pick a file, check it, create the good rows. */
+/** "Importar facturas (CSV)" on the distributor's Nueva factura page, linked from the dashboard (#32): pick a file, check it, create the good rows. */
 export function CsvImport({
   shopName,
   driverName,

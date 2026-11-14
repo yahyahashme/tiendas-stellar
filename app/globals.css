@@ -56,18 +56,6 @@
   --ease-snap: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-/* Old names, kept only until the last screen has moved to the new components (redesign PR 7). */
-@theme {
-  --color-card: var(--color-paper);
-  --color-line: var(--color-paper-rule);
-  --color-brand-dark: var(--color-brand-press);
-  --color-brand-soft: var(--color-brand-tint);
-  --color-ok-soft: var(--color-ok-tint);
-  --color-warn-soft: var(--color-warn-tint);
-  --color-bad-soft: var(--color-bad-tint);
-  --color-credit-soft: var(--color-credit-tint);
-}
-
 @theme inline {
   --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -362,26 +350,5 @@ body {
     .print-in {
       animation: fade-in 180ms ease-out backwards;
     }
-  }
-}
-
-/* ---------- old screens, until they move (redesign PRs 2 to 7) ---------- */
-
-@layer components {
-  .ticket {
-    /* torn bottom edge */
-    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 14px 100%;
-  }
-
-  .stamp-old {
-    rotate: -7deg;
-  }
-
-  .stamp-fresh {
-    animation: stamp-land 180ms var(--ease-snap) backwards;
-  }
-
-  .unfold {
-    animation: fade-in 200ms ease-out both;
   }
 }

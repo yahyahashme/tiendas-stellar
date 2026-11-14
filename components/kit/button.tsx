@@ -92,12 +92,22 @@ export function Held({ children, hint, size = "md" }: { children: ReactNode; hin
   );
 }
 
-/** The main action as a link to another screen. */
-export function ButtonLink({ href, children, hint, size = "md" }: { href: string; children: ReactNode; hint?: ReactNode; size?: FilledSize }) {
-  return (
-    <Link href={href} className={`${FILLED} ${FILL[size]} ${TONE.primary}`}>
+/** The main action as a link to another screen (or, with `external`, to WhatsApp in a new tab). */
+export function ButtonLink({ href, children, hint, size = "md", external = false }: { href: string; children: ReactNode; hint?: ReactNode; size?: FilledSize; external?: boolean }) {
+  const className = `${FILLED} ${FILL[size]} ${TONE.primary}`;
+  const inner = (
+    <>
       <span>{children}</span>
       {hint && <span className="text-label font-normal opacity-90">{hint}</span>}
+    </>
+  );
+  return external ? (
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
+      {inner}
+    </a>
+  ) : (
+    <Link href={href} className={className}>
+      {inner}
     </Link>
   );
 }

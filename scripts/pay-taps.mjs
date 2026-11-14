@@ -181,6 +181,91 @@ const SCENARIOS = [
   },
 ];
 
+// ---------- Mi cuenta: "Pagar deuda" ----------
+// The shop takes $ 40 on credit (invoice 1007), then opens Mi cuenta in the same tab and pays the debt.
+// One repayment and no more: the balance goes from $ 1,000 to $ 960 once, the slip is stamped, and every
+// later tap lands on the inert "Deuda pagada" block or on paper, never on an invoice row under it.
+SCENARIOS.push({
+  name: "Pagar deuda (Mi cuenta)",
+  start: "/tienda/1007",
+  end: "/tienda/cuenta/tienda-1",
+  setup: async (page) => {
+    await button(page, "Pagar en 7 días").tap();
+    await page.waitForTimeout(2700); // a tap on the same spot within 2.5 s is ignored on purpose
+    await button(page, "Confirmo").tap();
+    await page.getByText("Pagada · Crédito").first().waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(3000); // the hold after a payment
+    await move(page, "/tienda/cuenta/tienda-1");
+    await button(page, "Pagar deuda").waitFor({ timeout: 20_000 });
+    await page.waitForTimeout(1500);
+  },
+  target: (page) => button(page, "Pagar deuda"),
+  after: (text) => /Pagada hoy/.test(text) && /Saldo\s*\$960\.00/.test(text) && /PAGADA/i.test(text),
+});
+// ---------- end of Mi cuenta ----------
+
+// ---------- redesign PR 7: the distributor's Nueva factura and the admin's Aprobar ----------
+// Neither moves money, but each writes to the contract and can't be taken back, and each changes what is under the
+// thumb (the form becomes "Crear otra factura"; the next business moves up under the same "Aprobar").
+// Without a database these screens have nothing to show, so the answers of their server actions are swapped for
+// sample answers (as in scripts/screens.mjs), and every write that reaches the server is counted.
+{
+  const signedIn = async (page, path) => {
+    const writes = { count: 0 };
+    let pending = ["La Central", "Del Pacífico", "El Buen Pan"].map((businessName, i) => ({ id: `d-${i}`, businessName, nit: null, address: null, sells: [], shopsApprox: null, driversApprox: null, status: "pendiente", ownerName: null, ownerContact: null, createdAt: "2026-11-12T15:00:00Z", explorerUrl: "https://stellar.expert/explorer/testnet" }));
+    const answer = (args) => {
+      if (path === "/admin") {
+        if (args.length === 0) return { pending, decided: [] };
+        writes.count += 1;
+        pending = pending.filter((d) => d.id !== args[0]);
+        return { ok: true };
+      }
+      if (args.length === 0) return { distributorName: "Distribuidora El Sol", shops: [{ id: "tienda-1", name: "Tienda Rosa", owner: "Rosa Martínez", driverId: "motorista-1" }], drivers: [{ id: "motorista-1", name: "Carlos" }], suggestedId: 1009, today: "2026-11-14" };
+      writes.count += 1;
+      return { ok: true, message: `Factura ${args[0].invoiceId} creada.`, explorerUrl: "https://stellar.expert/explorer/testnet", invoiceId: args[0].invoiceId };
+    };
+    await page.route("**/*", async (route) => {
+      const request = route.request();
+      if (request.method() !== "POST" || !request.headers()["next-action"] || new URL(request.url()).pathname !== path) return route.fallback();
+      const args = JSON.parse(request.postData() || "[]");
+      const found = answer(args);
+      const head = (await (await route.fetch()).text()).split("\n")[0];
+      if (args.length > 0) await new Promise((resolve) => setTimeout(resolve, 1000)); // a write takes a moment, like the mock's
+      await route.fulfill({ status: 200, contentType: "text/x-component", body: `${head}\n1:${JSON.stringify(found)}\n` });
+    });
+    // The run starts on the shop's invoice, like the others, and opens the screen from there.
+    await page.goto(new URL(path, base).href, { waitUntil: "networkidle" });
+    page.__writes = writes;
+  };
+  SCENARIOS.push(
+    {
+      name: "Crear factura (Nueva factura)",
+      end: "/distribuidor/factura",
+      setup: async (page) => {
+        await signedIn(page, "/distribuidor/factura");
+        await page.locator("main form input[inputmode=decimal]").fill("48.50");
+        await page.waitForTimeout(900);
+      },
+      target: (page) => button(page, "Crear factura"),
+      read: async (page) => `${page.__writes.count} written. ${await page.locator("main").innerText()}`,
+      after: (text) => /^1 written\./.test(text) && /Factura creada/.test(text) && /Crear otra factura/.test(text),
+    },
+    {
+      // Three businesses wait. Approving the first moves the second up under the same button.
+      name: "Aprobar (admin, three businesses waiting)",
+      end: "/admin",
+      setup: async (page) => {
+        await signedIn(page, "/admin");
+        await page.locator("main button:visible", { hasText: "Aprobar" }).nth(2).waitFor({ timeout: 20_000 });
+        await page.waitForTimeout(900);
+      },
+      target: (page) => page.locator("main button:visible", { hasText: "Aprobar" }).first(),
+      read: async (page) => `${page.__writes.count} written. ${await page.locator("main").innerText()}`,
+      after: (text) => /^1 written\./.test(text) && (text.match(/Aprobar/g) ?? []).length === 2 && !/La Central/.test(text),
+    },
+  );
+}
+
 const browser = await chromium.launch();
 const failures = [];
 
