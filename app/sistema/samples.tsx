@@ -130,7 +130,7 @@ export function Buttons() {
       <Button onClick={() => {}} hint={<><Money value={150} /> {t("con dólares digitales", "in digital dollars")}</>}>
         {t("Pagar ahora", "Pay now")}
       </Button>
-      <Button onClick={() => {}}>{t("Confirmo", "I confirm")}</Button>
+      <Button onClick={() => {}}>{t("Confirmo", "Confirm")}</Button>
       <Button onClick={() => {}} busy>
         {t("Pagar ahora", "Pay now")}
       </Button>

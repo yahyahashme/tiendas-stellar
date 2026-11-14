@@ -106,7 +106,7 @@ export function Ledger<Row>({
       {(inCard ? cardFolded : folded).length > 0 && (
         <dl className={`flex flex-wrap gap-x-8 gap-y-1 ${inCard ? "" : "@min-[60rem]:hidden"}`}>
           {(inCard ? cardFolded : folded).map((column) => (
-            <div key={column.id} className={`flex items-baseline gap-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
+            <div key={column.id} className={`flex flex-wrap items-baseline gap-x-2 ${inCard || !column.secondary ? "" : RETURNS[returnsAt(column)!].fold}`}>
               <dt className="text-label font-semibold uppercase tracking-[0.08em] text-muted">{column.header}</dt>
               <dd className={column.figure || column.mono ? "font-mono font-medium" : ""}>{column.cell(row)}</dd>
             </div>
@@ -238,7 +238,7 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
   return (
     <div className="flex flex-col gap-2">
       <p className="flex items-baseline justify-between gap-3">
-        <span className="min-w-0 text-[1.0625rem] font-bold">{title}</span>
+        <span className="min-w-0 text-[1.0625rem] font-bold wrap-anywhere">{title}</span>
         <span className="shrink-0 font-mono text-[1.0625rem] font-semibold">{amount}</span>
       </p>
       {(stamp || note) && (
@@ -254,10 +254,10 @@ export function LedgerCard({ title, amount, stamp, note, actions }: { title: Rea
 
 const ROW_TEXT = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-control px-2.5 font-sans text-base font-bold text-brand underline decoration-2 underline-offset-4 -outline-offset-3";
 
-/** A small blue action in a row's menu ("Repetir"). */
-export function RowAction({ children, onClick, label }: { children: ReactNode; onClick: () => void; label?: string }) {
+/** A small blue action in a row's menu ("Repetir"). `danger` turns it red, for the second tap of something that can't be undone. */
+export function RowAction({ children, onClick, label, danger = false }: { children: ReactNode; onClick: () => void; label?: string; danger?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} className={ROW_TEXT}>
+    <button type="button" onClick={onClick} aria-label={label} className={`${ROW_TEXT} ${danger ? "text-bad!" : ""}`}>
       {children}
     </button>
   );
@@ -301,13 +301,13 @@ export function RowButton({ children, onClick, label, disabled = false, busy = f
  * Four across with room; two by two on a phone. Every figure is set at one size: the size at which the
  * longest of them fits the narrowest column, so one amount passing $1,000 never looks smaller than its neighbours.
  */
-export function LedgerFigures({ children }: { children: ReactNode }) {
+export function LedgerFigures({ children, pair = false }: { children: ReactNode; /** Two figures only: they stay two across at every width. */ pair?: boolean }) {
   const longest = Math.max(1, ...Children.toArray(children).map((child) => (isValidElement<{ value?: number }>(child) && typeof child.props.value === "number" ? moneyWidth(child.props.value) : 0)));
   return (
     <div className="@container/figures">
       <dl
         style={{ "--fit-chars": longest } as CSSProperties}
-        className="grid grid-cols-2 rounded-t-paper bg-paper [--fit-cols:2] @min-[44rem]:grid-cols-4 @min-[44rem]:[--fit-cols:4] @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr] @min-[58rem]:[--fit-cols:4.3]"
+        className={`grid grid-cols-2 rounded-t-paper bg-paper [--fit-cols:2] ${pair ? "" : "@min-[44rem]:grid-cols-4 @min-[44rem]:[--fit-cols:4] @min-[58rem]:grid-cols-[1fr_1fr_1fr_1.3fr] @min-[58rem]:[--fit-cols:4.3]"}`}
       >
         {children}
       </dl>
