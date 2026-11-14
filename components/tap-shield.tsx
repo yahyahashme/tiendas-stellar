@@ -1,7 +1,7 @@
 "use client";
 
 import { type MouseEvent, type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { isStrayTap, type Tap } from "@/lib/taps";
+import { isStrayTap, isTooSoon, type Tap } from "@/lib/taps";
 
 /** How long a screen stays held after a payment lands. */
 export const QUIET_MS = 900;
@@ -54,6 +54,20 @@ export function useQuietOnArrival(shown: boolean): boolean {
     return () => clearTimeout(timer);
   }, [state]);
   return state.quiet;
+}
+
+/**
+ * A button that asks "Toque otra vez" before something that can't be undone: the answer counts only after
+ * ARRIVE_MS, so the two halves of a double tap can't confirm it. Call `ask()` when the question is put and
+ * check `tooSoon()` before the answer is taken.
+ */
+export function useConfirmGap() {
+  const askedAt = useRef(0);
+  const ask = () => {
+    askedAt.current = Date.now();
+  };
+  const tooSoon = () => isTooSoon(askedAt.current, Date.now(), ARRIVE_MS);
+  return { ask, tooSoon };
 }
 
 type Seen = Tap & { target: EventTarget | null };

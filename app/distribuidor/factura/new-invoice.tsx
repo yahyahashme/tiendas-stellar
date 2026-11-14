@@ -279,8 +279,10 @@ export default function NewInvoice() {
   const [slipOpen, setSlipOpen] = useState(false);
   const { noteTap, settle } = useTapShield();
   const { watch, typed, stray } = useSameSpotGuard();
-  // The distributor's recent invoices, for "Repetir". Read once; the form never waits for them.
-  const recent = usePolling("factura-recent", () => getDistributorView(1), 0);
+  // The distributor's recent invoices, for "Repetir". Read once, and only after the form is on screen: in live mode
+  // this is a server action, Next runs those one at a time, and a read sent first would keep the form waiting.
+  const formShown = form !== undefined && form !== null;
+  const recent = usePolling(formShown ? "factura-recent" : "factura-recent-later", () => (formShown ? getDistributorView(1) : Promise.resolve(undefined)), 0);
   // Picking a shop folds the list of shops away and the button comes up the page: it stays inert for a beat.
   const shopJustPicked = useQuietOnArrival(shop !== null);
   const anotherArriving = useQuietOnArrival(done?.ok === true && !held);

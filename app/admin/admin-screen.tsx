@@ -7,7 +7,7 @@ import { Slip, TopNav } from "@/components/kit/layout";
 import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/components/kit/ledger";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useConfirmGap, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { sellLabel } from "@/lib/sells";
@@ -42,6 +42,7 @@ export default function AdminScreen() {
   const [error, setError] = useState<string | null>(null);
   const { noteTap, settle } = useTapShield();
   const { ref: pendingBlock, justMoved } = useMovedGuard<HTMLElement>();
+  const { ask, tooSoon } = useConfirmGap();
 
   const [failed, setFailed] = useState(false);
   const [retrying, setRetrying] = useState(false);
@@ -72,10 +73,13 @@ export default function AdminScreen() {
     if (running.current || justMoved()) return;
     // Rejecting can't be taken back from here, so it asks for a second tap.
     if (status === "rechazado" && confirming !== id) {
+      ask();
       setConfirming(id);
       setTimeout(() => setConfirming((c) => (c === id ? null : c)), 4000);
       return;
     }
+    // The second half of a double tap is not the answer.
+    if (status === "rechazado" && tooSoon()) return;
     running.current = true;
     setConfirming(null);
     setBusy({ id, status });

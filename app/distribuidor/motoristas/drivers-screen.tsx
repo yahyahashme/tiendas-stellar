@@ -9,7 +9,7 @@ import { Ledger, LedgerCard, type LedgerColumn, RowAction, RowButton } from "@/c
 import { Money } from "@/components/kit/money";
 import { Stamp } from "@/components/kit/stamp";
 import { Empty, Failure, Loading } from "@/components/kit/states";
-import { HOLD_MS, TapShield, useMovedGuard, useTapShield } from "@/components/tap-shield";
+import { HOLD_MS, TapShield, useConfirmGap, useMovedGuard, useTapShield } from "@/components/tap-shield";
 import { formatPhone } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { chatLink } from "@/lib/whatsapp";
@@ -87,6 +87,7 @@ export default function DriversScreen() {
   const { noteTap, settle } = useTapShield();
   // An invite opening or closing above the list moves every row: a tap on its way to one row must not land on the next.
   const { ref: listBlock, justMoved } = useMovedGuard<HTMLElement>();
+  const { ask, tooSoon } = useConfirmGap();
 
   const [failed, setFailed] = useState(false);
   const [retrying, setRetrying] = useState(false);
@@ -139,10 +140,13 @@ export default function DriversScreen() {
   async function remove(driver: MyDriver) {
     if (running.current || justMoved()) return;
     if (confirming !== driver.id) {
+      ask();
       setConfirming(driver.id);
       setTimeout(() => setConfirming((c) => (c === driver.id ? null : c)), 4000);
       return;
     }
+    // The second half of a double tap is not the answer.
+    if (tooSoon()) return;
     running.current = true;
     setConfirming(null);
     setRemoving(driver.id);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isStrayTap, SAME_SPOT_MS, SAME_SPOT_PX } from "./taps";
+import { isStrayTap, isTooSoon, SAME_SPOT_MS, SAME_SPOT_PX } from "./taps";
 
 const at = (x: number, y: number, time: number) => ({ x, y, at: time });
 
@@ -23,5 +23,17 @@ describe("isStrayTap", () => {
 
   it("lets the first tap on a screen through", () => {
     expect(isStrayTap(null, at(180, 500, 0), false)).toBe(false);
+  });
+});
+
+describe("isTooSoon", () => {
+  it("ignores an answer that comes within the gap of the question (the second half of a double tap)", () => {
+    expect(isTooSoon(1000, 1150, 600)).toBe(true);
+    expect(isTooSoon(1000, 1599, 600)).toBe(true);
+  });
+
+  it("takes an answer once the gap has passed", () => {
+    expect(isTooSoon(1000, 1600, 600)).toBe(false);
+    expect(isTooSoon(1000, 3000, 600)).toBe(false);
   });
 });

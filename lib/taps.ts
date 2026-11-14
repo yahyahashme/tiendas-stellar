@@ -17,3 +17,11 @@ export function isStrayTap(before: Tap | null, last: Tap | null, onSameButton: b
   if (last.at - before.at > SAME_SPOT_MS) return false;
   return Math.hypot(last.x - before.x, last.y - before.y) <= SAME_SPOT_PX;
 }
+
+/**
+ * A tap that answers "Toque otra vez" (before something that can't be undone) must not be the second half of a
+ * double tap. True while less than `gap` ms have passed since the tap that asked. (The hook is useConfirmGap.)
+ */
+export function isTooSoon(askedAt: number, now: number, gap: number): boolean {
+  return now - askedAt < gap;
+}
