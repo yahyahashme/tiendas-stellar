@@ -1,13 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { checkOwnerAction, saveTrustedContactsAction, signUpShopAction } from "@/app/shop-signup-actions";
 import { getShopSuppliers } from "@/app/shop-actions";
-import { FormError, PasswordField, TextField } from "@/components/form";
-import { Button, ButtonLink, Card } from "@/components/ui";
+import { ActionLink, ActionList, ActionRow, ButtonLink, TextButton } from "@/components/kit/button";
+import { Field, PasswordField } from "@/components/kit/field";
+import { Choice, Choices, Form, FormHead, FormSubmit } from "@/components/kit/form";
+import { Money } from "@/components/kit/money";
+import { Paper, Receipt, ReceiptFoot, ReceiptHeader, ReceiptRule, ReceiptTotal } from "@/components/kit/paper";
+import { Stamp } from "@/components/kit/stamp";
+import { Loading } from "@/components/kit/states";
 import { getInvoices } from "@/lib/api";
-import { formatDay, formatMoney } from "@/lib/format";
+import { type Blank, blankOf } from "@/lib/form-errors";
+import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { leftToPay } from "@/lib/labels";
 import type { Invoice } from "@/lib/types";
@@ -21,21 +26,10 @@ const KINDS: [string, string][] = [
   ["Otro", "Other"],
 ];
 
-type Contact = { name: string; phone: string };
+/** The step each blank is on. A message about a blank that isn't on screen goes above the button. */
+const STEP_OF: Partial<Record<Blank, number>> = { name: 1, contact: 1, password: 1, shopName: 2, address: 2, kind: 2 };
 
-function Steps({ step }: { step: number }) {
-  const { t } = useT();
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="text-base font-semibold text-muted">{t(`Paso ${step} de 4`, `Step ${step} of 4`)}</p>
-      <div className="grid grid-cols-4 gap-1.5" aria-hidden>
-        {[1, 2, 3, 4].map((n) => (
-          <span key={n} className={`h-1.5 rounded-full ${n <= step ? "bg-brand" : "bg-line"}`} />
-        ))}
-      </div>
-    </div>
-  );
-}
+type Contact = { name: string; phone: string };
 
 /**
  * A shop owner's sign-up (#134), one screen per step: 1 the owner, 2 the shop,
@@ -46,11 +40,14 @@ export function ShopSignUp({
   code,
   distributorName,
   onStep,
+  intro,
 }: {
   code?: string;
   distributorName?: string;
   /** The page hides its own intro once the owner is past it. */
   onStep?: (step: number) => void;
+  /** One sentence under the first step's name. */
+  intro?: ReactNode;
 }) {
   const { t, msg } = useT();
   const [step, setStep] = useState(1);
@@ -122,20 +119,31 @@ export function ShopSignUp({
   const setContact = (index: number, field: keyof Contact, value: string) =>
     setContacts((list) => list.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
 
+  // A message about one blank goes under that blank; anything else goes above the button.
+  const blank = blankOf(error);
+  const onScreen = blank !== undefined && STEP_OF[blank] === step;
+  const under = (which: Blank) => (error && onScreen && blank === which ? msg(error) : undefined);
+  const aboveButton = error && !onScreen ? msg(error) : undefined;
+  const stepOf = t(`Crear cuenta · Paso ${step} de 4`, `Create account · Step ${step} of 4`);
+  const creating = busy ? t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.") : undefined;
+
   if (step === 1) {
     return (
-      <form onSubmit={owner} className="flex flex-col gap-4">
-        <Steps step={1} />
-        <h2 className="text-2xl font-bold">{t("Sus datos", "About you")}</h2>
-        <TextField label={t("Su nombre", "Your name")} autoComplete="name" required value={name} onChange={(e) => setName(e.target.value)} />
-        <TextField
+      <Form onSubmit={owner} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Sus datos", "About you")}>
+          {intro}
+        </FormHead>
+        <Field label={t("Su nombre", "Your name")} autoComplete="name" autoCapitalize="words" required value={name} onChange={(e) => setName(e.target.value)} error={under("name")} />
+        <Field
           label={t("Teléfono", "Phone")}
           hint={t("Teléfono de El Salvador (8 dígitos). Con él entra a su cuenta.", "A Salvadoran phone number (8 digits). You sign in with it.")}
+          type="tel"
           inputMode="tel"
           autoComplete="tel"
           required
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          error={under("contact")}
         />
         <PasswordField
           label={t("Contraseña", "Password")}
@@ -145,159 +153,139 @@ export function ShopSignUp({
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={under("password")}
         />
-        {error && <FormError>{msg(error)}</FormError>}
-        <Button type="submit" busy={busy}>
+        <FormSubmit error={aboveButton} busy={busy}>
           {t("Siguiente", "Next")}
-        </Button>
-      </form>
+        </FormSubmit>
+      </Form>
     );
   }
 
   if (step === 2) {
     return (
-      <form onSubmit={shop} className="flex flex-col gap-4">
-        <Steps step={2} />
-        <h2 className="text-2xl font-bold">{t("Su tienda", "Your shop")}</h2>
-        <TextField
+      <Form onSubmit={shop} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Su tienda", "Your shop")} />
+        <Field
           label={t("Nombre de su tienda", "Your shop's name")}
           hint={code ? t("El nombre que usted quiera. Su distribuidora puede seguir usando el suyo.", "Any name you like. Your distributor can keep using theirs.") : undefined}
           autoComplete="organization"
+          autoCapitalize="words"
           required
           value={shopName}
           onChange={(e) => setShopName(e.target.value)}
+          error={under("shopName")}
         />
-        <TextField label={t("Dirección (opcional)", "Address (optional)")} autoComplete="street-address" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-base font-semibold">{t("¿Qué tipo de tienda es?", "What kind of shop is it?")}</legend>
-          <div className="flex flex-wrap gap-2">
-            {KINDS.map(([es, en]) => (
-              <button
-                key={es}
-                type="button"
-                aria-pressed={kind === es}
-                onClick={() => setKind(es)}
-                className={`min-h-12 rounded-full border-2 px-4 text-base font-medium ${
-                  kind === es ? "border-brand bg-brand text-white" : "border-line bg-card active:bg-brand-soft"
-                }`}
-              >
-                {t(es, en)}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <p className="text-sm text-muted">
+        <Field label={t("Dirección (opcional)", "Address (optional)")} autoComplete="street-address" value={address} onChange={(e) => setAddress(e.target.value)} error={under("address")} />
+        <Choices label={t("¿Qué tipo de tienda es?", "What kind of shop is it?")} error={under("kind")}>
+          {KINDS.map(([es, en]) => (
+            <Choice key={es} chosen={kind === es} onClick={() => setKind(es)}>
+              {t(es, en)}
+            </Choice>
+          ))}
+        </Choices>
+        <p className="text-muted text-pretty">
           {t(
             "En el producto real, un socio con licencia revisa su DUI antes de mover dinero.",
             "In the real product, a licensed partner checks your ID before any money moves.",
           )}
         </p>
-        {error && <FormError>{msg(error)}</FormError>}
-        <Button type="submit" busy={busy}>
+        <FormSubmit error={aboveButton} note={creating} busy={busy}>
           {t("Crear mi cuenta", "Create my account")}
-        </Button>
-        {busy && (
-          <p className="text-center text-muted">
-            {t("Estamos creando su cuenta de dólares digitales. Toma unos segundos.", "We're creating your digital dollar account. It takes a few seconds.")}
-          </p>
-        )}
-        <button type="button" onClick={() => setStep(1)} disabled={busy} className="min-h-12 text-base font-semibold text-brand underline">
+        </FormSubmit>
+        <TextButton
+          onClick={() => {
+            setError(null); // a message about this step doesn't follow to the one before
+            setStep(1);
+          }}
+          disabled={busy}
+        >
           {t("Atrás", "Back")}
-        </button>
-      </form>
+        </TextButton>
+      </Form>
     );
   }
 
   if (step === 3) {
     return (
-      <form onSubmit={security} className="flex flex-col gap-4">
-        <Steps step={3} />
-        <h2 className="text-2xl font-bold">{t("Seguridad", "Security")}</h2>
-        <Card className="flex flex-col gap-2">
-          <span className="self-start rounded-full bg-paper px-3 py-1 text-sm font-semibold text-muted">
-            {t("Así funcionará · todavía no está activo", "How it will work · not active yet")}
-          </span>
-          <p className="text-lg font-semibold">{t("Usar huella", "Use your fingerprint")}</p>
-          <p className="text-muted">
+      <Form onSubmit={security} error={error}>
+        <FormHead step={stepOf} at={step} title={t("Seguridad", "Security")} />
+        <Paper className="flex flex-col gap-1.5 px-4 py-4">
+          <p className="text-label font-semibold uppercase tracking-[0.1em] text-muted">{t("Así funcionará · todavía no está activo", "How it will work · not active yet")}</p>
+          <p className="text-lead font-bold">{t("Usar huella", "Use your fingerprint")}</p>
+          <p className="text-muted text-pretty">
             {t(
               "Pronto entrará con la huella o la cara de su teléfono, sin contraseña. Por ahora, entre con su teléfono y contraseña.",
               "Soon you'll sign in with your phone's fingerprint or face, with no password. For now, sign in with your phone and password.",
             )}
           </p>
-        </Card>
-        <section className="flex flex-col gap-3">
-          <h3 className="text-xl font-semibold">{t("Contactos de confianza (opcional)", "Trusted contacts (optional)")}</h3>
-          <p className="text-muted">
+        </Paper>
+        <section className="flex flex-col gap-3 pt-1">
+          <h2 className="text-lead font-bold">{t("Contactos de confianza (opcional)", "Trusted contacts (optional)")}</h2>
+          <p className="text-muted text-pretty">
             {t(
               "Hasta 3 personas que le ayudan a recuperar su cuenta si pierde el teléfono. Puede agregarlas ahora o después.",
               "Up to 3 people who help you get your account back if you lose your phone. You can add them now or later.",
             )}
           </p>
           {contacts.map((c, i) => (
-            <div key={i} className="grid gap-3 rounded-2xl border border-line bg-card p-3 sm:grid-cols-2">
-              <TextField label={t(`Nombre ${i + 1}`, `Name ${i + 1}`)} autoComplete="off" value={c.name} onChange={(e) => setContact(i, "name", e.target.value)} />
-              <TextField label={t("Teléfono", "Phone")} inputMode="tel" autoComplete="off" value={c.phone} onChange={(e) => setContact(i, "phone", e.target.value)} />
+            <div key={i} className="grid items-end gap-3 min-[27rem]:grid-cols-2">
+              <Field label={t(`Nombre ${i + 1}`, `Name ${i + 1}`)} autoComplete="off" autoCapitalize="words" value={c.name} onChange={(e) => setContact(i, "name", e.target.value)} />
+              <Field label={t(`Teléfono ${i + 1}`, `Phone ${i + 1}`)} type="tel" inputMode="tel" autoComplete="off" value={c.phone} onChange={(e) => setContact(i, "phone", e.target.value)} />
             </div>
           ))}
-          {contacts.length < 3 && (
-            <button
-              type="button"
-              onClick={() => setContacts((list) => [...list, { name: "", phone: "" }])}
-              className="min-h-12 self-start rounded-xl border-2 border-brand px-4 text-base font-semibold text-brand active:bg-brand-soft"
-            >
-              {t("Agregar otro contacto", "Add another contact")}
-            </button>
-          )}
+          {contacts.length < 3 && <ActionRow title={t("Agregar otro contacto", "Add another contact")} onClick={() => setContacts((list) => [...list, { name: "", phone: "" }])} disabled={busy} />}
         </section>
-        {error && <FormError>{msg(error)}</FormError>}
-        <Button type="submit" busy={busy}>
+        <FormSubmit error={aboveButton} busy={busy}>
           {t("Guardar y seguir", "Save and continue")}
-        </Button>
-        <button type="button" onClick={() => setStep(4)} disabled={busy} className="min-h-12 text-base font-semibold text-brand underline">
+        </FormSubmit>
+        <TextButton onClick={() => setStep(4)} disabled={busy}>
           {t("Más tarde", "Later")}
-        </button>
-      </form>
+        </TextButton>
+      </Form>
     );
   }
 
-  // Step 4: done.
+  // Step 4: done. The account is a slip with its stamp; the way on is under it, where nothing that loads later can move it.
   const from = distributorName || connected?.names[0];
+  const hasCredit = done !== null && done.creditLimit > 0;
   return (
     <div className="flex flex-col gap-4">
-      <Steps step={4} />
-      <h2 className="text-2xl font-bold">{t("Su cuenta está lista", "Your account is ready")}</h2>
-      {done && done.creditLimit > 0 && (
-        <Card className="flex flex-col gap-1">
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted">{t("Límite de crédito", "Credit limit")}</p>
-          <p className="text-4xl font-bold tabular-nums">{formatMoney(done.creditLimit)}</p>
-          <p className="text-muted">{t("Ya puede usar «Pagar en 7 días», sin intereses.", "You can use “Pay in 7 days” now, with no interest.")}</p>
-        </Card>
-      )}
+      <FormHead step={stepOf} at={step} title={t("Su cuenta está lista", "Your account is ready")} />
+      <Receipt>
+        <ReceiptHeader from={shopName} number={t("Cuenta de tienda", "Shop account")} />
+        {hasCredit ? (
+          <ReceiptTotal label={t("Límite de crédito", "Credit limit")} value={done.creditLimit}>
+            <p className="pt-1.5 text-muted text-pretty">{t("Ya puede usar «Pagar en 7 días», sin intereses.", "You can use “Pay in 7 days” now, with no interest.")}</p>
+          </ReceiptTotal>
+        ) : (
+          <ReceiptRule />
+        )}
+        <ReceiptFoot stamp={<Stamp tone="ok">{t("Lista", "Ready")}</Stamp>} />
+      </Receipt>
+      {done && <ButtonLink href={`/tienda/cuenta/${done.shopId}`}>{t("Ir a Mi cuenta", "Go to My account")}</ButtonLink>}
       {code && from && (
-        <Card className="flex flex-col gap-3">
-          <p className="text-lg font-semibold">{t(`${from} ya está conectada`, `${from} is already connected`)}</p>
+        <section className="flex flex-col gap-2 pt-1">
+          <h2 className="text-lead font-bold text-balance">{t(`${from} ya está conectada`, `${from} is already connected`)}</h2>
           {connected === null ? (
-            <p className="text-muted">{t("Cargando...", "Loading...")}</p>
+            <Loading lines={1} torn={false} />
           ) : connected.invoices.length === 0 ? (
             <p className="text-muted">{t("No tiene facturas por pagar.", "You have no invoices to pay.")}</p>
           ) : (
-            <ul className="flex flex-col divide-y divide-line rounded-xl border border-line">
+            <ActionList>
               {connected.invoices.map((invoice) => (
-                <li key={invoice.id}>
-                  <Link href={`/tienda/${invoice.id}`} className="flex min-h-12 items-center justify-between gap-3 px-4 py-2 active:bg-brand-soft">
-                    <span className="flex flex-col">
-                      <span className="text-lg">{t(`Factura ${invoice.id}`, `Invoice ${invoice.id}`)}</span>
-                      <span className="text-sm text-muted">{t(`Vence el ${formatDay(invoice.dueDate)}`, `Due ${formatDay(invoice.dueDate, "en")}`)}</span>
-                    </span>
-                    <span className="text-lg font-semibold tabular-nums">{formatMoney(leftToPay(invoice))}</span>
-                  </Link>
-                </li>
+                <ActionLink
+                  key={invoice.id}
+                  href={`/tienda/${invoice.id}`}
+                  title={t(`Factura ${invoice.id}`, `Invoice ${invoice.id}`)}
+                  hint={t(`Vence el ${formatDay(invoice.dueDate)}`, `Due ${formatDay(invoice.dueDate, "en")}`)}
+                  figure={<Money value={leftToPay(invoice)} />}
+                />
               ))}
-            </ul>
+            </ActionList>
           )}
-        </Card>
+        </section>
       )}
-      {done && <ButtonLink href={`/tienda/cuenta/${done.shopId}`}>{t("Ir a Mi cuenta", "Go to My account")}</ButtonLink>}
     </div>
   );
 }

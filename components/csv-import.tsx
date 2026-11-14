@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Card, ReceiptView } from "@/components/ui";
+import { ActionRow, Button, TextButton } from "@/components/kit/button";
+import { Ledger, LedgerCard, type LedgerColumn } from "@/components/kit/ledger";
+import { Money } from "@/components/kit/money";
+import { Answer } from "@/components/kit/states";
 import { createInvoices } from "@/lib/api";
 import { type CsvError, type Known, parseInvoiceCsv } from "@/lib/csv";
-import { formatDay, formatMoney } from "@/lib/format";
+import { formatDay } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import type { InvoiceRow, Receipt } from "@/lib/types";
 
@@ -23,7 +26,7 @@ function errorLines(errors: CsvError[], translate: (text: string) => string): [n
   return [...byLine.entries()].sort(([a], [b]) => a - b).map(([line, messages]) => [line, messages.join(" · ")]);
 }
 
-/** "Importar facturas (CSV)" on the distributor dashboard (#32): pick a file, check it, create the good rows. */
+/** "Importar facturas (CSV)" on the distributor's Nueva factura page, linked from the dashboard (#32): pick a file, check it, create the good rows. */
 export function CsvImport({
   shopName,
   driverName,
@@ -66,36 +69,36 @@ export function CsvImport({
   const bad = parsed ? errorLines(parsed.errors, msg) : [];
   const tooMany = rows.length > MAX_ROWS;
 
-  return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => input.current?.click()}
-          disabled={busy}
-          className="min-h-12 rounded-xl border border-brand px-5 text-lg font-semibold text-brand active:bg-brand-soft disabled:border-line disabled:text-muted"
-        >
-          {t("Importar facturas (CSV)", "Import invoices (CSV)")}
-        </button>
-        <input
-          ref={input}
-          type="file"
-          accept=".csv,text/csv"
-          className="hidden"
-          onChange={(event) => void pick(event.target.files?.[0])}
-        />
-        <span className="text-sm text-muted">
-          {t("Columnas", "Columns")}: invoice_id, shop_id, driver_id, amount, due_date
-          {known && ` · ${t("En tienda y motorista puede poner el nombre.", "For shop and driver you can write the name.")}`}
-          {` · ${t(`Hasta ${MAX_ROWS} facturas por archivo.`, `Up to ${MAX_ROWS} invoices per file.`)}`}
-        </span>
-      </div>
+  const due = (row: InvoiceRow) => formatDay(`${row.dueDate}T06:00:00Z`, lang);
+  const columns: LedgerColumn<InvoiceRow>[] = [
+    { id: "id", header: t("N.º", "No."), mono: true, foldOnCard: true, cell: (row) => row.invoiceId },
+    { id: "shop", header: t("Tienda", "Shop"), grow: true, cell: (row) => shopName(row.shopId), title: (row) => shopName(row.shopId) },
+    { id: "driver", header: t("Motorista", "Driver"), secondary: true, cell: (row) => driverName(row.driverId) },
+    { id: "amount", header: t("Monto", "Amount"), figure: true, cell: (row) => <Money value={Number(row.amount)} /> },
+    { id: "due", header: t("Vence", "Due"), mono: true, end: true, cell: due },
+  ];
 
-      {result && <ReceiptView receipt={result} />}
+  return (
+    <div className="flex flex-col gap-3">
+      <ActionRow
+        title={t("Importar facturas (CSV)", "Import invoices (CSV)")}
+        hint={
+          <>
+            {t("Columnas", "Columns")}: invoice_id, shop_id, driver_id, amount, due_date.
+            {known && ` ${t("En tienda y motorista puede poner el nombre.", "For shop and driver you can write the name.")}`}
+            {` ${t(`Hasta ${MAX_ROWS} facturas por archivo.`, `Up to ${MAX_ROWS} invoices per file.`)}`}
+          </>
+        }
+        onClick={() => input.current?.click()}
+        disabled={busy}
+      />
+      <input ref={input} type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => void pick(event.target.files?.[0])} />
+
+      {result && <Answer receipt={result} />}
 
       {parsed && (
-        <Card className="flex flex-col gap-3">
-          <p className="text-lg">
+        <div className="flex flex-col gap-3">
+          <p className="text-lead">
             <strong>{parsed.fileName}</strong>:{" "}
             {t(
               `${rows.length} ${rows.length === 1 ? "factura lista" : "facturas listas"}`,
@@ -108,45 +111,27 @@ export function CsvImport({
               )}
             .
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left">
-              <thead className="border-b border-line text-sm text-muted">
-                <tr>
-                  {[
-                    [t("Factura", "Invoice"), false],
-                    [t("Tienda", "Shop"), false],
-                    [t("Motorista", "Driver"), false],
-                    [t("Monto", "Amount"), true],
-                    [t("Vence", "Due"), false],
-                  ].map(([h, right]) => (
-                    <th key={String(h)} scope="col" className={`px-3 py-2 font-semibold ${right ? "text-right" : ""}`}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {rows.map((row) => (
-                  <tr key={row.invoiceId}>
-                    <td className="px-3 py-2 tabular-nums">{row.invoiceId}</td>
-                    <td className="px-3 py-2">{shopName(row.shopId)}</td>
-                    <td className="px-3 py-2">{driverName(row.driverId)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatMoney(Number(row.amount))}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDay(`${row.dueDate}T06:00:00Z`, lang)}</td>
-                  </tr>
-                ))}
-                {bad.map(([line, reason]) => (
-                  <tr key={`bad-${line}`} className="bg-bad-soft text-bad">
-                    <td className="px-3 py-2 font-medium" colSpan={5}>
-                      {t("Línea", "Line")} {line}: {reason}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {rows.length > 0 && (
+            <Ledger
+              label={t("Facturas del archivo", "Invoices in the file")}
+              columns={columns}
+              rows={rows}
+              rowKey={(row) => row.invoiceId}
+              rowName={(row) => t(`la factura ${row.invoiceId}`, `invoice ${row.invoiceId}`)}
+              card={(row) => <LedgerCard title={shopName(row.shopId)} amount={<Money value={Number(row.amount)} />} note={`${t("Vence", "Due")} ${due(row)}`} />}
+            />
+          )}
+          {bad.length > 0 && (
+            <ul className="flex flex-col gap-1 rounded-paper bg-paper px-3 py-3 font-semibold text-bad">
+              {bad.map(([line, reason]) => (
+                <li key={line}>
+                  {t("Línea", "Line")} {line}: {reason}
+                </li>
+              ))}
+            </ul>
+          )}
           {tooMany && (
-            <p className="text-bad">
+            <p className="font-semibold text-bad">
               {t(`Máximo ${MAX_ROWS} facturas por archivo.`, `At most ${MAX_ROWS} invoices per file.`)}{" "}
               {t(
                 "Cada factura se registra por separado y toma unos segundos. Divida el archivo en partes.",
@@ -154,36 +139,17 @@ export function CsvImport({
               )}
             </p>
           )}
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => void create()}
-              disabled={busy || rows.length === 0 || tooMany}
-              className="min-h-12 rounded-xl bg-brand px-5 text-lg font-semibold text-white active:bg-brand-dark disabled:bg-line disabled:text-muted"
-            >
-              {busy
-                ? t("Creando...", "Creating...")
-                : t(
-                    `Crear ${rows.length} ${rows.length === 1 ? "factura" : "facturas"}`,
-                    `Create ${rows.length} ${rows.length === 1 ? "invoice" : "invoices"}`,
-                  )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setParsed(null)}
-              disabled={busy}
-              className="min-h-12 rounded-xl border border-line px-5 text-lg font-semibold text-ink active:bg-brand-soft"
-            >
-              {t("Cancelar", "Cancel")}
-            </button>
-          </div>
-          {busy && (
-            <p className="text-muted">
-              {t("Se crean una por una, unos segundos cada una.", "They're created one by one, a few seconds each.")}
-            </p>
-          )}
-        </Card>
+          <Button onClick={() => void create()} busy={busy} disabled={rows.length === 0 || tooMany} hint={busy ? t("Se crean una por una, unos segundos cada una.", "They're created one by one, a few seconds each.") : undefined}>
+            {t(
+              `Crear ${rows.length} ${rows.length === 1 ? "factura" : "facturas"}`,
+              `Create ${rows.length} ${rows.length === 1 ? "invoice" : "invoices"}`,
+            )}
+          </Button>
+          <TextButton onClick={() => setParsed(null)} disabled={busy}>
+            {t("Cancelar", "Cancel")}
+          </TextButton>
+        </div>
       )}
-    </section>
+    </div>
   );
 }
