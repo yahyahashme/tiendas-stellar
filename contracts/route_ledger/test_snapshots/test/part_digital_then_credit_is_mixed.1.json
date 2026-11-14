@@ -640,6 +640,22 @@
                   },
                   {
                     "key": {
+                      "symbol": "good_cycles"
+                    },
+                    "val": {
+                      "u32": 0
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "last_good_at"
+                    },
+                    "val": {
+                      "u64": "0"
+                    }
+                  },
+                  {
+                    "key": {
                       "symbol": "last_raise_at"
                     },
                     "val": {
