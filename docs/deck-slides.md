@@ -6,7 +6,7 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 
 **Words to avoid** (facts "Never use" and "Say this, not that", PR #83 "Never say"): the $7 billion market; "about 70,000 shops"; "85,265 neighbourhood shops" (say "more than 50,000 neighbourhood shops"); "a $5 billion market"; the Chivo $30 bonus or fuel discounts; MoneyGram's 5%; "$98.40 per $100"; "$0.35 per credit sale"; a "$2.5 million" revenue figure; "open source" or "open contract" (say "public contract"); "audited" (we reviewed it ourselves); "blockchain", "wallet" or "crypto" for shops (say "digital dollars", "test dollars"). **Fee sponsorship is built** (#113): if you say it, say "our sponsor account pays the network fees" (the diagram says it), not "gasless" or "users never need XLM". Stellar's speed and fees are Stellar's own claims: always "Stellar says". MoneyGram: always "as far as we found".
 
-**Still open on Thu Nov 12:** PR #82 (the code-slide image), who pitches (the repo doesn't record it), "what users told us", and our ask. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
+**Still open on Fri Nov 13:** who pitches (the repo doesn't record it), "what users told us", and our ask. The code-slide image needs PR #163 (new contract ID after #139), and the phone screenshots (PR #119) need a check against the live app after #125 and #126. The name is decided: **Relay**, with *Paga tu ruta* under it (PR #100). The live app is https://relay-sv.vercel.app (the old tiendas-stellar.vercel.app redirects there, so show the new one). Everything else below is on `main`.
 
 ## 1. Name and one-line pitch (10 s)
 
@@ -41,8 +41,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 3. Cash, confirmed by two taps.
 
 **Small print:** Live at https://relay-sv.vercel.app, on Stellar testnet with test dollars. Cash-in is simulated.
-**Visual:** three phone screenshots of the live app, left to right as the three lines (steps in `docs/deck-outline.md`, "Capturing the three phone screenshots"). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
-**Waiting on:** Jack's capture. The redeploy is done (#90) and the name is set (#100), so the shots can be taken now from https://relay-sv.vercel.app. Check the page header reads "Relay" with "Paga tu ruta" under it before each capture.
+**Visual:** the three phone screenshots on `main`, left to right as the three lines: `docs/trifold/img/shop-pay.png`, `shop-credit.png` and `driver-cash.png`, captured from the live app (PR #119). `docs/screenshots/mock-screens-nov10.png` is a mock: don't use it.
+**Waiting on:** a comparison with the live app. #125 and #126 merged after the captures (Fri Nov 13, 7:26 and 7:27 PM ET) and changed the shop's pay screen (#125 also the driver's route screen). If the images differ, recapture (steps in `docs/deck-outline.md`, "Capturing the three phone screenshots") and check the page header reads "Relay" with "Paga tu ruta" under it.
 
 ## 4. How it works on Stellar (20 s)
 
@@ -64,8 +64,8 @@ Written Wed Nov 11 from `docs/deck-outline.md`, `docs/pitch.md` (PR #83) and `do
 2. Late payment, over the limit, empty pool: all refused.
 
 **Small print:** Abridged from `pay_with_credit` in `contracts/route_ledger/src/lib.rs`. The contract ID and its stellar.expert link are on the image.
-**Visual:** `docs/img/code-slide.png`. **Not ready on `main`:** it shows the old, stale contract ID (CAPQ6ZDD...), and its limit check (`terms.owed + amount > terms.limit`) is no longer the code in `lib.rs` after #66. PR #82 (open, not merged) re-renders it with the new ID (CDHDZX7V...) and the current code. The ID on the image must equal `contracts.routeLedger` in `config/testnet.json`. Re-render at the print size too if the slide is printed.
-**Waiting on:** PR #82 merged, then Yahya confirming this is the deployed code (the open line of #56).
+**Visual:** `docs/img/code-slide.png`. **Use it only after PR #163 merges.** On `main` it still shows the ID from the #90 redeploy (CDHDZX7V...); #139 (merged Fri Nov 13) redeployed again, and PR #163 re-renders the image with the current ID (CAGCZ3I7...). The three code blocks on it are still in `lib.rs`. The ID on the image must equal `contracts.routeLedger` in `config/testnet.json`. Re-render at the print size too if the slide is printed.
+**Waiting on:** PR #163 merged, then Yahya confirming this is the deployed code.
 
 ## 6. Money in 30 seconds, and go-to-market (30 s)
 

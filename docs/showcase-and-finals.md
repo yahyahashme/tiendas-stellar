@@ -157,7 +157,7 @@ Run this on the file you are about to upload, not on the draft.
 
 - [ ] **Every number has a `docs/facts.md` entry.** Read each slide and write the entry number next to each number. A number with no entry: take it out, or add the entry in a PR first. Nothing from the "Never use" list at the top of `docs/facts.md`.
 - [ ] **"$35 per $100" says "2019 survey"** wherever it appears (facts entry 10).
-- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Thu Nov 12 evening `docs/img/code-slide.png` on `main` still shows the ID from before the redeploy (it starts `CAPQ6ZDD`); the re-render is in PR #82 (open). `docs/demo-video.md`, `docs/one-pager.md` and the README table show the new ID.
+- [ ] **Any contract ID equals `contracts.routeLedger` in `config/testnet.json`.** Compare character by character, on the slide and on any image such as the code slide. Do not copy an ID from an old doc. As of Fri Nov 13 evening the live ID is `CAGCZ3I7…` (the #139 redeploy; `config/testnet.json` and the README table). `docs/img/code-slide.png` and `docs/demo-video.md` on `main` still show the previous one (`CDHDZX7V…`) until PR #163 merges; answer 6 of the submitted `docs/one-pager.md` keeps it on purpose, with a note from #163. Check again after any redeploy.
 - [ ] **No advisor names** anywhere, including slide notes. Roles only ("our startup advisor", "our technical and finance advisor").
 - [ ] **Fee sponsorship is worded as built, and no more.** Say "our sponsor account pays the network fees" (#113). Not "gasless", not "users never need XLM" (the demo accounts hold test XLM), and no passkeys: they are not built.
 - [ ] **No placeholders left:** search the file for `[`, `]`, "TBD", "PENDING" and `[NAME]`.
@@ -177,7 +177,7 @@ Questions get 3 minutes in total. Whether all four judges ask, or just some, is 
 |---|---|---|---|
 | SDF Senior Developer Advocate | **Contract questions** (source: issue #45). | `docs/security.md`; `contracts/route_ledger/src/lib.rs`; context §8.2; `docs/facts.md` entries 29 to 35 | |
 | Stellar ecosystem, founder of Stellarlight.xyz | The issue gives no hint. Our guess: how we use Stellar (USDC, Soroban, anchors) and why Stellar. | context §14 "Why Stellar?"; `docs/facts.md` entries 36 to 38 | |
-| SDF Payment Partners | **Risk #1 questions**: how cash becomes digital dollars (source: issue #45). | README "Risk #1"; context §6; `docs/research.md` (partner outreach, in PR #89, not merged yet) | |
+| SDF Payment Partners | **Risk #1 questions**: how cash becomes digital dollars (source: issue #45). | README "Risk #1"; context §6; `docs/research.md` (partner outreach, merged in #89) | |
 | Stellar Ecosystem Impact | **Impact questions** (source: issue #45). | context §9; `docs/facts.md` sections 1 to 12; what we heard from real people: `docs/research.md` (the walkthroughs, #30, are not logged yet) | |
 
 ## Done means (copied from the issues)
