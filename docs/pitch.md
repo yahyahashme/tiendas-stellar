@@ -221,7 +221,8 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 | MoneyGram lists cash-out in El Salvador, we found no cash-in (answer 3) | Entry 38: moneygram.com/stellar, "Cash-out is available in 170+ countries and territories and cash-in in 25+ countries"; its coverage data lists El Salvador as cash-out only | Matches entry 38's safe wording ("as far as we found"). "Cash-out only" is false in general. No person has looked at the map yet (entry 38). |
 | The product is called Relay, tagline "Paga tu ruta" (script, board title) | `lib/brand.ts` on `main`: `APP_NAME = "Relay"`, `TAGLINE = "Paga tu ruta"`; PR #100 | Matches |
 | The app is at relay-sv.vercel.app (board, under the QR) | `curl -sI https://relay-sv.vercel.app` answers 200 (Nov 12 night); the old tiendas-stellar address answers 307 to it. `public/qr-demo.png` decodes (macOS CoreImage) to `https://relay-sv.vercel.app/demo` | Matches |
-| Fee sponsorship and passkeys | Not on `main`. The diagram says "Will pay the network fees". | **Not claimed** in either text. |
+| Fee sponsorship (the diagram says "Pays the network fees (fee sponsorship)") | Built in #113 (merged Nov 13): when the sponsor key is set, every app transaction goes out inside a fee bump that the sponsor pays. #113 says the key is set in Vercel; we did not look at Vercel's settings. Checked Nov 13 on Horizon testnet (public): the test transaction in #113, `1491673f…`, has `fee_account` `GA4Q52…` (the sponsor) and source Tienda Rosa `GD2HWN…`; the sponsor's 8 most recent transactions (19:41 to 19:51 UTC) came from 6 different accounts, all successful. | **Claimable**, worded: "our sponsor account pays the network fees". Not "gasless" and not "users never need XLM": the demo accounts hold test XLM. |
+| Passkeys | Not on `main`. | **Not claimed** in either text. |
 
 ## 4. Never say
 
@@ -229,7 +230,7 @@ Do not cut "says Conamype", "(2019 survey)", or "KYC and KYB". The fact sheet an
 - "$5.7 trillion" as our market or what we can earn. It is a finance gap.
 - "85,265 neighbourhood shops" on its own (it counts eateries and street vendors), "85% owned by women" (say "most"), "62% of small businesses" (it is informal ones), "$35 per $100" without the year.
 - "8 in 10 pay suppliers in cash" or "mostly in cash" for El Salvador alone. The 80% covers four countries.
-- "Open source", "audited" (we did a contract safety review with tests, `docs/security.md`, not an outside audit), "fee sponsorship" or "passkeys" as built.
+- "Open source", "audited" (we did a contract safety review with tests, `docs/security.md`, not an outside audit) or "passkeys" as built. Fee sponsorship is built (#113, section 3): say "our sponsor account pays the network fees", not "gasless" or "users never need XLM".
 - That any bank, cash-in company or lender has agreed to anything.
 - To shop owners: "blockchain", "wallet", "crypto". Say "dólares digitales". To judges, say Stellar.
 
@@ -296,7 +297,7 @@ The eight questions from #39, each with an answer that fits **20 seconds (46 wor
 46 words, 19.7 s.
 - **Facts:** entry 14 (Transfer365: free, between bank accounts, more than $4 billion a month; say "more than 9 in 10", not 93% or 95.3%); entries 12 and 13 ("fewer than half of adults"); context §14 for the reasoning.
 - **Must include:** Transfer365 is free and good but needs an account; no credit or invoice records; a shared, checkable record; Stellar's own figures: final in about five seconds, fees "under a cent" (developers.stellar.org; stellar.org/solutions/cross-border-payments).
-- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), fee sponsorship and passkeys as built, or a dollar fee for Stellar (its own pages give conflicting USD figures; attribute it: "Stellar says ... fees under a cent").
+- **Never:** that cheaper transfers are our pitch, "open source" (say "public contract"), passkeys as built, "gasless" or "users never need XLM" (say "our sponsor account pays the network fees"), or a dollar fee for Stellar (its own pages give conflicting USD figures; attribute it: "Stellar says ... fees under a cent").
 
 ### 7. What do El Salvador's credit bureaus already cover? Do tiendas have DUNS numbers?
 
