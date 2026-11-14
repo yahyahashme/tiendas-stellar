@@ -127,8 +127,8 @@ export default function Home() {
           </h1>
           <p className="text-lead text-pretty">
             <T
-              es="Relay cambia el efectivo por dólares digitales cuando la tienda le paga el pedido a su distribuidora, y le da crédito a 7 días sin intereses que crece con cada pago a tiempo."
-              en="Relay replaces cash with digital dollars when a shop pays its distributor for stock, and gives it 7-day, zero-interest credit that grows with every on-time payment."
+              es="Relay cambia los pagos en efectivo por pagos en línea cuando una tienda compra mercadería. Nuestro propio sistema de crédito sube el límite de cada tienda con cada pago a tiempo."
+              en="Relay replaces cash payments with online transactions when a shop buys inventory. Our own credit system raises each shop's limit with every on-time payment."
             />
           </p>
         </div>
