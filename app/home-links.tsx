@@ -16,14 +16,21 @@ import { usePolling } from "@/lib/use-polling";
 // The parts of the home page that need the browser: who is signed in, and the demo's shops and drivers.
 // Everything else on the page is drawn on the server (app/page.tsx).
 
-/** "Entrar", or "Mi cuenta" once we know someone is signed in (#129). Same place either way. */
+/** "Crear cuenta" and "Entrar", or "Mi cuenta" once we know someone is signed in (#129). Same place either way. */
 export function AccountLink() {
   const { t } = useT();
   const [user, setUser] = useState<CurrentUser | null>(null);
   useEffect(() => {
     void getCurrentUser().then(setUser, () => setUser(null));
   }, []);
-  return user ? <NavLink href="/cuenta">{t("Mi cuenta", "My account")}</NavLink> : <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>;
+  if (user) return <NavLink href="/cuenta">{t("Mi cuenta", "My account")}</NavLink>;
+  // Signed out: both ways in, side by side. "Crear cuenta" asks shop or distributor next (/registro).
+  return (
+    <nav aria-label={t("Cuenta", "Account")} className="flex shrink-0 items-center gap-x-4">
+      <NavLink href="/registro">{t("Crear cuenta", "Create account")}</NavLink>
+      <NavLink href="/entrar">{t("Entrar", "Sign in")}</NavLink>
+    </nav>
+  );
 }
 
 /** Loads once. A load that fails says so and offers "Reintentar". */

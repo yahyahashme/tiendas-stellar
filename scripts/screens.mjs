@@ -155,7 +155,7 @@ const GROUPS = {
   ],
   auth: (() => {
     // The home page's first screen, on a 360x640 phone and on a 390x844 one: the logo and the sentence under the
-    // tagline. On a small phone the two ways to make an account come a scroll down, under the sentence that explains Relay.
+    // tagline. "Crear cuenta" and "Entrar" sit at the top right; the shop or distributor choice is on /registro.
     const fold = { selector: 'main svg[aria-label="Relay"], main h1 + p', count: 2 };
     // Mock data has no accounts, so a screen that asks the server "who is this?" would only show its way out.
     // Here the browser answers the page's questions itself (the 1st with the 1st value, and so on; the last one

@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
-import { ActionLink, ButtonLink } from "@/components/kit/button";
+import { ActionLink } from "@/components/kit/button";
 import { Paper } from "@/components/kit/paper";
 import { Logo } from "@/components/logo";
 import { TAGLINE, TAGLINE_EN } from "@/lib/brand";
 import { T } from "@/lib/i18n";
 import { AccountLink, DriverLinks, ShopLinks } from "./home-links";
 
-// The home page, top to bottom: the tagline and what Relay does, the two ways to make an account, the problem
+// The home page, top to bottom: "Crear cuenta" and "Entrar" at the top right (the shop or distributor choice is on
+// /registro), the tagline and what Relay does, the problem
 // in three figures, how it works (three steps joined by hand-drawn arrows), then the demo's three ways in.
 // The page is drawn on the server; only the words (two languages) and the demo's links wait for the browser
 // (app/home-links.tsx). The figures and their sources are in docs/facts.md (entries 1, 9 and 10).
@@ -110,14 +111,14 @@ function Role({ n, id, who, children, links }: { n: number; id: string; who: Rea
 export default function Home() {
   return (
     <main className={`mx-auto flex w-full max-w-[calc(28rem+2*var(--gutter))] flex-1 flex-col gap-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-1 min-[40rem]:max-w-[calc(64rem+2*var(--gutter))] min-[40rem]:gap-16 ${SIDE}`}>
-      <section className="grid gap-y-6 min-[40rem]:grid-cols-[minmax(0,36rem)_minmax(0,20rem)] min-[40rem]:items-end min-[40rem]:justify-between min-[40rem]:gap-x-[clamp(1.5rem,5vw,4rem)]">
-        <header className="flex min-h-12 items-center justify-between gap-3 min-[40rem]:col-span-2">
+      <section className="flex flex-col gap-y-6">
+        <header className="flex min-h-12 items-center justify-between gap-3">
           {/* 36 px tall; on the narrowest phone with the largest text it gives way to the link beside it. */}
           <Logo className="h-auto max-w-[7.5rem] min-w-0 flex-1" />
           <AccountLink />
         </header>
 
-        <div className="flex flex-col gap-3 min-[40rem]:pt-6">
+        <div className="flex max-w-[44rem] flex-col gap-3 min-[40rem]:pt-6">
           <p className={KICKER}>
             <T es="Pagos y crédito para tiendas de barrio · El Salvador" en="Payments and credit for neighbourhood shops · El Salvador" />
           </p>
@@ -132,34 +133,6 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <h2 className={KICKER}>
-            <T es="Crear una cuenta" en="Create an account" />
-          </h2>
-          <ButtonLink
-            href="/registro/tienda"
-            hint={
-              <span className="short:hidden">
-                <T es="Compro a distribuidores" en="I buy from distributors" />
-              </span>
-            }
-          >
-            <T es="Soy tienda" en="I'm a shop" />
-          </ButtonLink>
-          <ButtonLink
-            href="/registro/distribuidora"
-            hint={
-              <span className="short:hidden">
-                <T es="Vendo y entrego a tiendas" en="I sell and deliver to shops" />
-              </span>
-            }
-          >
-            <T es="Soy distribuidora" en="I'm a distributor" />
-          </ButtonLink>
-          <p className="text-label text-muted text-pretty">
-            <T es="Sin comisiones para la tienda." en="No fees for the shop." />
-          </p>
-        </div>
       </section>
 
       <section aria-labelledby="problema" className="flex flex-col gap-5">
